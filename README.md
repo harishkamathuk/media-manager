@@ -99,7 +99,13 @@ Keep `.env` local to your machine. It is ignored by Git and should not be commit
 
 ### Initialize the database schema
 
-Apply the Alembic migrations before starting the API:
+Before running Alembic, ensure the PostgreSQL database referenced by `DATABASE_URL` exists. Create it if needed:
+
+```bash
+createdb media_manager_db
+```
+
+Verify that `DATABASE_URL` in `.env` is correct and points to an accessible PostgreSQL instance. Then apply the Alembic migrations:
 
 ```bash
 alembic upgrade head
