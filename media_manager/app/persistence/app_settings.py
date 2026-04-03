@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import update
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -229,6 +230,20 @@ def _normalize_path_string(raw: str, *, field_name: str) -> str:
     return expanded
 
 
+def _redact_history_payload(definition: AppSettingDefinition, payload: dict[str, object] | None) -> dict[str, object] | None:
+    if payload is None:
+        return None
+    if not definition.is_sensitive:
+        return dict(payload)
+    return {"value": "<REDACTED>"}
+
+
+def _raise_concurrent_create_conflict(key: str) -> None:
+    raise AppSettingsVersionConflictError(
+        f"App setting version conflict for {key}: expected 0, current created concurrently."
+    )
+
+
 class AppSettingsService:
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         self._session_factory = session_factory
@@ -281,12 +296,15 @@ class AppSettingsService:
                     source=source,
                 )
                 session.add(row)
-                session.flush()
+                try:
+                    session.flush()
+                except IntegrityError as exc:
+                    _raise_concurrent_create_conflict(key)
                 session.add(
                     AppSettingHistory(
                         key=key,
                         old_value_json=None,
-                        new_value_json=payload,
+                        new_value_json=_redact_history_payload(definition, payload),
                         changed_by=updated_by,
                         reason=reason,
                         source=source,
@@ -319,8 +337,8 @@ class AppSettingsService:
             session.add(
                 AppSettingHistory(
                     key=key,
-                    old_value_json=old_value_json,
-                    new_value_json=payload,
+                    old_value_json=_redact_history_payload(definition, old_value_json),
+                    new_value_json=_redact_history_payload(definition, payload),
                     changed_by=updated_by,
                     reason=reason,
                     source=source,
@@ -344,28 +362,35 @@ class AppSettingsService:
                     continue
                 value = self._parse_env_value(definition, strict=True)
                 payload = {"value": value}
-                session.add(
-                    AppSetting(
-                        key=key,
-                        value_json=payload,
-                        value_type=definition.value_type,
-                        category=definition.category,
-                        scope="global",
-                        is_sensitive=definition.is_sensitive,
-                        updated_by="system:bootstrap_env",
-                        source="bootstrap_env",
-                    )
-                )
-                session.add(
-                    AppSettingHistory(
-                        key=key,
-                        old_value_json=None,
-                        new_value_json=payload,
-                        changed_by="system:bootstrap_env",
-                        reason=None,
-                        source="bootstrap_env",
-                    )
-                )
+                try:
+                    with session.begin_nested():
+                        session.add(
+                            AppSetting(
+                                key=key,
+                                value_json=payload,
+                                value_type=definition.value_type,
+                                category=definition.category,
+                                scope="global",
+                                is_sensitive=definition.is_sensitive,
+                                updated_by="system:bootstrap_env",
+                                source="bootstrap_env",
+                            )
+                        )
+                        session.flush()
+                        session.add(
+                            AppSettingHistory(
+                                key=key,
+                                old_value_json=None,
+                                new_value_json=_redact_history_payload(definition, payload),
+                                changed_by="system:bootstrap_env",
+                                reason=None,
+                                source="bootstrap_env",
+                            )
+                        )
+                        session.flush()
+                except IntegrityError:
+                    skipped.append(key)
+                    continue
                 inserted.append(key)
 
         return BootstrapResult(inserted_keys=tuple(inserted), skipped_keys=tuple(skipped))
@@ -425,6 +450,8 @@ class AppSettingsService:
         if definition.value_type == "path":
             return _normalize_path_string(str(value), field_name=key)
         if definition.value_type == "float":
+            if isinstance(value, bool):
+                raise AppSettingsValidationError(f"{key} must be a float.")
             try:
                 parsed = float(value)
             except (TypeError, ValueError) as exc:
@@ -437,6 +464,8 @@ class AppSettingsService:
                 raise AppSettingsValidationError(f"{key} must be > 0.")
             return float(parsed)
         if definition.value_type == "int":
+            if isinstance(value, bool):
+                raise AppSettingsValidationError(f"{key} must be an integer.")
             try:
                 parsed = int(value)
             except (TypeError, ValueError) as exc:

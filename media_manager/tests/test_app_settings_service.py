@@ -3,9 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
 from media_manager.app.core.errors import AppSettingsValidationError, AppSettingsVersionConflictError
 from media_manager.app.persistence.app_settings import AppSettingsService, _CATALOG
+from media_manager.app.persistence.models import AppSetting, AppSettingHistory
 
 
 def test_set_value_validates_canonical_policy_enum(session_factory) -> None:
@@ -62,6 +65,28 @@ def test_set_value_rejects_non_positive_cache_ttl(session_factory) -> None:
         )
 
 
+def test_set_value_rejects_boolean_for_numeric_settings(session_factory) -> None:
+    service = AppSettingsService(session_factory)
+
+    with pytest.raises(AppSettingsValidationError):
+        service.set_value(
+            "canonical_read_cache_ttl_seconds",
+            True,
+            updated_by="tester",
+            source="test",
+            expected_version=0,
+        )
+
+    with pytest.raises(AppSettingsValidationError):
+        service.set_value(
+            "metadata_upsert_batch_size",
+            False,
+            updated_by="tester",
+            source="test",
+            expected_version=0,
+        )
+
+
 def test_set_value_uses_optimistic_concurrency(session_factory) -> None:
     service = AppSettingsService(session_factory)
 
@@ -91,6 +116,64 @@ def test_set_value_uses_optimistic_concurrency(session_factory) -> None:
             updated_by="tester",
             source="test",
             expected_version=created.version,
+        )
+
+
+def test_sensitive_history_payloads_are_redacted(session_factory) -> None:
+    service = AppSettingsService(session_factory)
+
+    created = service.set_value(
+        "db_reset_challenge_word",
+        "media-manager",
+        updated_by="tester",
+        source="test",
+        expected_version=0,
+    )
+    service.set_value(
+        "db_reset_challenge_word",
+        "rotated-secret",
+        updated_by="tester",
+        source="test",
+        expected_version=created.version,
+    )
+
+    with session_factory() as session:
+        history = (
+            session.query(AppSettingHistory)
+            .filter(AppSettingHistory.key == "db_reset_challenge_word")
+            .order_by(AppSettingHistory.id.asc())
+            .all()
+        )
+
+    assert len(history) == 2
+    assert history[0].old_value_json is None
+    assert history[0].new_value_json == {"value": "<REDACTED>"}
+    assert history[1].old_value_json == {"value": "<REDACTED>"}
+    assert history[1].new_value_json == {"value": "<REDACTED>"}
+
+
+def test_set_value_translates_concurrent_create_conflict(session_factory, monkeypatch) -> None:
+    service = AppSettingsService(session_factory)
+    original_flush = Session.flush
+    triggered = {"value": False}
+
+    def flaky_flush(self, *args, **kwargs):
+        if not triggered["value"]:
+            for obj in self.new:
+                if isinstance(obj, AppSetting) and obj.key == "video_thumbnails_enabled":
+                    triggered["value"] = True
+                    raise IntegrityError("insert", params=None, orig=RuntimeError("duplicate key"))
+        return original_flush(self, *args, **kwargs)
+
+    monkeypatch.setattr(Session, "flush", flaky_flush)
+
+    with pytest.raises(AppSettingsVersionConflictError):
+        service.set_value(
+            "video_thumbnails_enabled",
+            True,
+            updated_by="tester",
+            source="test",
+            expected_version=0,
         )
 
 
@@ -132,6 +215,15 @@ def test_bootstrap_from_env_parses_current_runtime_values(session_factory, monke
     assert service.get_setting("canonical_read_cache_enabled").value is True
     assert service.get_setting("canonical_read_cache_ttl_seconds").value == 30.0
     assert service.get_setting("video_thumbnail_cache_dir").value == str((tmp_path / "thumbs").resolve())
+
+    with session_factory() as session:
+        history = (
+            session.query(AppSettingHistory)
+            .filter(AppSettingHistory.key == "db_reset_challenge_word")
+            .one()
+        )
+
+    assert history.new_value_json == {"value": "<REDACTED>"}
 
 
 def test_bootstrap_is_idempotent_and_skips_existing_rows(session_factory, monkeypatch, tmp_path: Path) -> None:

@@ -13,6 +13,7 @@ from __future__ import annotations
 import inspect
 import os
 import random
+import threading
 import uuid
 from dataclasses import dataclass
 from time import perf_counter
@@ -127,13 +128,15 @@ def _env_cache_ttl(session: Session | None = None) -> float:
 
 # optimization-only path: disabled by default, read results only.
 _READ_CACHE = TTLCache[str, list[CanonicalMetadataRow]](ttl_seconds=_env_cache_ttl())
+_READ_CACHE_LOCK = threading.Lock()
 
 
 def _ensure_cache_ttl(session: Session) -> None:
     global _READ_CACHE
     ttl_seconds = _env_cache_ttl(session)
-    if abs(getattr(_READ_CACHE, "_ttl_seconds", ttl_seconds) - ttl_seconds) > 1e-9:
-        _READ_CACHE = TTLCache(ttl_seconds=ttl_seconds)
+    with _READ_CACHE_LOCK:
+        if abs(getattr(_READ_CACHE, "_ttl_seconds", ttl_seconds) - ttl_seconds) > 1e-9:
+            _READ_CACHE = TTLCache(ttl_seconds=ttl_seconds)
 
 
 def _rows_to_dataclass(rows: list[dict[str, Any]]) -> list[CanonicalMetadataRow]:
@@ -210,8 +213,9 @@ def fetch_canonical_metadata(
     # optimization-only path: read cache never affects decision semantics.
     if cache_enabled:
         _ensure_cache_ttl(session)
-        cached = _READ_CACHE.get(cache_key)
-        cache_stats = _READ_CACHE.stats()
+        with _READ_CACHE_LOCK:
+            cached = _READ_CACHE.get(cache_key)
+            cache_stats = _READ_CACHE.stats()
         record_canonical_read_cache_metrics(
             run_id=metrics_run_id,
             source=source_label,
@@ -225,7 +229,8 @@ def fetch_canonical_metadata(
 
     rows = _query_rows(session, use_mv=use_mv, sample_size=sample_size)
     if cache_enabled:
-        _READ_CACHE.set(cache_key, rows)
+        with _READ_CACHE_LOCK:
+            _READ_CACHE.set(cache_key, rows)
     return rows
 
 
