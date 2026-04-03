@@ -165,6 +165,10 @@ curl -X POST http://127.0.0.1:8000/api/apply \
 source .venv/bin/activate
 cp .env.sample .env
 # Edit .env with PostgreSQL connection details first.
+# IMPORTANT: Create the PostgreSQL database before running migrations.
+# For example, if using the default media_manager_db:
+#   createdb media_manager_db
+# Ensure the database and connection details in .env match before proceeding.
 
 alembic upgrade head
 media-manager-api &
@@ -209,6 +213,7 @@ Use these docs for operational details instead of relying on the README for endp
 - [Observability guide](documentation/operator-guide/observability.md)
 
 Internal note:
+
 - The supported benchmark interface is the admin API plus `media-manager-benchmark-worker`. The old `tools/perf/*` scripts have been removed.
 
 ## Project structure

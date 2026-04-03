@@ -22,6 +22,14 @@ For all variables and defaults, see [Environment Variables](../reference/environ
 
 ## 2. Initialize The Database Schema
 
+First, ensure the PostgreSQL database referenced by `DATABASE_URL` exists. Create it if needed:
+
+```bash
+createdb media_manager
+```
+
+Then run the migrations:
+
 ```bash
 alembic upgrade head
 ```
