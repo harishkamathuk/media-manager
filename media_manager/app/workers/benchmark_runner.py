@@ -22,6 +22,14 @@ def _flag_enabled(name: str) -> bool:
     return (os.getenv(name, "") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _runtime_setting(
+    key: str,
+    *,
+    session_factory,
+):
+    return AppSettingsService(session_factory).resolve_runtime_value(key, logger=LOGGER)
+
+
 def run_once() -> bool:
     load_environment()
     engine = create_db_engine()
@@ -30,7 +38,7 @@ def run_once() -> bool:
     operation_runs = OperationRunService(session_factory)
     operation_run_id: UUID | None = None
     try:
-        stale_after_s = max(1.0, float(os.getenv("MEDIA_MANAGER_BENCHMARK_STALE_AFTER_SECONDS", "900")))
+        stale_after_s = max(1.0, float(_runtime_setting("benchmark_stale_after_seconds", session_factory=session_factory)))
         for abandoned in benchmark_runs.abandon_stale_running(stale_after=timedelta(seconds=stale_after_s)):
             operation_runs.fail(
                 UUID(abandoned.operation_run_id),
@@ -117,11 +125,11 @@ def run_forever() -> None:
 
 
 def main() -> None:
-    if not _flag_enabled("MEDIA_MANAGER_BENCHMARKS_ENABLED"):
-        raise SystemExit("Benchmarks are disabled. Set MEDIA_MANAGER_BENCHMARKS_ENABLED=true to run the worker.")
     engine = create_db_engine()
     session_factory = create_session_factory(engine)
     try:
+        if not bool(_runtime_setting("benchmarks_enabled", session_factory=session_factory)):
+            raise SystemExit("Benchmarks are disabled. Set MEDIA_MANAGER_BENCHMARKS_ENABLED=true to run the worker.")
         mode = str(AppSettingsService(session_factory).resolve_runtime_value("benchmark_worker_mode", logger=LOGGER))
     finally:
         engine.dispose()
