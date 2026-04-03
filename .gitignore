@@ -67,7 +67,6 @@ media-manager.db-wal
 .env.local
 .env.*
 !.env.sample
-!.env.example
 .envrc
 
 # Benchmark artifacts
