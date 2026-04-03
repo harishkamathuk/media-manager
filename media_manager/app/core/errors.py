@@ -104,6 +104,14 @@ class PolicySettingsVersionConflictError(MediaManagerError):
     """Raised when a policy update is based on a stale version."""
 
 
+class AppSettingsValidationError(MediaManagerError):
+    """Raised when app settings payload fails deterministic validation."""
+
+
+class AppSettingsVersionConflictError(MediaManagerError):
+    """Raised when an app setting update is based on a stale version."""
+
+
 class OwnerContextOverrideRequiredError(MediaManagerError):
     """Raised when an ingest/plan request conflicts with stored owner/context values."""
 

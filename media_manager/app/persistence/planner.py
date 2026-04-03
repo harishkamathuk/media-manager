@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,6 +30,7 @@ from media_manager.app.core.path_resolver import (
 )
 from media_manager.app.core.state_machine import RunState, validate_transition
 from media_manager.app.observability import record_planner_metrics, record_planner_stage_duration
+from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.decision_intelligence import build_decision_traces, write_decision_trace_artifact
 from media_manager.app.persistence.discovery import process_all_discovery_in_session, process_discovery_paths_in_session
@@ -483,12 +483,9 @@ class PlanningService:
             raise
 
     def _get_metadata_batch_size(self) -> int:
-        raw = os.getenv("METADATA_UPSERT_BATCH_SIZE", "1000")
-        try:
-            value = int(raw)
-        except ValueError:
-            return 1000
-        return min(max(value, 1), 50_000)
+        return int(
+            AppSettingsService(self._session_factory).resolve_runtime_value("metadata_upsert_batch_size", logger=logger)
+        )
 
     def _normalize_path_key(self, raw_path: str, path_key_cache: dict[str, str]) -> str:
         cached = path_key_cache.get(raw_path)

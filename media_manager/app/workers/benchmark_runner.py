@@ -9,6 +9,7 @@ from datetime import timedelta
 from uuid import UUID
 
 from media_manager.app.core.config import load_environment
+from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.admin_benchmarks import run_discovery_benchmark, run_metadata_benchmark
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 from media_manager.app.persistence.benchmark_runs import BenchmarkRunStore
@@ -101,7 +102,14 @@ def run_once() -> bool:
 
 
 def run_forever() -> None:
-    poll_interval_s = float(os.getenv("MEDIA_MANAGER_BENCHMARK_POLL_INTERVAL_SECONDS", "2.0"))
+    engine = create_db_engine()
+    session_factory = create_session_factory(engine)
+    try:
+        poll_interval_s = float(
+            AppSettingsService(session_factory).resolve_runtime_value("benchmark_poll_interval_seconds", logger=LOGGER)
+        )
+    finally:
+        engine.dispose()
     while True:
         did_work = run_once()
         if not did_work:
@@ -111,7 +119,12 @@ def run_forever() -> None:
 def main() -> None:
     if not _flag_enabled("MEDIA_MANAGER_BENCHMARKS_ENABLED"):
         raise SystemExit("Benchmarks are disabled. Set MEDIA_MANAGER_BENCHMARKS_ENABLED=true to run the worker.")
-    mode = (os.getenv("MEDIA_MANAGER_BENCHMARK_WORKER_MODE", "forever") or "").strip().lower()
+    engine = create_db_engine()
+    session_factory = create_session_factory(engine)
+    try:
+        mode = str(AppSettingsService(session_factory).resolve_runtime_value("benchmark_worker_mode", logger=LOGGER))
+    finally:
+        engine.dispose()
     if mode == "once":
         run_once()
         return
