@@ -26,15 +26,15 @@ This is a persistence/storage migration spec, not an API contract migration spec
 
 This inventory is grounded in the current implementation:
 
-- [media_manager/app/persistence/models.py](/home/harish/projects/media-manager/media_manager/app/persistence/models.py)
-- [media_manager/app/persistence/phase3_actions.py](/home/harish/projects/media-manager/media_manager/app/persistence/phase3_actions.py)
-- [media_manager/app/persistence/apply.py](/home/harish/projects/media-manager/media_manager/app/persistence/apply.py)
-- [media_manager/app/persistence/policy_settings.py](/home/harish/projects/media-manager/media_manager/app/persistence/policy_settings.py)
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
-- [migrations/versions/0024_integrity_and_duplicate_reclaim.py](/home/harish/projects/media-manager/migrations/versions/0024_integrity_and_duplicate_reclaim.py)
-- [migrations/versions/0025_phase3_reclaim_and_quarantine_records.py](/home/harish/projects/media-manager/migrations/versions/0025_phase3_reclaim_and_quarantine_records.py)
-- [migrations/versions/0026_recycle_bin_soft_delete.py](/home/harish/projects/media-manager/migrations/versions/0026_recycle_bin_soft_delete.py)
-- [migrations/versions/0028_phase5_integrity_reclaim_policy_controls.py](/home/harish/projects/media-manager/migrations/versions/0028_phase5_integrity_reclaim_policy_controls.py)
+- `media_manager/app/persistence/models.py`
+- `media_manager/app/persistence/phase3_actions.py`
+- `media_manager/app/persistence/apply.py`
+- `media_manager/app/persistence/policy_settings.py`
+- `media_manager/app/persistence/operator_console.py`
+- `migrations/versions/0024_integrity_and_duplicate_reclaim.py`
+- `migrations/versions/0025_phase3_reclaim_and_quarantine_records.py`
+- `migrations/versions/0026_recycle_bin_soft_delete.py`
+- `migrations/versions/0028_phase5_integrity_reclaim_policy_controls.py`
 
 ### Current persisted duplicate-removal entities
 

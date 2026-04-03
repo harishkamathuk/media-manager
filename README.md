@@ -4,6 +4,8 @@
 
 The project is designed for restart safety, idempotent operations, and operator visibility. It is built around a FastAPI-backed application service, an HTTP-first operator console, structured documentation, and observability hooks for production-style workflows.
 
+Status: early-stage and still evolving toward a broader public release. Expect active changes in workflows, operator UX, and documentation while the core safety model remains the anchor.
+
 ## Key capabilities
 
 - Deterministic planning that produces reproducible planned actions for identical inputs.
@@ -78,7 +80,7 @@ pip install -e ".[docs]"
 
 ### Configure the environment
 
-Use the repository template:
+Use the committed example template to create a local-only runtime file:
 
 ```bash
 cp .env.sample .env
@@ -92,6 +94,16 @@ TEST_DATABASE_URL='postgresql+psycopg://user:password@localhost:5432/media_manag
 ```
 
 `DATABASE_URL` is required for runtime operation. Full variable reference: [documentation/reference/environment-variables.md](documentation/reference/environment-variables.md).
+
+Keep `.env` local to your machine. It is ignored by Git and should not be committed.
+
+### Initialize the database schema
+
+Apply the Alembic migrations before starting the API:
+
+```bash
+alembic upgrade head
+```
 
 ### Start the API service
 
@@ -154,6 +166,7 @@ source .venv/bin/activate
 cp .env.sample .env
 # Edit .env with PostgreSQL connection details first.
 
+alembic upgrade head
 media-manager-api &
 # Review the API response and note data.result.run_id from the plan request.
 
@@ -240,13 +253,15 @@ Run tests:
 ./.venv/bin/python -m pytest
 ```
 
+Tests expect `TEST_DATABASE_URL` to point at a PostgreSQL database prepared for local test runs.
+
 Build the docs:
 
 ```bash
 ./.venv/bin/python -m mkdocs build --strict
 ```
 
-Contribution workflow, branch conventions, review expectations, and merge policy are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+Contribution workflow, branch conventions, review expectations, and merge policy are documented in [CONTRIBUTING.md](CONTRIBUTING.md). The public contribution process is still settling; use the existing docs as the current baseline rather than a final external contributor guide.
 
 ## Safety model and invariants
 

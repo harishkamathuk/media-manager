@@ -46,9 +46,11 @@ site/
 # mypy
 .mypy_cache/
 .dmypy.json
+.ruff_cache/
 
 # Coverage reports
 .coverage
+.coverage.*
 htmlcov/
 .pytest_cache/
 nosetests.xml
@@ -65,10 +67,15 @@ media-manager.db-wal
 .env.local
 .env.*
 !.env.sample
+!.env.example
+.envrc
 
 # Benchmark artifacts
 artifacts/perf/
 artifacts/
+
+# Frontend build output
+operator_console/gui_app/dist/
 
 # Local manual-QA media fixture output
 testdata/manual-qa/

@@ -857,8 +857,8 @@ def test_ingest_accepts_wrapped_quotes_path(tmp_path: Path, monkeypatch: pytest.
 
 
 def test_ingest_accepts_mnt_uppercase_drive_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    canonical = Path("/mnt/c/Users/micro/Documents/Media-Manager-Test")
-    uppercase = Path("/mnt/C/Users/micro/Documents/Media-Manager-Test")
+    canonical = Path("/mnt/c/Users/example/Documents/MediaManagerTest")
+    uppercase = Path("/mnt/C/Users/example/Documents/MediaManagerTest")
 
     def _fake_exists(self: Path) -> bool:
         return str(self) == str(canonical)
@@ -885,8 +885,8 @@ def test_ingest_accepts_mnt_uppercase_drive_path(monkeypatch: pytest.MonkeyPatch
 
 
 def test_ingest_accepts_windows_drive_path_via_wsl_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
-    mapped = Path("/mnt/c/Users/micro/Documents/Media-Manager-Test")
-    windows = "C:\\Users\\micro\\Documents\\Media-Manager-Test"
+    mapped = Path("/mnt/c/Users/example/Documents/MediaManagerTest")
+    windows = "C:\\Users\\example\\Documents\\MediaManagerTest"
 
     def _fake_exists(self: Path) -> bool:
         return str(self) == str(mapped)
@@ -968,8 +968,8 @@ def test_plan_accepts_wrapped_quotes_path(tmp_path: Path, monkeypatch: pytest.Mo
 
 
 def test_media_file_validate_accepts_windows_drive_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    mapped = Path("/mnt/c/Users/micro/Documents/Media-Manager-Test")
-    windows = "C:\\Users\\micro\\Documents\\Media-Manager-Test"
+    mapped = Path("/mnt/c/Users/example/Documents/MediaManagerTest")
+    windows = "C:\\Users\\example\\Documents\\MediaManagerTest"
 
     def _fake_exists(self: Path) -> bool:
         return str(self) == str(mapped)

@@ -20,7 +20,13 @@ TEST_DATABASE_URL='postgresql+psycopg://user:password@localhost:5432/media_manag
 `media-manager-api` loads repo `.env` automatically.  
 For all variables and defaults, see [Environment Variables](../reference/environment-variables.md).
 
-## 2. Select Input Path
+## 2. Initialize The Database Schema
+
+```bash
+alembic upgrade head
+```
+
+## 3. Select Input Path
 
 Choose a file or directory with media files.
 
@@ -30,13 +36,13 @@ Example:
 INPUT_PATH=/path/to/media
 ```
 
-## 3. Start The API
+## 4. Start The API
 
 ```bash
 media-manager-api
 ```
 
-## 4. Plan
+## 5. Plan
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/plan \
@@ -52,7 +58,7 @@ Expected response:
 
 Save the emitted `run_id` for apply.
 
-## 5. Apply Planned Actions
+## 6. Apply Planned Actions
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/apply \
@@ -60,7 +66,7 @@ curl -X POST http://127.0.0.1:8000/api/apply \
   -d '{"run_id":"<RUN_ID>","collision_mode":"rename"}'
 ```
 
-## 6. Verify
+## 7. Verify
 
 - Filesystem changes should match planned actions.
 - API response should show no unexpected errors.

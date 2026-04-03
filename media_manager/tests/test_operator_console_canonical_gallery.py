@@ -722,8 +722,8 @@ def test_resolve_media_source_supports_windows_path_wsl_fallback(
     now = datetime(2026, 3, 2, 16, 0, tzinfo=UTC)
     content_id = UUID("90000000-0000-0000-0000-000000000001")
     file_instance_id = UUID("91000000-0000-0000-0000-000000000001")
-    windows_path = r"C:\Users\micro\Documents\Better Up\Media-Manager-Test\PIC\gallery_frame.jpg"
-    mapped_path = tmp_path / "mnt" / "c" / "Users" / "micro" / "Documents" / "Better Up" / "Media-Manager-Test" / "PIC" / "gallery_frame.jpg"
+    windows_path = r"C:\Users\example\Documents\MediaManagerTest\PIC\gallery_frame.jpg"
+    mapped_path = tmp_path / "mnt" / "c" / "Users" / "example" / "Documents" / "MediaManagerTest" / "PIC" / "gallery_frame.jpg"
     mapped_path.parent.mkdir(parents=True, exist_ok=True)
     mapped_path.write_bytes(b"img")
 
