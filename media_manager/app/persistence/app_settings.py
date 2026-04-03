@@ -28,8 +28,6 @@ DB_RESET_CHALLENGE_WORD_DEFAULT = "media-manager"
 TRUTHY_VALUES = frozenset({"1", "true", "yes", "on"})
 RUNTIME_DUAL_READ_KEYS = frozenset(
     {
-        "directory_picker_enabled",
-        "directory_picker_roots",
         "video_thumbnails_enabled",
         "video_thumbnail_cache_dir",
         "canonical_read_cache_enabled",

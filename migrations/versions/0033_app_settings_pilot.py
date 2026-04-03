@@ -11,7 +11,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0033_app_settings_pilot"
-down_revision = "0032_drop_duplicate_reclaim_record_legacy_columns"
+down_revision = "0032"
 branch_labels = None
 depends_on = None
 

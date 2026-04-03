@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from pathlib import Path
 
 import pytest
@@ -12,15 +11,21 @@ from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.workers import benchmark_runner
 
 
-def test_materialized_reads_uses_env_fallback_with_warning(session_factory, caplog, monkeypatch) -> None:
+def test_materialized_reads_uses_env_fallback_with_warning(session_factory, monkeypatch) -> None:
     monkeypatch.setenv("CANONICAL_READ_CACHE_ENABLED", "true")
     monkeypatch.setenv("CANONICAL_READ_CACHE_TTL_SECONDS", "45")
+    calls: list[str] = []
+    monkeypatch.setattr(
+        materialized_reads.LOGGER,
+        "warning",
+        lambda message, *args, **kwargs: calls.append(str(message)),
+    )
 
-    with session_factory() as session, caplog.at_level(logging.WARNING):
+    with session_factory() as session:
         assert materialized_reads._env_cache_enabled(session) is True
         assert materialized_reads._env_cache_ttl(session) == 45.0
 
-    assert "using environment fallback" in caplog.text
+    assert any("using environment fallback" in line for line in calls)
 
 
 def test_materialized_reads_prefers_db_settings(session_factory, monkeypatch) -> None:
@@ -41,13 +46,12 @@ def test_materialized_reads_prefers_db_settings(session_factory, monkeypatch) ->
         assert materialized_reads._env_cache_ttl(session) == 12.5
 
 
-def test_operator_console_video_thumbnail_settings_dual_read(session_factory, caplog, monkeypatch, tmp_path: Path) -> None:
+def test_operator_console_video_thumbnail_settings_dual_read(session_factory, monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setenv("MEDIA_MANAGER_VIDEO_THUMBNAILS_ENABLED", "false")
     monkeypatch.setenv("MEDIA_MANAGER_VIDEO_THUMBNAIL_CACHE_DIR", str((tmp_path / "env-thumbs").resolve()))
 
-    with caplog.at_level(logging.WARNING):
-        assert _video_thumbnails_enabled(session_factory) is False
-        assert _video_thumbnail_cache_dir(session_factory) == (tmp_path / "env-thumbs").resolve()
+    assert _video_thumbnails_enabled(session_factory) is False
+    assert _video_thumbnail_cache_dir(session_factory) == (tmp_path / "env-thumbs").resolve()
 
     service = AppSettingsService(session_factory)
     service.set_value("video_thumbnails_enabled", True, updated_by="tester", source="test", expected_version=0)
@@ -63,12 +67,11 @@ def test_operator_console_video_thumbnail_settings_dual_read(session_factory, ca
     assert _video_thumbnail_cache_dir(session_factory) == (tmp_path / "db-thumbs").resolve()
 
 
-def test_planner_metadata_batch_size_dual_read(session_factory, caplog, monkeypatch) -> None:
+def test_planner_metadata_batch_size_dual_read(session_factory, monkeypatch) -> None:
     planner = PlanningService(session_factory)
     monkeypatch.setenv("METADATA_UPSERT_BATCH_SIZE", "2500")
 
-    with caplog.at_level(logging.WARNING):
-        assert planner._get_metadata_batch_size() == 2500
+    assert planner._get_metadata_batch_size() == 2500
 
     AppSettingsService(session_factory).set_value(
         "metadata_upsert_batch_size",
@@ -104,21 +107,26 @@ def test_benchmark_runner_main_uses_db_first_worker_mode(
 
 
 def test_benchmark_runner_main_warns_and_falls_back_to_env_worker_mode(
-    session_factory, test_database_url: str, monkeypatch, caplog
+    session_factory, test_database_url: str, monkeypatch
 ) -> None:
     monkeypatch.setenv("DATABASE_URL", test_database_url)
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARKS_ENABLED", "true")
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_WORKER_MODE", "once")
-
     calls: list[str] = []
-    monkeypatch.setattr(benchmark_runner, "run_once", lambda: calls.append("once") or False)
-    monkeypatch.setattr(benchmark_runner, "run_forever", lambda: calls.append("forever"))
+    monkeypatch.setattr(
+        benchmark_runner.LOGGER,
+        "warning",
+        lambda message, *args, **kwargs: calls.append(str(message)),
+    )
 
-    with caplog.at_level(logging.WARNING):
-        benchmark_runner.main()
+    run_calls: list[str] = []
+    monkeypatch.setattr(benchmark_runner, "run_once", lambda: run_calls.append("once") or False)
+    monkeypatch.setattr(benchmark_runner, "run_forever", lambda: run_calls.append("forever"))
 
-    assert calls == ["once"]
-    assert "using environment fallback" in caplog.text
+    benchmark_runner.main()
+
+    assert run_calls == ["once"]
+    assert any("using environment fallback" in line for line in calls)
 
 
 def test_benchmark_runner_run_forever_uses_db_first_poll_interval(
