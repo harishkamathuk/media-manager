@@ -288,15 +288,15 @@ This matters for code changes, operational tooling, and documentation that descr
 
 ## License
 
-This repository currently uses the license in [LICENSE](LICENSE): Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (`CC BY-NC-ND 4.0`).
+This repository is licensed under the [MIT License](LICENSE).
 
 In practical terms, that means:
 
-- you may view and share the repository for non-commercial purposes
-- commercial use is not permitted without separate permission
-- derivative works and modifications are not permitted without separate permission
+- you may use, copy, modify, merge, publish, distribute, sublicense, and sell the software
+- you must keep the copyright and license notice with substantial portions of the software
+- the software is provided "as is", without warranty
 
-Review the full license text before reuse, redistribution, or contribution planning. This repository is publicly accessible, but the current license is more restrictive than a typical OSI-approved open source license.
+Review the full license text in [LICENSE](LICENSE) for the exact terms.
 
 ## Status and roadmap
 
