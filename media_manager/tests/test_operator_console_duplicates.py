@@ -554,8 +554,8 @@ def test_resolve_thumbnail_source_supports_windows_path_wsl_fallback(
     now = datetime(2026, 3, 1, 16, 0, tzinfo=UTC)
     content_id = UUID("12121212-3434-5656-7878-909090909090")
     file_instance_id = UUID("21212121-4343-6565-8787-101010101010")
-    windows_style_path = r"C:\Users\micro\Documents\Better Up\Media-Manager-Test\PIC\harishkamathuk - Personal Chapters — 2021-09-13_105647.JPG"
-    mapped_path = tmp_path / "mnt" / "c" / "Users" / "micro" / "Documents" / "Better Up" / "Media-Manager-Test" / "PIC" / "harishkamathuk - Personal Chapters — 2021-09-13_105647.JPG"
+    windows_style_path = r"C:\Users\example\Documents\MediaManagerTest\PIC\sample-album-2021-09-13_105647.JPG"
+    mapped_path = tmp_path / "mnt" / "c" / "Users" / "example" / "Documents" / "MediaManagerTest" / "PIC" / "sample-album-2021-09-13_105647.JPG"
     mapped_path.parent.mkdir(parents=True, exist_ok=True)
     mapped_path.write_bytes(b"jpeg-data")
 

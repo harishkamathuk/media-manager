@@ -14,7 +14,7 @@ The current duplicate operator experience exposes:
 
 That gives the operator raw fragments, but not a system recommendation.
 
-Today the duplicate group read model in [operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py) exposes:
+Today the duplicate group read model in `media_manager/app/persistence/operator_console.py` exposes:
 
 - `review_status`
 - `reclaim_status`
@@ -672,7 +672,7 @@ For duplicate group reads, add derived fields such as:
 - `suspect_extra_count`
 - `broken_extra_count`
 
-These should be computed in service/read paths close to current duplicate group assembly in [operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py).
+These should be computed in service/read paths close to current duplicate group assembly in `media_manager/app/persistence/operator_console.py`.
 
 They should not replace:
 

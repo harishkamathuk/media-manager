@@ -29,15 +29,15 @@ Non-goals:
 
 This plan is grounded in the current post-Phase-4 implementation:
 
-- [media_manager/app/persistence/models.py](/home/harish/projects/media-manager/media_manager/app/persistence/models.py)
-- [media_manager/app/persistence/phase3_actions.py](/home/harish/projects/media-manager/media_manager/app/persistence/phase3_actions.py)
-- [media_manager/app/persistence/apply.py](/home/harish/projects/media-manager/media_manager/app/persistence/apply.py)
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
-- [migrations/versions/0030_duplicate_bin_item_fields.py](/home/harish/projects/media-manager/migrations/versions/0030_duplicate_bin_item_fields.py)
-- [migrations/versions/0031_duplicate_bin_item_backfill.py](/home/harish/projects/media-manager/migrations/versions/0031_duplicate_bin_item_backfill.py)
-- [media_manager/tests/test_phase3_duplicate_reclaim.py](/home/harish/projects/media-manager/media_manager/tests/test_phase3_duplicate_reclaim.py)
-- [media_manager/tests/test_migration_duplicate_bin_item_backfill.py](/home/harish/projects/media-manager/media_manager/tests/test_migration_duplicate_bin_item_backfill.py)
-- [media_manager/tests/test_operator_console_duplicates.py](/home/harish/projects/media-manager/media_manager/tests/test_operator_console_duplicates.py)
+- `media_manager/app/persistence/models.py`
+- `media_manager/app/persistence/phase3_actions.py`
+- `media_manager/app/persistence/apply.py`
+- `media_manager/app/persistence/operator_console.py`
+- `migrations/versions/0030_duplicate_bin_item_fields.py`
+- `migrations/versions/0031_duplicate_bin_item_backfill.py`
+- `media_manager/tests/test_phase3_duplicate_reclaim.py`
+- `media_manager/tests/test_migration_duplicate_bin_item_backfill.py`
+- `media_manager/tests/test_operator_console_duplicates.py`
 
 ## A. Current Post-Phase-4 Authority Inventory
 

@@ -40,10 +40,10 @@ The current implementation already has clear read-model assembly points for dupl
 
 Primary current backend touchpoints:
 
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
+- `media_manager/app/persistence/operator_console.py`
   - `DuplicateGroupItem`
   - `OperatorConsoleReadService.get_duplicate_groups()`
-- [media_manager/app/service_layer/reads.py](/home/harish/projects/media-manager/media_manager/app/service_layer/reads.py)
+- `media_manager/app/service_layer/reads.py`
   - `ReadFacade.duplicates()`
 
 Current responsibilities in `get_duplicate_groups()`:
@@ -63,7 +63,7 @@ There is no separate backend "ready for bin" read path today. Current readiness 
 
 - `DuplicateGroupItem.duplicate_reclaim_actionable`
 - `DuplicateGroupItem.duplicate_reclaim_unavailable_reason`
-- frontend filtering in [operator_console/gui_app/src/pages/DuplicatesPage.tsx](/home/harish/projects/media-manager/operator_console/gui_app/src/pages/DuplicatesPage.tsx)
+- frontend filtering in `operator_console/gui_app/src/pages/DuplicatesPage.tsx`
   - `deriveActionableReadyGroups(...)`
   - `isPendingRemovalStatus(...)`
 
@@ -73,10 +73,10 @@ This means current "Ready for Bin" semantics are partly server-derived and partl
 
 Primary backend touchpoints:
 
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
+- `media_manager/app/persistence/operator_console.py`
   - `OperatorConsoleReadService.get_duplicate_reclaim_archive_page()`
   - `OperatorConsoleReadService.get_retention_recycle_page()`
-- [media_manager/app/service_layer/reads.py](/home/harish/projects/media-manager/media_manager/app/service_layer/reads.py)
+- `media_manager/app/service_layer/reads.py`
   - `ReadFacade.duplicate_bin_items()`
   - `ReadFacade.retention_recycle_items()`
 
@@ -86,11 +86,11 @@ These already expose authoritative duplicate-bin lifecycle facts but do not add 
 
 Primary backend touchpoints:
 
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
+- `media_manager/app/persistence/operator_console.py`
   - `IntegrityIssueItem`
   - `OperatorConsoleReadService.get_integrity_issue_page()`
   - `OperatorConsoleReadService.get_integrity_file_detail()`
-- [media_manager/app/service_layer/reads.py](/home/harish/projects/media-manager/media_manager/app/service_layer/reads.py)
+- `media_manager/app/service_layer/reads.py`
   - `ReadFacade.integrity_issues()`
   - `ReadFacade.integrity_file_detail()`
 
@@ -144,12 +144,12 @@ Current lifecycle read paths:
 
 Current GUI integration points:
 
-- [operator_console/gui_app/src/types/media.ts](/home/harish/projects/media-manager/operator_console/gui_app/src/types/media.ts)
+- `operator_console/gui_app/src/types/media.ts`
   - `DuplicateGroup`
   - `IntegrityIssue`
-- [operator_console/gui_app/src/lib/api/mappers/media.ts](/home/harish/projects/media-manager/operator_console/gui_app/src/lib/api/mappers/media.ts)
+- `operator_console/gui_app/src/lib/api/mappers/media.ts`
   - duplicate group mapping from backend JSON
-- [operator_console/gui_app/src/pages/DuplicatesPage.tsx](/home/harish/projects/media-manager/operator_console/gui_app/src/pages/DuplicatesPage.tsx)
+- `operator_console/gui_app/src/pages/DuplicatesPage.tsx`
   - current readiness filtering and action enablement
 
 These are the exact client seams that would consume additive recommendation fields later.
@@ -158,7 +158,7 @@ These are the exact client seams that would consume additive recommendation fiel
 
 ### Recommendation
 
-The first implementation should derive recommendation state in the backend read-model layer, centered in [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py).
+The first implementation should derive recommendation state in the backend read-model layer, centered in `media_manager/app/persistence/operator_console.py`.
 
 ### Why backend read-model derivation is the right first seam
 
@@ -567,12 +567,12 @@ Can wait:
 
 Likely code areas:
 
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
+- `media_manager/app/persistence/operator_console.py`
 - new backend helper module, recommended:
   - `media_manager/app/persistence/duplicate_integrity_recommendations.py`
-- [media_manager/app/service_layer/reads.py](/home/harish/projects/media-manager/media_manager/app/service_layer/reads.py)
+- `media_manager/app/service_layer/reads.py`
 - backend tests near:
-  - [media_manager/tests/test_operator_console_duplicates.py](/home/harish/projects/media-manager/media_manager/tests/test_operator_console_duplicates.py)
+  - `media_manager/tests/test_operator_console_duplicates.py`
 
 Expected change type later:
 
@@ -594,11 +594,11 @@ Rollback/safety:
 
 Likely code areas:
 
-- [operator_console/gui_app/src/types/media.ts](/home/harish/projects/media-manager/operator_console/gui_app/src/types/media.ts)
-- [operator_console/gui_app/src/lib/api/mappers/media.ts](/home/harish/projects/media-manager/operator_console/gui_app/src/lib/api/mappers/media.ts)
-- [operator_console/gui_app/src/pages/DuplicatesPage.tsx](/home/harish/projects/media-manager/operator_console/gui_app/src/pages/DuplicatesPage.tsx)
+- `operator_console/gui_app/src/types/media.ts`
+- `operator_console/gui_app/src/lib/api/mappers/media.ts`
+- `operator_console/gui_app/src/pages/DuplicatesPage.tsx`
 - GUI tests near:
-  - [operator_console/gui_app/src/test/duplicates-page.test.tsx](/home/harish/projects/media-manager/operator_console/gui_app/src/test/duplicates-page.test.tsx)
+  - `operator_console/gui_app/src/test/duplicates-page.test.tsx`
 
 Expected change type later:
 
@@ -618,8 +618,8 @@ Rollback/safety:
 
 Likely code areas:
 
-- [media_manager/app/persistence/operator_console.py](/home/harish/projects/media-manager/media_manager/app/persistence/operator_console.py)
-- [media_manager/app/service_layer/reads.py](/home/harish/projects/media-manager/media_manager/app/service_layer/reads.py)
+- `media_manager/app/persistence/operator_console.py`
+- `media_manager/app/service_layer/reads.py`
 - frontend duplicate/bin and integrity page types/mappers/pages
 
 Expected change type later:
@@ -687,8 +687,8 @@ Recommended coverage:
 
 Recommended future locations:
 
-- [media_manager/tests/test_operator_console_duplicates.py](/home/harish/projects/media-manager/media_manager/tests/test_operator_console_duplicates.py)
-- [media_manager/tests/test_service_layer_reads.py](/home/harish/projects/media-manager/media_manager/tests/test_service_layer_reads.py)
+- `media_manager/tests/test_operator_console_duplicates.py`
+- `media_manager/tests/test_service_layer_reads.py`
 
 These should cover:
 
@@ -700,7 +700,7 @@ These should cover:
 
 Recommended future locations:
 
-- [operator_console/gui_app/src/test/duplicates-page.test.tsx](/home/harish/projects/media-manager/operator_console/gui_app/src/test/duplicates-page.test.tsx)
+- `operator_console/gui_app/src/test/duplicates-page.test.tsx`
 - frontend tests for any playback-issues page consuming duplicate context
 
 These should cover:
@@ -714,8 +714,8 @@ These should cover:
 
 Existing backend suites that should remain green:
 
-- [media_manager/tests/test_phase3_duplicate_reclaim.py](/home/harish/projects/media-manager/media_manager/tests/test_phase3_duplicate_reclaim.py)
-- [media_manager/tests/test_operator_console_duplicates.py](/home/harish/projects/media-manager/media_manager/tests/test_operator_console_duplicates.py)
+- `media_manager/tests/test_phase3_duplicate_reclaim.py`
+- `media_manager/tests/test_operator_console_duplicates.py`
 
 Implementation must prove:
 
