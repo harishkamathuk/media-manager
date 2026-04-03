@@ -1348,3 +1348,46 @@ class OperatorPolicySetting(Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default=text("1"))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utc_now)
+
+
+class AppSetting(Base):
+    __tablename__ = "app_settings"
+
+    key: Mapped[str] = mapped_column(Text, primary_key=True, nullable=False)
+    value_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    value_type: Mapped[str] = mapped_column(Text, nullable=False)
+    category: Mapped[str] = mapped_column(Text, nullable=False)
+    scope: Mapped[str] = mapped_column(Text, nullable=False, default="global", server_default=text("'global'"))
+    is_sensitive: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=text("false"))
+    updated_by: Mapped[str] = mapped_column(Text, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+        server_default=text("now()"),
+    )
+    version: Mapped[int] = mapped_column(BigInteger, nullable=False, default=1, server_default=text("1"))
+    source: Mapped[str] = mapped_column(Text, nullable=False, default="api", server_default=text("'api'"))
+
+
+class AppSettingHistory(Base):
+    __tablename__ = "app_settings_history"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True, nullable=False)
+    key: Mapped[str] = mapped_column(Text, nullable=False)
+    old_value_json: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    new_value_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    changed_by: Mapped[str] = mapped_column(Text, nullable=False)
+    changed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=utc_now,
+        server_default=text("now()"),
+    )
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+Index("idx_app_settings_category", AppSetting.category)
+Index("idx_app_settings_updated_at", AppSetting.updated_at.desc())
+Index("idx_app_settings_history_key_time", AppSettingHistory.key, AppSettingHistory.changed_at.desc())

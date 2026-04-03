@@ -27,6 +27,7 @@ from media_manager.app.persistence.discovery_query import (
     DiscoveryQueryParams,
     DiscoveryQueryService,
 )
+from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.duplicate_reviews import compute_duplicate_group_signature
 from media_manager.app.persistence.duplicate_integrity_recommendations import (
     DuplicateRecommendation,
@@ -75,11 +76,18 @@ def _env_truthy(name: str, default: str = "false") -> bool:
     return os.getenv(name, default).strip().lower() in {"1", "true", "yes", "on"}
 
 
-def _video_thumbnails_enabled() -> bool:
-    return _env_truthy("MEDIA_MANAGER_VIDEO_THUMBNAILS_ENABLED")
+def _video_thumbnails_enabled(session_factory: sessionmaker[Session] | None = None) -> bool:
+    if session_factory is None:
+        return _env_truthy("MEDIA_MANAGER_VIDEO_THUMBNAILS_ENABLED")
+    return bool(AppSettingsService(session_factory).resolve_runtime_value("video_thumbnails_enabled", logger=logger))
 
 
-def _video_thumbnail_cache_dir() -> Path:
+def _video_thumbnail_cache_dir(session_factory: sessionmaker[Session] | None = None) -> Path:
+    if session_factory is not None:
+        raw = str(
+            AppSettingsService(session_factory).resolve_runtime_value("video_thumbnail_cache_dir", logger=logger)
+        ).strip()
+        return Path(raw)
     raw = (os.getenv("MEDIA_MANAGER_VIDEO_THUMBNAIL_CACHE_DIR", "") or "").strip()
     if raw:
         return Path(raw).expanduser()
@@ -1066,7 +1074,7 @@ class OperatorConsoleReadService:
             thumbnail_url = f"/api/thumbnail/{instance_id_str}" if is_image else None
             media_url = f"/media/{instance_id_str}" if is_image else None
             preview_url = thumbnail_url
-            if media_type == "VID" and _video_thumbnails_enabled():
+            if media_type == "VID" and _video_thumbnails_enabled(self._session_factory):
                 preview_url = f"/api/video-thumbnail/{instance_id_str}"
             canonical_instance_id = latest_canonical_by_content.get(content_id)
             existing_group = grouped.setdefault(content_id, [])
@@ -1877,7 +1885,7 @@ class OperatorConsoleReadService:
 
     def resolve_video_thumbnail_source(self, file_instance_id: UUID) -> tuple[Path, str] | None:
         """Resolve or generate a cached video thumbnail for an active video instance."""
-        if not _video_thumbnails_enabled():
+        if not _video_thumbnails_enabled(self._session_factory):
             return None
 
         path = self._resolve_active_instance_path(file_instance_id)
@@ -1953,7 +1961,7 @@ class OperatorConsoleReadService:
         )
 
     def _poster_url_for_gallery_item(self, file_id: str, file_type: str) -> str | None:
-        if file_type != "video" or not _video_thumbnails_enabled():
+        if file_type != "video" or not _video_thumbnails_enabled(self._session_factory):
             return None
         return f"/api/video-thumbnail/{file_id}"
 
@@ -2026,7 +2034,7 @@ class OperatorConsoleReadService:
         return None
 
     def _ensure_video_thumbnail_cache_dir(self) -> Path | None:
-        cache_dir = _video_thumbnail_cache_dir()
+        cache_dir = _video_thumbnail_cache_dir(self._session_factory)
         try:
             cache_dir.mkdir(parents=True, exist_ok=True)
         except OSError:

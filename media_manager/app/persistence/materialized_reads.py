@@ -13,6 +13,7 @@ from __future__ import annotations
 import inspect
 import os
 import random
+import threading
 import uuid
 from dataclasses import dataclass
 from time import perf_counter
@@ -23,8 +24,10 @@ from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from media_manager.app.core.logging_config import get_logger
 from media_manager.app.core.ttl_cache import TTLCache
 from media_manager.app.observability import record_canonical_read_cache_disabled, record_canonical_read_cache_metrics
+from media_manager.app.persistence.app_settings import AppSettingsService
 
 
 @dataclass(frozen=True)
@@ -97,12 +100,22 @@ SELECT
 FROM mv_canonical_metadata
 """
 
-
-def _env_cache_enabled() -> bool:
-    return os.getenv("CANONICAL_READ_CACHE_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+LOGGER = get_logger(__name__)
 
 
-def _env_cache_ttl() -> float:
+def _env_cache_enabled(session: Session | None = None) -> bool:
+    if session is None:
+        return os.getenv("CANONICAL_READ_CACHE_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
+    service = AppSettingsService(sessionmaker(bind=session.get_bind(), autoflush=False, autocommit=False, expire_on_commit=False))
+    return bool(service.resolve_runtime_value("canonical_read_cache_enabled", logger=LOGGER, session=session))
+
+
+def _env_cache_ttl(session: Session | None = None) -> float:
+    if session is not None:
+        service = AppSettingsService(
+            sessionmaker(bind=session.get_bind(), autoflush=False, autocommit=False, expire_on_commit=False)
+        )
+        return float(service.resolve_runtime_value("canonical_read_cache_ttl_seconds", logger=LOGGER, session=session))
     raw = os.getenv("CANONICAL_READ_CACHE_TTL_SECONDS", "30")
     try:
         value = float(raw)
@@ -115,6 +128,15 @@ def _env_cache_ttl() -> float:
 
 # optimization-only path: disabled by default, read results only.
 _READ_CACHE = TTLCache[str, list[CanonicalMetadataRow]](ttl_seconds=_env_cache_ttl())
+_READ_CACHE_LOCK = threading.Lock()
+
+
+def _ensure_cache_ttl(session: Session) -> None:
+    global _READ_CACHE
+    ttl_seconds = _env_cache_ttl(session)
+    with _READ_CACHE_LOCK:
+        if abs(getattr(_READ_CACHE, "_ttl_seconds", ttl_seconds) - ttl_seconds) > 1e-9:
+            _READ_CACHE = TTLCache(ttl_seconds=ttl_seconds)
 
 
 def _rows_to_dataclass(rows: list[dict[str, Any]]) -> list[CanonicalMetadataRow]:
@@ -181,14 +203,19 @@ def fetch_canonical_metadata(
     use_cache: bool | None = None,
     metrics_run_id: str | None = None,
 ) -> list[CanonicalMetadataRow]:
-    cache_enabled = _env_cache_enabled() if use_cache is None else bool(use_cache)
+    if use_cache is None:
+        cache_enabled = _env_cache_enabled(session)
+    else:
+        cache_enabled = bool(use_cache)
     source_label = "mv" if use_mv else "base"
     cache_key = f"source={'mv' if use_mv else 'base'}|sample_size={sample_size}"
 
     # optimization-only path: read cache never affects decision semantics.
     if cache_enabled:
-        cached = _READ_CACHE.get(cache_key)
-        cache_stats = _READ_CACHE.stats()
+        _ensure_cache_ttl(session)
+        with _READ_CACHE_LOCK:
+            cached = _READ_CACHE.get(cache_key)
+            cache_stats = _READ_CACHE.stats()
         record_canonical_read_cache_metrics(
             run_id=metrics_run_id,
             source=source_label,
@@ -202,7 +229,8 @@ def fetch_canonical_metadata(
 
     rows = _query_rows(session, use_mv=use_mv, sample_size=sample_size)
     if cache_enabled:
-        _READ_CACHE.set(cache_key, rows)
+        with _READ_CACHE_LOCK:
+            _READ_CACHE.set(cache_key, rows)
     return rows
 
 
