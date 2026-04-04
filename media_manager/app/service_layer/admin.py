@@ -9,6 +9,7 @@ from uuid import UUID
 
 from sqlalchemy import inspect, text
 
+from media_manager.app.persistence.app_settings import AppSettingsService, RUNTIME_DUAL_READ_KEYS
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.benchmark_runs import BenchmarkRunStore
 from media_manager.app.persistence.models import BenchmarkRunType, OperationRunType
@@ -20,6 +21,13 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_CHALLENGE_WORD = "media-manager"
 DEFAULT_BENCHMARK_MAX_ITEMS = 10_000
 DEFAULT_BENCHMARK_METADATA_BATCH_SIZE = 1_000
+EDITABLE_APP_SETTING_KEYS: frozenset[str] = frozenset(
+    {
+        "video_thumbnails_enabled",
+        "canonical_read_cache_enabled",
+        "canonical_read_cache_ttl_seconds",
+    }
+)
 
 # Dependency-safe truncate order (children first, roots last).
 RESET_TABLE_ALLOWLIST: tuple[str, ...] = (
@@ -201,6 +209,31 @@ class AdminServices:
         )
         return result.to_dict()
 
+    def update_app_setting(self, *, key: str, value: object, version: int) -> dict[str, object]:
+        if key not in EDITABLE_APP_SETTING_KEYS:
+            raise ServiceLayerException(
+                code="VALIDATION_ERROR",
+                message=f"{key} is not editable in this slice.",
+                http_status=400,
+            )
+        if key not in RUNTIME_DUAL_READ_KEYS:
+            raise ServiceLayerException(
+                code="VALIDATION_ERROR",
+                message=f"{key} is not runtime-editable in this slice.",
+                http_status=400,
+            )
+
+        service = AppSettingsService(self.session_factory)
+        snapshot = service.set_value(
+            key,
+            value,
+            updated_by="operator_console:admin",
+            source="admin_ui",
+            expected_version=version,
+            reason="allowlisted_admin_update",
+        )
+        return self._serialize_app_setting_snapshot(snapshot=snapshot)
+
     def benchmark_run_detail(self, *, operation_run_id: str) -> dict[str, object]:
         parsed = self._parse_operation_run_id(operation_run_id)
         snapshot = self._benchmark_runs().get(parsed)
@@ -248,6 +281,29 @@ class AdminServices:
         except Exception as exc:
             self._op_runs().fail(UUID(run_log.operation_run_id), error_message=str(exc))
             raise
+
+    @staticmethod
+    def _serialize_app_setting_snapshot(*, snapshot) -> dict[str, object]:  # type: ignore[no-untyped-def]
+        definition = AppSettingsService.definition_for(snapshot.key)
+        runtime_dual_read_enabled = snapshot.key in RUNTIME_DUAL_READ_KEYS
+        item: dict[str, object] = {
+            "key": snapshot.key,
+            "category": definition.category,
+            "value_type": definition.value_type,
+            "is_sensitive": definition.is_sensitive,
+            "runtime_dual_read_enabled": runtime_dual_read_enabled,
+            "db_present": True,
+            "effective_source": "db" if runtime_dual_read_enabled else None,
+            "updated_at": snapshot.updated_at.isoformat(),
+            "updated_by": snapshot.updated_by,
+            "version": snapshot.version,
+            "source": snapshot.source,
+        }
+        if definition.is_sensitive:
+            item["value_redacted"] = True
+        else:
+            item["value_json"] = dict(snapshot.value_json)
+        return item
 
     def _validate_benchmark_request(self, *, items: int, challenge_word: str | None) -> int:
         env = self._validate_environment()

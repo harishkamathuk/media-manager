@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { ApiClientError, apiGet, apiPost } from "@/lib/api/client";
+import { ApiClientError, apiGet, apiPatch, apiPost } from "@/lib/api/client";
 
 describe("api client", () => {
   afterEach(() => {
@@ -122,6 +122,30 @@ describe("api client", () => {
       name: "ApiClientError",
       message: "version conflict",
       status: 409,
+    });
+  });
+
+  it("serializes falsy PATCH values instead of dropping the body", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        ok: true,
+        workflow_version: "v2-service-layer",
+        schema_version: "schema-1",
+        generated_at: "2026-03-14T00:00:00+00:00",
+        data: { result: { value_json: { value: false } } },
+        errors: [],
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await apiPatch("/admin/app-settings/video_thumbnails_enabled", { value: false, version: 1 });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/admin/app-settings/video_thumbnails_enabled", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ value: false, version: 1 }),
     });
   });
 });

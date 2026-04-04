@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { ApiClientError } from "@/lib/api/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -34,6 +35,7 @@ const mocks = vi.hoisted(() => ({
   queueDiscoveryBenchmark: vi.fn(),
   queueMetadataBenchmark: vi.fn(),
   reconcileStaleOperationRuns: vi.fn(),
+  updateAdminAppSetting: vi.fn(),
   updatePolicy: vi.fn(),
 }));
 
@@ -60,6 +62,7 @@ vi.mock("@/lib/api/endpoints", () => ({
   queueDiscoveryBenchmark: mocks.queueDiscoveryBenchmark,
   queueMetadataBenchmark: mocks.queueMetadataBenchmark,
   reconcileStaleOperationRuns: mocks.reconcileStaleOperationRuns,
+  updateAdminAppSetting: mocks.updateAdminAppSetting,
   updatePolicy: mocks.updatePolicy,
 }));
 
@@ -260,6 +263,34 @@ describe("Admin page", () => {
             value_json: { value: true },
           },
           {
+            key: "canonical_read_cache_enabled",
+            category: "performance",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "db",
+            updated_at: "2026-03-20T10:30:00Z",
+            updated_by: "tester",
+            version: 3,
+            source: "bootstrap",
+            value_json: { value: true },
+          },
+          {
+            key: "canonical_read_cache_ttl_seconds",
+            category: "performance",
+            value_type: "float",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "db",
+            updated_at: "2026-03-20T10:45:00Z",
+            updated_by: "tester",
+            version: 4,
+            source: "bootstrap",
+            value_json: { value: 30.0 },
+          },
+          {
             key: "directory_picker_enabled",
             category: "ui",
             value_type: "bool",
@@ -434,8 +465,8 @@ describe("Admin page", () => {
     expect(await screen.findByText("App settings inspection")).toBeInTheDocument();
     expect(screen.getByText("video_thumbnails_enabled")).toBeInTheDocument();
     expect(screen.getAllByText("Dual-read enabled").length).toBeGreaterThan(0);
-    expect(screen.getByText("Runtime source: DB")).toBeInTheDocument();
-    expect(screen.getByText('{"value":true}')).toBeInTheDocument();
+    expect(screen.getAllByText("Runtime source: DB").length).toBeGreaterThan(0);
+    expect(screen.getAllByText('{"value":true}').length).toBeGreaterThan(0);
   });
 
   it("redacts sensitive app setting values", async () => {
@@ -448,10 +479,83 @@ describe("Admin page", () => {
   it("labels non-dual-read app settings as inspection only", async () => {
     renderSystemHealthPage();
 
-    expect(await screen.findByText("directory_picker_enabled")).toBeInTheDocument();
-    expect(screen.getAllByText("Inspection only").length).toBeGreaterThan(0);
+    const row = (await screen.findByText("directory_picker_enabled")).closest("tr");
+    expect(row).not.toBeNull();
+    expect(within(row as HTMLElement).queryByRole("button", { name: "Edit" })).not.toBeInTheDocument();
+    expect(within(row as HTMLElement).getAllByText("Inspection only").length).toBeGreaterThan(0);
     expect(screen.getByText("DB presence does not make this an active runtime authority.")).toBeInTheDocument();
     expect(screen.getByText("No DB value")).toBeInTheDocument();
+  });
+
+  it("shows edit controls for the narrow allowlisted app settings only", async () => {
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("video_thumbnails_enabled")).toBeInTheDocument();
+    expect(screen.getAllByText("Editable in this slice").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Edit" }).length).toBe(3);
+  });
+
+  it("saves an allowlisted boolean app setting", async () => {
+    mocks.updateAdminAppSetting.mockResolvedValue({
+      data: {
+        key: "video_thumbnails_enabled",
+        category: "ui",
+        value_type: "bool",
+        is_sensitive: false,
+        runtime_dual_read_enabled: true,
+        db_present: true,
+        effective_source: "db",
+        updated_at: "2026-03-20T12:00:00Z",
+        updated_by: "operator_console:admin",
+        version: 2,
+        source: "admin_ui",
+        value_json: { value: false },
+      },
+    });
+
+    renderSystemHealthPage();
+
+    const row = (await screen.findByText("video_thumbnails_enabled")).closest("tr");
+    expect(row).not.toBeNull();
+    fireEvent.click(within(row as HTMLElement).getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("switch", { name: "Toggle video_thumbnails_enabled" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(mocks.updateAdminAppSetting).toHaveBeenCalledWith("video_thumbnails_enabled", {
+        value: false,
+        version: 1,
+      }),
+    );
+    expect(await screen.findByText('{"value":false}')).toBeInTheDocument();
+  });
+
+  it("shows backend validation failures while editing an allowlisted numeric app setting", async () => {
+    mocks.updateAdminAppSetting.mockRejectedValueOnce(new ApiClientError("must be > 0", 400));
+
+    renderSystemHealthPage();
+
+    const ttlRow = (await screen.findByText("canonical_read_cache_ttl_seconds")).closest("tr");
+    expect(ttlRow).not.toBeNull();
+    fireEvent.click(within(ttlRow as HTMLElement).getByRole("button", { name: "Edit" }));
+    fireEvent.change(screen.getByLabelText("canonical_read_cache_ttl_seconds"), { target: { value: "0" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("must be > 0")).toBeInTheDocument();
+  });
+
+  it("keeps version conflict behavior visible for app setting edits", async () => {
+    mocks.updateAdminAppSetting.mockRejectedValueOnce(new ApiClientError("version conflict", 409));
+
+    renderSystemHealthPage();
+
+    const row = (await screen.findByText("video_thumbnails_enabled")).closest("tr");
+    expect(row).not.toBeNull();
+    fireEvent.click(within(row as HTMLElement).getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("version conflict")).toBeInTheDocument();
+    await waitFor(() => expect(mocks.getAdminAppSettings).toHaveBeenCalledTimes(2));
   });
 
   it("shows env fallback as the runtime source for dual-read app settings when returned", async () => {

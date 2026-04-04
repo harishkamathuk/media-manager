@@ -4,8 +4,17 @@ from uuid import UUID
 
 from sqlalchemy import select
 
+from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.admin_benchmarks import BenchmarkExecutionResult
-from media_manager.app.persistence.models import BenchmarkRun, BenchmarkRunStatus, OperationRun, OperationRunStatus, OperationRunType
+from media_manager.app.core.errors import AppSettingsValidationError, AppSettingsVersionConflictError
+from media_manager.app.persistence.models import (
+    AppSettingHistory,
+    BenchmarkRun,
+    BenchmarkRunStatus,
+    OperationRun,
+    OperationRunStatus,
+    OperationRunType,
+)
 from media_manager.app.service_layer.admin import AdminServices
 from media_manager.app.service_layer.errors import ServiceLayerException
 from media_manager.app.workers import benchmark_runner
@@ -93,3 +102,66 @@ def test_benchmark_worker_processes_queued_job(test_database_url: str, session_f
         assert bench_run is not None
         assert bench_run.status == BenchmarkRunStatus.COMPLETED
         assert bench_run.summary_payload["throughput_files_per_s"] == 123.4
+
+
+def test_update_app_setting_updates_allowlisted_runtime_key(session_factory) -> None:
+    service = AdminServices(session_factory=session_factory)
+    AppSettingsService(session_factory).set_value(
+        "video_thumbnails_enabled",
+        True,
+        updated_by="bootstrap",
+        source="bootstrap",
+        expected_version=0,
+    )
+
+    result = service.update_app_setting(key="video_thumbnails_enabled", value=False, version=1)
+
+    assert result["key"] == "video_thumbnails_enabled"
+    assert result["value_json"] == {"value": False}
+    assert result["updated_by"] == "operator_console:admin"
+    assert result["source"] == "admin_ui"
+    assert result["version"] == 2
+
+    with session_factory() as session:
+        history = session.scalars(
+            select(AppSettingHistory)
+            .where(AppSettingHistory.key == "video_thumbnails_enabled")
+            .order_by(AppSettingHistory.id.asc())
+        ).all()
+
+    assert len(history) == 2
+    assert history[-1].reason == "allowlisted_admin_update"
+
+
+def test_update_app_setting_rejects_non_allowlisted_key(session_factory) -> None:
+    service = AdminServices(session_factory=session_factory)
+
+    try:
+        service.update_app_setting(key="directory_picker_enabled", value=True, version=0)
+        assert False, "expected validation error"
+    except ServiceLayerException as exc:
+        assert exc.http_status == 400
+        assert "not editable in this slice" in exc.message
+
+
+def test_update_app_setting_preserves_validation_and_version_conflict(session_factory) -> None:
+    service = AdminServices(session_factory=session_factory)
+    created = AppSettingsService(session_factory).set_value(
+        "canonical_read_cache_ttl_seconds",
+        30.0,
+        updated_by="bootstrap",
+        source="bootstrap",
+        expected_version=0,
+    )
+
+    try:
+        service.update_app_setting(key="canonical_read_cache_ttl_seconds", value=0, version=created.version)
+        assert False, "expected validation error"
+    except AppSettingsValidationError:
+        pass
+
+    try:
+        service.update_app_setting(key="canonical_read_cache_ttl_seconds", value=45.0, version=created.version - 1)
+        assert False, "expected version conflict"
+    except AppSettingsVersionConflictError:
+        pass

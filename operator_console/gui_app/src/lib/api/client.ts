@@ -86,7 +86,16 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<ApiEnvel
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
-    body: body ? JSON.stringify(body) : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  return parseEnvelope<T>(res);
+}
+
+export async function apiPatch<T>(path: string, body?: unknown): Promise<ApiEnvelope<T>> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   return parseEnvelope<T>(res);
 }

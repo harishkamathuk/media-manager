@@ -1,6 +1,16 @@
 import type { LatestMetrics } from "@/types/dashboard";
 import type { Run } from "@/types/runs";
 
+export type EditableAppSettingKey =
+  | "video_thumbnails_enabled"
+  | "canonical_read_cache_enabled"
+  | "canonical_read_cache_ttl_seconds";
+
+export interface AdminAppSettingPatchPayload {
+  value: boolean | number;
+  version: number;
+}
+
 export interface AppSettingInspectionItem {
   key: string;
   category: string;
