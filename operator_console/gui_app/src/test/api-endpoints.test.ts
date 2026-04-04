@@ -8,6 +8,7 @@ vi.mock("@/lib/api/client", () => ({
 import { apiGet, apiPost } from "@/lib/api/client";
 import {
   adminDbReset,
+  getAdminAppSettings,
   getDuplicateBinPolicy,
   getDuplicateBinItems,
   getDirectoryPickerCapability,
@@ -90,6 +91,23 @@ describe("api endpoints", () => {
       dry_run: false,
       challenge_word: "media-manager",
     });
+  });
+
+  it("loads admin app settings through the API client only", async () => {
+    vi.mocked(apiGet).mockResolvedValue({
+      ok: true,
+      workflow_version: "v2-service-layer",
+      schema_version: "schema-1",
+      generated_at: "2026-03-14T00:00:00+00:00",
+      data: {
+        items: [],
+      },
+      errors: [],
+    });
+
+    await getAdminAppSettings();
+
+    expect(apiGet).toHaveBeenCalledWith("/admin/app-settings");
   });
 
   it("derives canonical policy update payloads through the API client only", async () => {

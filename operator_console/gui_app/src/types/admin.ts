@@ -1,6 +1,26 @@
 import type { LatestMetrics } from "@/types/dashboard";
 import type { Run } from "@/types/runs";
 
+export interface AppSettingInspectionItem {
+  key: string;
+  category: string;
+  value_type: string;
+  is_sensitive: boolean;
+  runtime_dual_read_enabled: boolean;
+  db_present: boolean;
+  effective_source: "db" | "env_fallback" | null;
+  updated_at: string | null;
+  updated_by: string | null;
+  version: number | null;
+  source: string | null;
+  value_redacted?: boolean;
+  value_json?: Record<string, unknown>;
+}
+
+export interface AppSettingsInspection {
+  items: AppSettingInspectionItem[];
+}
+
 export interface DbResetPreview {
   affected_tables: string[];
   record_counts?: Record<string, number>;

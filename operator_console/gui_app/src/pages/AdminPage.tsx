@@ -54,6 +54,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   adminDbReset,
   cancelBenchmarkRun,
+  getAdminAppSettings,
   getAdminObservabilityFailures,
   getAdminObservabilityMetricsSeries,
   getAdminObservabilityOperationRuns,
@@ -79,6 +80,8 @@ import { queryKeys } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
 import type {
   AnalyticsSummary,
+  AppSettingInspectionItem,
+  AppSettingsInspection,
   BenchmarkRun,
   DbResetPreview,
   DbResetResult,
@@ -135,6 +138,13 @@ function getAdminTab(value: string | null): AdminTab {
 
 function formatBucketLabel(timestamp: string) {
   return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatOptionalTimestamp(value: string | null) {
+  if (!value) return "Not recorded";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
 }
 
 function formatJobName(operationType: string) {
@@ -310,11 +320,96 @@ function explainPolicyRule(rule: string): string {
     }
 }
 
-function formatPolicyUpdatedAt(value: string | null) {
-  if (!value) return "Not recorded";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+function describeAppSettingRuntime(item: AppSettingInspectionItem) {
+  if (!item.runtime_dual_read_enabled) {
+    return {
+      label: "Inspection only",
+      severity: "neutral" as const,
+      detail: "DB presence does not make this an active runtime authority.",
+      sourceLabel: null,
+      sourceSeverity: "neutral" as const,
+    };
+  }
+
+  if (item.effective_source === "db") {
+    return {
+      label: "Dual-read enabled",
+      severity: "success" as const,
+      detail: "Runtime may read DB or env fallback depending on effective source.",
+      sourceLabel: "Runtime source: DB",
+      sourceSeverity: "success" as const,
+    };
+  }
+
+  if (item.effective_source === "env_fallback") {
+    return {
+      label: "Dual-read enabled",
+      severity: "success" as const,
+      detail: "Runtime may read DB or env fallback depending on effective source.",
+      sourceLabel: "Runtime source: env fallback",
+      sourceSeverity: "info" as const,
+    };
+  }
+
+  return {
+    label: "Dual-read enabled",
+    severity: "success" as const,
+    detail: "Runtime may read DB or env fallback depending on effective source.",
+    sourceLabel: "Runtime source not active",
+    sourceSeverity: "neutral" as const,
+  };
+}
+
+function describeAppSettingDbState(item: AppSettingInspectionItem) {
+  if (!item.db_present) {
+    return {
+      label: "No DB value",
+      severity: "neutral" as const,
+      detail: "No durable app_settings row present.",
+    };
+  }
+
+  return {
+    label: "DB value present",
+    severity: "success" as const,
+    detail: "Durable row available for inspection.",
+  };
+}
+
+function AppSettingValueCell({ item }: { item: AppSettingInspectionItem }) {
+  const [open, setOpen] = useState(false);
+
+  if (item.is_sensitive || item.value_redacted) {
+    return (
+      <div className="space-y-1">
+        <StatusBadge label="Sensitive value redacted" severity="caution" />
+        <p className="max-w-[18rem] text-xs text-muted-foreground">Metadata visible; raw value hidden.</p>
+      </div>
+    );
+  }
+
+  if (!item.db_present || item.value_json == null) {
+    return <p className="max-w-[18rem] text-xs text-muted-foreground">No durable DB value available to display.</p>;
+  }
+
+  const preview = JSON.stringify(item.value_json);
+  const truncatedPreview = preview.length > 88 ? `${preview.slice(0, 88)}...` : preview;
+
+  return (
+    <div className="max-w-[22rem] space-y-2">
+      <p className="font-mono text-xs text-muted-foreground break-all">{truncatedPreview}</p>
+      <Collapsible open={open} onOpenChange={setOpen} className="rounded-xl border bg-background/80">
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+            {open ? "Hide JSON" : "View JSON"}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="border-t px-3 py-3">
+          <JsonViewer data={item.value_json} title="Stored value" maxHeight="160px" />
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
 }
 
 function PolicyChoiceCard({
@@ -1367,7 +1462,7 @@ function LibraryRulesTab() {
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Updated at</p>
-              <p className="mt-2 text-sm text-foreground">{formatPolicyUpdatedAt(policy.metadata.updated_at)}</p>
+              <p className="mt-2 text-sm text-foreground">{formatOptionalTimestamp(policy.metadata.updated_at)}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
@@ -1886,6 +1981,10 @@ function IntegrityCheckTab() {
 function SystemHealthTab() {
   const queryClient = useQueryClient();
   const [includeCurrentDay, setIncludeCurrentDay] = useState(false);
+  const appSettingsQuery = useQuery({
+    queryKey: queryKeys.adminAppSettings,
+    queryFn: getAdminAppSettings,
+  });
   const summaryQuery = useQuery({
     queryKey: queryKeys.adminObservabilitySummary,
     queryFn: getAdminObservabilitySummary,
@@ -1908,6 +2007,7 @@ function SystemHealthTab() {
   });
 
   const summary = summaryQuery.data?.data as ObservabilitySummary | undefined;
+  const appSettings = ((appSettingsQuery.data?.data as AppSettingsInspection | undefined)?.items ?? []);
   const failures = failuresQuery.data?.data;
   const series = seriesQuery.data?.data as ObservabilityMetricsSeries | undefined;
   const reconcileMutation = useMutation({
@@ -1943,6 +2043,78 @@ function SystemHealthTab() {
   }
 
   const reconcileResult = reconcileMutation.data?.data as OperationRunReconcileResult | undefined;
+  const appSettingsColumns = [
+    {
+      key: "key",
+      header: "Key",
+      render: (item: AppSettingInspectionItem) => (
+        <div className="space-y-1">
+          <p className="font-mono text-xs font-semibold text-foreground">{item.key}</p>
+          <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.category}</p>
+        </div>
+      ),
+    },
+    {
+      key: "value_type",
+      header: "Type",
+      render: (item: AppSettingInspectionItem) => (
+        <span className="font-mono text-xs text-muted-foreground">{item.value_type}</span>
+      ),
+    },
+    {
+      key: "runtime_status",
+      header: "Runtime status",
+      render: (item: AppSettingInspectionItem) => {
+        const runtime = describeAppSettingRuntime(item);
+        return (
+          <div className="space-y-2">
+            <StatusBadge label={runtime.label} severity={runtime.severity} />
+            {runtime.sourceLabel ? <StatusBadge label={runtime.sourceLabel} severity={runtime.sourceSeverity} /> : null}
+            <p className="max-w-[18rem] text-xs text-muted-foreground">{runtime.detail}</p>
+          </div>
+        );
+      },
+    },
+    {
+      key: "db_state",
+      header: "DB state",
+      render: (item: AppSettingInspectionItem) => {
+        const state = describeAppSettingDbState(item);
+        return (
+          <div className="space-y-2">
+            <StatusBadge label={state.label} severity={state.severity} />
+            <p className="max-w-[16rem] text-xs text-muted-foreground">{state.detail}</p>
+          </div>
+        );
+      },
+    },
+    {
+      key: "value",
+      header: "Value",
+      render: (item: AppSettingInspectionItem) => <AppSettingValueCell item={item} />,
+    },
+    {
+      key: "updated_at",
+      header: "Updated",
+      render: (item: AppSettingInspectionItem) => {
+        const metadata = [
+          item.updated_by ? `by ${item.updated_by}` : null,
+          item.version != null ? `v${item.version}` : null,
+          item.source ?? null,
+        ].filter(Boolean);
+
+        return (
+          <div className="space-y-1">
+            <p className="text-sm text-foreground">{formatOptionalTimestamp(item.updated_at)}</p>
+            <p className="max-w-[16rem] text-xs text-muted-foreground">
+              {metadata.length ? metadata.join(" • ") : "No update metadata recorded."}
+            </p>
+          </div>
+        );
+      },
+    },
+  ];
+  const appSettingsError = getErrorMessage(appSettingsQuery.error);
 
   return (
     <div className="space-y-6">
@@ -2109,6 +2281,34 @@ function SystemHealthTab() {
               <SeverityBadge value={run.status} />
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[28px] border-border/70 shadow-sm">
+        <CardHeader>
+          <CardTitle>App settings inspection</CardTitle>
+          <CardDescription>
+            Read-only view of durable app_settings rows. Inspection-only rows do not imply active runtime DB authority
+            outside the approved dual-read allowlist.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge label="Dual-read enabled" severity="success" />
+            <StatusBadge label="Inspection only" severity="neutral" />
+            <StatusBadge label="Sensitive value redacted" severity="caution" />
+          </div>
+
+          {appSettingsError ? (
+            <ErrorAlert message={`Unable to load app settings inspection. ${appSettingsError}`} />
+          ) : (
+            <DataTable
+              columns={appSettingsColumns}
+              data={appSettings}
+              loading={appSettingsQuery.isLoading}
+              emptyMessage="No app settings were returned by the inspection endpoint."
+            />
+          )}
         </CardContent>
       </Card>
     </div>

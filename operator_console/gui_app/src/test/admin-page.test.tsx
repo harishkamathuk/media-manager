@@ -14,6 +14,7 @@ class MockResizeObserver {
 const mocks = vi.hoisted(() => ({
   adminDbReset: vi.fn(),
   cancelBenchmarkRun: vi.fn(),
+  getAdminAppSettings: vi.fn(),
   getAdminObservabilityFailures: vi.fn(),
   getAdminObservabilityMetricsSeries: vi.fn(),
   getAdminObservabilityOperationRuns: vi.fn(),
@@ -39,6 +40,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/api/endpoints", () => ({
   adminDbReset: mocks.adminDbReset,
   cancelBenchmarkRun: mocks.cancelBenchmarkRun,
+  getAdminAppSettings: mocks.getAdminAppSettings,
   getAdminObservabilityFailures: mocks.getAdminObservabilityFailures,
   getAdminObservabilityMetricsSeries: mocks.getAdminObservabilityMetricsSeries,
   getAdminObservabilityOperationRuns: mocks.getAdminObservabilityOperationRuns,
@@ -240,6 +242,53 @@ describe("Admin page", () => {
         include_current_day: false,
       },
     });
+    mocks.getAdminAppSettings.mockResolvedValue({
+      data: {
+        items: [
+          {
+            key: "video_thumbnails_enabled",
+            category: "ui",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "db",
+            updated_at: "2026-03-20T10:00:00Z",
+            updated_by: "tester",
+            version: 1,
+            source: "bootstrap",
+            value_json: { value: true },
+          },
+          {
+            key: "directory_picker_enabled",
+            category: "ui",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: false,
+            db_present: false,
+            effective_source: null,
+            updated_at: null,
+            updated_by: null,
+            version: null,
+            source: null,
+          },
+          {
+            key: "admin_api_token",
+            category: "admin_safety",
+            value_type: "string",
+            is_sensitive: true,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "env_fallback",
+            updated_at: "2026-03-20T11:00:00Z",
+            updated_by: "tester",
+            version: 2,
+            source: "bootstrap",
+            value_redacted: true,
+          },
+        ],
+      },
+    });
   });
 
   afterEach(() => {
@@ -377,5 +426,57 @@ describe("Admin page", () => {
       expect(mocks.reconcileStaleOperationRuns).toHaveBeenCalledWith({ include_current_day: true }),
     );
     expect(await screen.findByText(/Included today: Yes/)).toBeInTheDocument();
+  });
+
+  it("renders the app settings inspection section with read-only values", async () => {
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("App settings inspection")).toBeInTheDocument();
+    expect(screen.getByText("video_thumbnails_enabled")).toBeInTheDocument();
+    expect(screen.getAllByText("Dual-read enabled").length).toBeGreaterThan(0);
+    expect(screen.getByText("Runtime source: DB")).toBeInTheDocument();
+    expect(screen.getByText('{"value":true}')).toBeInTheDocument();
+  });
+
+  it("redacts sensitive app setting values", async () => {
+    renderSystemHealthPage();
+
+    expect((await screen.findAllByText("Sensitive value redacted")).length).toBeGreaterThan(0);
+    expect(screen.queryByText("super-secret-token")).not.toBeInTheDocument();
+  });
+
+  it("labels non-dual-read app settings as inspection only", async () => {
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("directory_picker_enabled")).toBeInTheDocument();
+    expect(screen.getAllByText("Inspection only").length).toBeGreaterThan(0);
+    expect(screen.getByText("DB presence does not make this an active runtime authority.")).toBeInTheDocument();
+    expect(screen.getByText("No DB value")).toBeInTheDocument();
+  });
+
+  it("shows env fallback as the runtime source for dual-read app settings when returned", async () => {
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("Runtime source: env fallback")).toBeInTheDocument();
+  });
+
+  it("shows an empty state when no app settings are returned", async () => {
+    mocks.getAdminAppSettings.mockResolvedValueOnce({
+      data: {
+        items: [],
+      },
+    });
+
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("No app settings were returned by the inspection endpoint.")).toBeInTheDocument();
+  });
+
+  it("shows an error state when app settings inspection fails", async () => {
+    mocks.getAdminAppSettings.mockRejectedValueOnce(new Error("network down"));
+
+    renderSystemHealthPage();
+
+    expect(await screen.findByText("Unable to load app settings inspection. network down")).toBeInTheDocument();
   });
 });
