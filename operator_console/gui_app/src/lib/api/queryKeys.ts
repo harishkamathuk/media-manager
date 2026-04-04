@@ -33,6 +33,7 @@ export const queryKeys = {
   analytics: ["analytics"] as const,
   directoryPickerCapability: ["directory-picker", "capability"] as const,
   directoryPickerListing: (path: string) => ["directory-picker", "listing", { path }] as const,
+  adminAppSettings: ["admin", "app-settings"] as const,
   adminObservabilitySummary: ["admin", "observability", "summary"] as const,
   adminObservabilityRuns: (params?: { limit?: number; operation_type?: string; status?: string }) =>
     ["admin", "observability", "runs", params ?? {}] as const,
@@ -63,6 +64,7 @@ export const allReadQueryRoots = [
   queryKeys.integrityDashboard,
   queryKeys.policy,
   queryKeys.analytics,
+  queryKeys.adminAppSettings,
   queryKeys.adminObservabilitySummary,
   queryKeys.benchmarkRunsRoot,
 ] as const;

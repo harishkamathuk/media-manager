@@ -2,6 +2,7 @@ import { apiGet, apiPost } from "@/lib/api/client";
 import { withData } from "@/lib/api/envelope";
 import { mapObservabilityFailures, mapRunItem } from "@/lib/api/mappers/runs";
 import type {
+  AppSettingsInspection,
   BenchmarkQueueResult,
   BenchmarkRun,
   DbResetPreview,
@@ -17,6 +18,9 @@ export const adminDbReset = async (params: { dry_run: boolean; challenge_word?: 
     challenge_word: params.challenge_word,
   });
 };
+
+export const getAdminAppSettings = async () =>
+  apiGet<AppSettingsInspection>("/admin/app-settings");
 
 export const getAdminObservabilitySummary = async () =>
   apiGet<ObservabilitySummary>("/admin/observability/summary");
