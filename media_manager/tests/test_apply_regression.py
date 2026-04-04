@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy import func, select
 
 from media_manager.app.persistence.apply import ApplyService
+from media_manager.app.persistence.ingest import IngestService
 from media_manager.app.persistence.models import CanonicalAssignment, FailureEvent, PlannedAction
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.persistence.runs import RunService
@@ -17,12 +18,15 @@ def _write_file(path: Path, payload: bytes) -> Path:
 
 
 def _prepare_run(tmp_path: Path, session_factory) -> tuple[str, dict[str, int]]:
+    ingest = IngestService(session_factory)
     run_service = RunService(session_factory)
     planner = PlanningService(session_factory)
     run = run_service.create_run()
 
     move_a = _write_file(tmp_path / "inbox" / "IMG_20240111.jpg", b"dup-content")
     move_b = _write_file(tmp_path / "inbox" / "dup_copy.jpg", b"dup-content")
+    ingest.ingest_paths([move_a, move_b])
+    ingest.classify_paths([move_a, move_b], owner="LL", context="General")
     planner.plan_run(run.id, [move_a, move_b])
 
     with session_factory() as session:

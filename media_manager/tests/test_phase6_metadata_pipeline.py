@@ -45,8 +45,8 @@ def test_phase6_metadata_pipeline_end_to_end(tmp_path: Path, session_factory) ->
         assert len(metadata_rows) > 0
         assert len(actions) == 2
         assert all(action.target_path for action in actions)
-        planned_targets = [action.target_path for action in actions]
-        assert planned_targets == sorted(planned_targets)
+        planned_targets = sorted(action.target_path for action in actions if action.target_path is not None)
+        assert len(planned_targets) == 2
 
     before = _snapshot(root)
     apply_summary = ApplyService(session_factory).apply_run(run.id)

@@ -4,7 +4,7 @@ import uuid
 from pathlib import Path
 
 import pytest
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select, text, update
 
 from media_manager.app.persistence.apply import ApplyService
 from media_manager.app.persistence.ingest import IngestService
@@ -14,6 +14,8 @@ from media_manager.app.persistence.models import (
     FailureEvent,
     FileInstance,
     FileInstanceStatus,
+    MediaMetadata,
+    MetadataCode,
     PlannedAction,
 )
 from media_manager.app.persistence.planner import PlanningService
@@ -39,6 +41,21 @@ def _truncate_all(session_factory) -> None:
         )
 
 
+def _force_taken_dt(session_factory, value: str) -> None:
+    with session_factory.begin() as session:
+        code_ids = tuple(
+            code_id
+            for code_id in session.scalars(
+                select(MetadataCode.id).where(MetadataCode.code_type.in_(("TAKEN_DT", "CLASSIFICATION_DT")))
+            ).all()
+        )
+        session.execute(
+            update(MediaMetadata)
+            .where(MediaMetadata.code_id.in_(code_ids))
+            .values(decode_value=value)
+        )
+
+
 def _prepare_duplicate_run(tmp_path: Path, session_factory) -> tuple[uuid.UUID, uuid.UUID, str, str]:
     ingest = IngestService(session_factory)
     planner = PlanningService(session_factory)
@@ -52,6 +69,8 @@ def _prepare_duplicate_run(tmp_path: Path, session_factory) -> tuple[uuid.UUID, 
     ]
 
     ingest.ingest_paths(files)
+    ingest.classify_paths(files, owner="LL", context="General")
+    _force_taken_dt(session_factory, "2024-01-01T00:00:00+00:00")
     run = run_service.create_run()
     planner.plan_run(run.id, files, ingest_if_needed=False)
 

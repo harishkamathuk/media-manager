@@ -31,6 +31,31 @@ Rules:
 - Allowed edit branches are `feature/*`, `fix/*`, `docs/*`, and `chore/*`.
 - Do not commit directly to `develop` even if the worktree is clean.
 
+## Pre-Push Validation
+
+Before pushing a branch or opening/updating a PR, agents must run:
+
+1. `./.venv/bin/python -m pytest -q`
+
+Additional rules:
+
+- If frontend code changed, agents must also run the relevant frontend test suite before push/PR.
+- Agents must not push or open/update a PR with failing full local Python suite results unless the user explicitly approves skipping or deferring that validation.
+- If a validation step is skipped with user approval, the agent must state that clearly in its summary.
+
+## PR Metadata Hygiene
+
+Before opening or updating a PR, agents must verify that the PR has the expected repository metadata applied.
+
+Agents must ensure:
+
+- the PR is assigned appropriately
+- the PR has the expected labels for the slice/risk/category
+- the PR is linked to the correct project when the repository workflow expects project tracking
+- any expected project field values are set or explicitly checked
+
+If any PR metadata step is skipped or cannot be completed, the agent must say so clearly in its summary.
+
 ---
 
 This repository is developed using agent-driven workflows.

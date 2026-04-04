@@ -54,6 +54,9 @@ def test_plan_failure_marks_operation_run_failed(tmp_path: Path, session_factory
             _ = authoritative_root, kwargs
             return SimpleNamespace()
 
+        def classify_paths(self, _files: list[Path], **kwargs) -> None:
+            _ = kwargs
+
     class _FakeRunService:
         def __init__(self, _session_factory) -> None:
             pass

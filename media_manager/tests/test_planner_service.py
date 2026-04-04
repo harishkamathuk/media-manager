@@ -190,7 +190,7 @@ def test_planner_rejects_unclassified_owner_context(tmp_path: Path, session_fact
     path = _write_file(tmp_path / "unknown.jpg", b"x")
     ingest.ingest_paths([path])
 
-    run = run_service.create_run()
+    run = run_service.create_run(owner="unknown", context="unknown")
     with pytest.raises(OwnerContextClassificationRequiredError):
         planner.plan_run(run.id, [path], ingest_if_needed=False)
 

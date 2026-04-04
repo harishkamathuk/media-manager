@@ -20,6 +20,7 @@ from media_manager.app.persistence.models import (
 
 def _add_content(session, *, content_id: UUID, sha256_hash: str, at: datetime) -> None:
     session.add(FileContent(content_id=content_id, sha256_hash=sha256_hash, first_seen_at=at))
+    session.flush()
 
 
 def _add_instance(
