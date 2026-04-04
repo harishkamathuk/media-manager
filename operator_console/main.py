@@ -1213,6 +1213,12 @@ def create_app() -> FastAPI:
     ) -> JSONResponse:
         return _execute_read("admin-observability-summary", services.admin_observability_summary)
 
+    @app.get("/api/admin/app-settings")
+    def admin_app_settings(
+        services: ReadServices = Depends(get_read_services),
+    ) -> JSONResponse:
+        return _execute_read("admin-app-settings", services.admin_app_settings)
+
     @app.get("/api/admin/observability/operation-runs")
     def admin_observability_operation_runs(
         limit: int = Query(default=50),
