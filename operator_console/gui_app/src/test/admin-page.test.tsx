@@ -34,7 +34,6 @@ const mocks = vi.hoisted(() => ({
   queueDiscoveryBenchmark: vi.fn(),
   queueMetadataBenchmark: vi.fn(),
   reconcileStaleOperationRuns: vi.fn(),
-  updateAdminAppSetting: vi.fn(),
   updatePolicy: vi.fn(),
 }));
 
@@ -61,7 +60,6 @@ vi.mock("@/lib/api/endpoints", () => ({
   queueDiscoveryBenchmark: mocks.queueDiscoveryBenchmark,
   queueMetadataBenchmark: mocks.queueMetadataBenchmark,
   reconcileStaleOperationRuns: mocks.reconcileStaleOperationRuns,
-  updateAdminAppSetting: mocks.updateAdminAppSetting,
   updatePolicy: mocks.updatePolicy,
 }));
 
@@ -262,34 +260,6 @@ describe("Admin page", () => {
             value_json: { value: true },
           },
           {
-            key: "canonical_read_cache_enabled",
-            category: "performance",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "env_fallback",
-            updated_at: "2026-03-20T10:05:00Z",
-            updated_by: "tester",
-            version: 3,
-            source: "admin_ui",
-            value_json: { value: true },
-          },
-          {
-            key: "canonical_read_cache_ttl_seconds",
-            category: "performance",
-            value_type: "float",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-20T10:10:00Z",
-            updated_by: "tester",
-            version: 4,
-            source: "admin_ui",
-            value_json: { value: 30 },
-          },
-          {
             key: "directory_picker_enabled",
             category: "ui",
             value_type: "bool",
@@ -464,8 +434,8 @@ describe("Admin page", () => {
     expect(await screen.findByText("App settings inspection")).toBeInTheDocument();
     expect(screen.getByText("video_thumbnails_enabled")).toBeInTheDocument();
     expect(screen.getAllByText("Dual-read enabled").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Runtime source: DB").length).toBeGreaterThan(0);
-    expect(screen.getAllByText('{"value":true}').length).toBeGreaterThan(0);
+    expect(screen.getByText("Runtime source: DB")).toBeInTheDocument();
+    expect(screen.getByText('{"value":true}')).toBeInTheDocument();
   });
 
   it("redacts sensitive app setting values", async () => {
@@ -487,204 +457,7 @@ describe("Admin page", () => {
   it("shows env fallback as the runtime source for dual-read app settings when returned", async () => {
     renderSystemHealthPage();
 
-    expect((await screen.findAllByText("Runtime source: env fallback")).length).toBeGreaterThan(0);
-  });
-
-  it("shows edit controls only for the 3 allowlisted app settings", async () => {
-    renderSystemHealthPage();
-
-    expect(await screen.findByText("video_thumbnails_enabled")).toBeInTheDocument();
-    expect(screen.getAllByText("Editable in this slice")).toHaveLength(4);
-    expect(screen.getAllByRole("button", { name: "Edit" })).toHaveLength(3);
-    expect(screen.queryByRole("button", { name: "Edit directory_picker_enabled" })).not.toBeInTheDocument();
-  });
-
-  it("saves an allowlisted boolean app setting with the correct key and version", async () => {
-    mocks.updateAdminAppSetting.mockResolvedValueOnce({
-      data: {
-        key: "video_thumbnails_enabled",
-        category: "ui",
-        value_type: "bool",
-        is_sensitive: false,
-        runtime_dual_read_enabled: true,
-        db_present: true,
-        effective_source: "db",
-        updated_at: "2026-03-21T10:00:00Z",
-        updated_by: "operator_console:admin",
-        version: 2,
-        source: "admin_ui",
-        value_json: { value: false },
-      },
-    });
-
-    renderSystemHealthPage();
-
-    fireEvent.click((await screen.findAllByRole("button", { name: "Edit" }))[0]);
-    fireEvent.click(screen.getByRole("switch", { name: "Toggle video_thumbnails_enabled" }));
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
-
-    await waitFor(() =>
-      expect(mocks.updateAdminAppSetting).toHaveBeenCalledWith("video_thumbnails_enabled", {
-        value: false,
-        version: 1,
-      }),
-    );
-    expect(await screen.findByText((content) => content.includes('{"value":false}'))).toBeInTheDocument();
-    expect(screen.getByText("by operator_console:admin • v2 • admin_ui")).toBeInTheDocument();
-  });
-
-  it("shows a row-local validation error when an allowlisted update is rejected", async () => {
-    mocks.updateAdminAppSetting.mockRejectedValueOnce(new Error("canonical_read_cache_ttl_seconds must be > 0."));
-
-    renderSystemHealthPage();
-
-    fireEvent.click((await screen.findAllByRole("button", { name: "Edit" }))[2]);
-    fireEvent.change(screen.getByLabelText("canonical_read_cache_ttl_seconds"), { target: { value: "0" } });
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(
-      await screen.findByText("canonical_read_cache_ttl_seconds must be > 0."),
-    ).toBeInTheDocument();
-  });
-
-  it("shows row-local stale version feedback and refreshes after conflict", async () => {
-    const conflict = new Error("App setting version conflict for canonical_read_cache_enabled: expected 3, got stale.");
-    Object.assign(conflict, { status: 409 });
-    mocks.updateAdminAppSetting.mockRejectedValueOnce(conflict);
-    mocks.getAdminAppSettings.mockReset();
-    mocks.getAdminAppSettings.mockResolvedValueOnce({
-      data: {
-        items: [
-          {
-            key: "video_thumbnails_enabled",
-            category: "ui",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-20T10:00:00Z",
-            updated_by: "tester",
-            version: 1,
-            source: "bootstrap",
-            value_json: { value: true },
-          },
-          {
-            key: "canonical_read_cache_enabled",
-            category: "performance",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "env_fallback",
-            updated_at: "2026-03-20T10:05:00Z",
-            updated_by: "tester",
-            version: 3,
-            source: "admin_ui",
-            value_json: { value: true },
-          },
-          {
-            key: "canonical_read_cache_ttl_seconds",
-            category: "performance",
-            value_type: "float",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-20T10:10:00Z",
-            updated_by: "tester",
-            version: 4,
-            source: "admin_ui",
-            value_json: { value: 30 },
-          },
-          {
-            key: "directory_picker_enabled",
-            category: "ui",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: false,
-            db_present: false,
-            effective_source: null,
-            updated_at: null,
-            updated_by: null,
-            version: null,
-            source: null,
-          },
-        ],
-      },
-    });
-    mocks.getAdminAppSettings.mockResolvedValueOnce({
-      data: {
-        items: [
-          {
-            key: "video_thumbnails_enabled",
-            category: "ui",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-20T10:00:00Z",
-            updated_by: "tester",
-            version: 1,
-            source: "bootstrap",
-            value_json: { value: true },
-          },
-          {
-            key: "canonical_read_cache_enabled",
-            category: "performance",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-21T10:15:00Z",
-            updated_by: "operator_console:admin",
-            version: 4,
-            source: "admin_ui",
-            value_json: { value: false },
-          },
-          {
-            key: "canonical_read_cache_ttl_seconds",
-            category: "performance",
-            value_type: "float",
-            is_sensitive: false,
-            runtime_dual_read_enabled: true,
-            db_present: true,
-            effective_source: "db",
-            updated_at: "2026-03-20T10:10:00Z",
-            updated_by: "tester",
-            version: 4,
-            source: "admin_ui",
-            value_json: { value: 30 },
-          },
-          {
-            key: "directory_picker_enabled",
-            category: "ui",
-            value_type: "bool",
-            is_sensitive: false,
-            runtime_dual_read_enabled: false,
-            db_present: false,
-            effective_source: null,
-            updated_at: null,
-            updated_by: null,
-            version: null,
-            source: null,
-          },
-        ],
-      },
-    });
-
-    renderSystemHealthPage();
-
-    fireEvent.click((await screen.findAllByRole("button", { name: "Edit" }))[1]);
-    fireEvent.click(screen.getByRole("switch", { name: "Toggle canonical_read_cache_enabled" }));
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
-
-    expect(
-      await screen.findByText("App setting version conflict for canonical_read_cache_enabled: expected 3, got stale."),
-    ).toBeInTheDocument();
-    expect(await screen.findByText("by operator_console:admin • v4 • admin_ui")).toBeInTheDocument();
+    expect(await screen.findByText("Runtime source: env fallback")).toBeInTheDocument();
   });
 
   it("shows an empty state when no app settings are returned", async () => {
