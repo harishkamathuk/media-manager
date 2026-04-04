@@ -82,6 +82,13 @@ export async function apiGetJson<T>(
   return (await res.json()) as T;
 }
 
+/**
+ * Send a POST request to the API at the given path and parse the service's JSON envelope.
+ *
+ * @param path - The request path appended to the API base URL (e.g., "/users")
+ * @param body - Optional request payload; when provided it is serialized to JSON and sent as the request body
+ * @returns The parsed API envelope containing the response data typed as `T`
+ */
 export async function apiPost<T>(path: string, body?: unknown): Promise<ApiEnvelope<T>> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
@@ -91,6 +98,15 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<ApiEnvel
   return parseEnvelope<T>(res);
 }
 
+/**
+ * Sends an HTTP PATCH to the API and parses the standardized API envelope response.
+ *
+ * @param path - Request path appended to the API base URL (e.g., "/users/123")
+ * @param body - Optional request payload to be JSON-stringified and sent as the request body
+ * @returns The parsed API envelope containing the response data typed as `T`
+ *
+ * @throws {ApiClientError} When the HTTP response is not OK or the API envelope signals an error
+ */
 export async function apiPatch<T>(path: string, body?: unknown): Promise<ApiEnvelope<T>> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "PATCH",

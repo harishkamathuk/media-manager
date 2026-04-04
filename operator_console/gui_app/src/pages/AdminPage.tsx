@@ -368,6 +368,12 @@ function describeAppSettingRuntime(item: AppSettingInspectionItem) {
   };
 }
 
+/**
+ * Produce a short UI-ready description of whether a durable DB row exists for an app setting.
+ *
+ * @param item - The app setting inspection row to evaluate
+ * @returns An object with `label`, `severity`, and `detail` describing the DB presence state
+ */
 function describeAppSettingDbState(item: AppSettingInspectionItem) {
   if (!item.db_present) {
     return {
@@ -384,14 +390,32 @@ function describeAppSettingDbState(item: AppSettingInspectionItem) {
   };
 }
 
+/**
+ * Determines whether the given app setting key is allowed to be edited in this admin slice.
+ *
+ * @param key - The app setting key to test
+ * @returns `true` if `key` is an editable app setting key (narrows to `EditableAppSettingKey`), `false` otherwise.
+ */
 function isEditableAppSettingKey(key: string): key is EditableAppSettingKey {
   return (EDITABLE_APP_SETTING_KEYS as readonly string[]).includes(key);
 }
 
+/**
+ * Extracts the stored durable DB value from an app setting inspection item.
+ *
+ * @param item - The app setting inspection record to read from
+ * @returns The stored value found at `item.value_json.value`, or `undefined` if not present
+ */
 function getAppSettingStoredValue(item: AppSettingInspectionItem): unknown {
   return item.value_json?.value;
 }
 
+/**
+ * Render the display cell for an app setting's stored value with sensitive-value handling, a truncated preview, and an optional collapsible JSON viewer.
+ *
+ * @param item - The app setting inspection item; when `is_sensitive` or `value_redacted` is true a redaction badge and hint are shown, when `db_present` is false or `value_json` is missing a "no durable DB value" hint is shown, otherwise a truncated JSON preview is rendered with a "View JSON" control that expands to show the full stored value.
+ * @returns A React element representing the cell content for the app setting value.
+ */
 function AppSettingValueCell({ item }: { item: AppSettingInspectionItem }) {
   const [open, setOpen] = useState(false);
 
@@ -1994,6 +2018,16 @@ function IntegrityCheckTab() {
   );
 }
 
+/**
+ * Render the System Health admin tab with observability charts, reconciliation tools,
+ * recent failure events, operation feed, and an app-settings inspection surface with in-slice editing.
+ *
+ * The view includes hourly operation/failure charts and a latency trend, a reconcile action to mark stalled runs,
+ * a list of recent failure events and runs, external monitoring links, and a table for inspecting (and, for allowed keys, editing)
+ * durable app setting rows.
+ *
+ * @returns The rendered System Health tab as a React element
+ */
 function SystemHealthTab() {
   const queryClient = useQueryClient();
   const [includeCurrentDay, setIncludeCurrentDay] = useState(false);
