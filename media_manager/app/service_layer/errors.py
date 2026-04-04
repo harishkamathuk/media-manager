@@ -28,7 +28,14 @@ class ServiceLayerException(Exception):
 
 
 def map_exception(exc: Exception) -> ServiceLayerException:
-    """Normalize exceptions into deterministic service-layer taxonomy."""
+    """
+    Convert an arbitrary exception into a deterministic ServiceLayerException via type-based mapping.
+    
+    Known validation, version-conflict, owner-context, and domain errors are mapped to standardized service error codes and HTTP statuses; unknown exceptions are mapped to an INTERNAL_ERROR. The original exception message is used for the mapped message, and owner-context errors preserve their `details`.
+    
+    Returns:
+        ServiceLayerException: The corresponding service-layer error with `code`, `message`, `http_status`, and optional `details`.
+    """
     if isinstance(exc, ServiceLayerException):
         return exc
     if isinstance(exc, AppSettingsValidationError):
