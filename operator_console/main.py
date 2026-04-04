@@ -204,6 +204,13 @@ class MetadataBenchmarkPayload(BaseModel):
     challenge_word: str | None = None
 
 
+class AdminAppSettingPatchPayload(BaseModel):
+    """Payload for narrow allowlisted admin app_settings mutations."""
+
+    value: object
+    version: int
+
+
 class DiscoveryBenchmarkPayload(BaseModel):
     """Payload for admin discovery benchmark queue requests."""
 
@@ -606,7 +613,14 @@ def _parse_discovery_query_args(
 
 
 def create_app() -> FastAPI:
-    """Create and configure the Operator Console FastAPI application."""
+    """
+    Create and configure the Operator Console FastAPI application.
+    
+    Sets up logging filters, static asset and metrics mounts, startup reconciliation, exception handlers, API routes (read and mutation endpoints), admin routes, and media/thumbnail streaming endpoints used by the Operator Console.
+    
+    Returns:
+        app (FastAPI): A fully configured FastAPI application ready to be served.
+    """
     package_root = Path(__file__).parent
     console_static_dir = _resolve_console_static_dir(package_root)
     console_static_index = console_static_dir / "index.html"
@@ -1217,7 +1231,36 @@ def create_app() -> FastAPI:
     def admin_app_settings(
         services: ReadServices = Depends(get_read_services),
     ) -> JSONResponse:
+        """
+        Retrieve operator console administrative application settings.
+        
+        Returns:
+            JSONResponse: A v2 service-envelope whose `data.result` contains the current administrative application settings.
+        """
         return _execute_read("admin-app-settings", services.admin_app_settings)
+
+    @app.patch("/api/admin/app-settings/{key}")
+    def admin_update_app_setting(
+        key: str,
+        payload: AdminAppSettingPatchPayload,
+        services: AdminServices = Depends(get_admin_services),
+    ) -> JSONResponse:
+        """
+        Apply a partial update to an admin application setting identified by `key`.
+        
+        Calls the admin service to update the setting to `payload.value` at `payload.version` and returns the operation result wrapped in the module's v2 service envelope.
+        
+        Parameters:
+            key (str): The settings key to update.
+            payload (AdminAppSettingPatchPayload): Patch payload containing `value` and `version`.
+        
+        Returns:
+            JSONResponse: A v2 service-envelope JSON response containing the update result or error details.
+        """
+        return _execute_mutation(
+            "admin-update-app-setting",
+            lambda: services.update_app_setting(key=key, value=payload.value, version=payload.version),
+        )
 
     @app.get("/api/admin/observability/operation-runs")
     def admin_observability_operation_runs(
@@ -1226,6 +1269,17 @@ def create_app() -> FastAPI:
         status: str | None = Query(default=None),
         services: ReadServices = Depends(get_read_services),
     ) -> JSONResponse:
+        """
+        Return a paginated list of operation runs for observability, optionally filtered by type or status.
+        
+        Parameters:
+            limit (int): Maximum number of items requested; will be clamped to the range 1–200.
+            operation_type (str | None): Optional operation type to filter results.
+            status (str | None): Optional run status to filter results.
+        
+        Returns:
+            JSONResponse: A v2 service-envelope JSON response containing the requested operation run items.
+        """
         parsed_limit = max(1, min(200, int(limit)))
         return _execute_read(
             "admin-observability-operation-runs",

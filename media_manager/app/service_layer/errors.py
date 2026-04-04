@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from media_manager.app.core.errors import (
+    AppSettingsValidationError,
+    AppSettingsVersionConflictError,
     MediaManagerError,
     OwnerContextClassificationRequiredError,
     OwnerContextOverrideRequiredError,
@@ -26,9 +28,20 @@ class ServiceLayerException(Exception):
 
 
 def map_exception(exc: Exception) -> ServiceLayerException:
-    """Normalize exceptions into deterministic service-layer taxonomy."""
+    """
+    Convert an arbitrary exception into a deterministic ServiceLayerException via type-based mapping.
+    
+    Known validation, version-conflict, owner-context, and domain errors are mapped to standardized service error codes and HTTP statuses; unknown exceptions are mapped to an INTERNAL_ERROR. The original exception message is used for the mapped message, and owner-context errors preserve their `details`.
+    
+    Returns:
+        ServiceLayerException: The corresponding service-layer error with `code`, `message`, `http_status`, and optional `details`.
+    """
     if isinstance(exc, ServiceLayerException):
         return exc
+    if isinstance(exc, AppSettingsValidationError):
+        return ServiceLayerException(code="VALIDATION_ERROR", message=str(exc), http_status=400)
+    if isinstance(exc, AppSettingsVersionConflictError):
+        return ServiceLayerException(code="STATE_CONFLICT", message=str(exc), http_status=409)
     if isinstance(exc, PolicySettingsValidationError):
         return ServiceLayerException(code="VALIDATION_ERROR", message=str(exc), http_status=400)
     if isinstance(exc, PolicySettingsVersionConflictError):

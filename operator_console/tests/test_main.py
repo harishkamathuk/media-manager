@@ -55,6 +55,14 @@ def _create_console_client(tmp_path: Path, monkeypatch) -> TestClient:
     return TestClient(create_app())
 
 def test_canonical_api_route_inventory_and_v1_removal() -> None:
+    """
+    Verifies the application's registered routes include the expected canonical API surface and exclude legacy v1 and any /api/v2 routes.
+    
+    Checks performed:
+    - The predefined set of canonical paths is a subset of the application's registered route paths.
+    - The legacy route `/api/v1/ledger/hash-audit` is not present.
+    - No registered route path begins with `/api/v2`.
+    """
     route_paths = {route.path for route in app.routes}
 
     expected_canonical_paths = {
@@ -80,6 +88,7 @@ def test_canonical_api_route_inventory_and_v1_removal() -> None:
         "/api/media-file/validate",
         "/api/admin/hash-audit",
         "/api/admin/db-reset",
+        "/api/admin/app-settings/{key}",
         "/api/admin/operation-runs/reconcile-stale",
         "/api/admin/observability/summary",
         "/api/admin/observability/operation-runs",
@@ -1840,7 +1849,30 @@ class _FakeOperationServices:
 
 
 class _FakeAdminServices:
+    _editable = {
+        "video_thumbnails_enabled": ("ui", "bool"),
+        "canonical_read_cache_enabled": ("performance", "bool"),
+        "canonical_read_cache_ttl_seconds": ("performance", "float"),
+    }
+
     def db_reset(self, *, dry_run: bool, challenge_word: str | None) -> dict[str, object]:
+        """
+        Reset the application's database state or simulate the reset when `dry_run` is true.
+        
+        Parameters:
+            dry_run (bool): If True, no data is deleted and the response describes the simulated effect.
+            challenge_word (str | None): Required when `dry_run` is False; must equal "media-manager" to authorize the reset.
+        
+        Returns:
+            dict[str, object]: Result envelope containing:
+                - "success" (bool): Whether the operation completed.
+                - "dry_run" (bool): Echoes the `dry_run` input.
+                - "affected_tables" (list[str]): Names of tables that would be or were affected.
+                - "message" (str): Human-readable summary of the outcome.
+        
+        Raises:
+            ValueError: If `dry_run` is False and `challenge_word` is not "media-manager".
+        """
         if not dry_run and challenge_word != "media-manager":
             raise ValueError("challenge_word is incorrect.")
         return {
@@ -1851,6 +1883,19 @@ class _FakeAdminServices:
         }
 
     def reconcile_stale_operation_runs(self, *, include_current_day: bool = False) -> dict[str, object]:
+        """
+        Perform a reconciliation of stale operation runs and return a summary of the reconciliation.
+        
+        Parameters:
+        	include_current_day (bool): If True, include operation runs from the current day in the reconciliation; otherwise exclude them.
+        
+        Returns:
+        	result (dict): Summary object containing:
+        		- cutoff (str): ISO 8601 cutoff timestamp used for the reconciliation.
+        		- scanned_count (int): Number of operation runs scanned.
+        		- updated_count (int): Number of operation runs that were updated.
+        		- include_current_day (bool): Echoes the `include_current_day` parameter.
+        """
         return {
             "cutoff": "2026-03-14T00:00:00+00:00" if not include_current_day else "2026-03-14T10:30:00+00:00",
             "scanned_count": 3 if not include_current_day else 5,
@@ -1858,7 +1903,107 @@ class _FakeAdminServices:
             "include_current_day": include_current_day,
         }
 
+    def update_app_setting(self, *, key: str, value: object, version: int) -> dict[str, object]:
+        """
+        Update an editable application setting and return its updated metadata envelope.
+        
+        Parameters:
+            key (str): The setting key to update; must be one of the service's editable keys.
+            value (object): The new value for the setting. Expected types:
+                - "video_thumbnails_enabled": bool
+                - "canonical_read_cache_enabled": bool
+                - "canonical_read_cache_ttl_seconds": positive number (> 0)
+            version (int): The current metadata version from the caller; used for optimistic concurrency.
+        
+        Returns:
+            dict[str, object]: A metadata envelope describing the updated setting, including keys
+            such as `key`, `category`, `value_type`, `version` (incremented), `value_json`, and
+            other audit/runtime fields.
+        
+        Raises:
+            ServiceLayerException: with code "VALIDATION_ERROR" and HTTP 400 when `key` is not editable
+            or when `value` does not match the expected type/constraints; with code "STATE_CONFLICT"
+            and HTTP 409 when the provided `version` does not match the expected current version for
+            the target setting.
+        """
+        if key not in self._editable:
+            raise ServiceLayerException(
+                code="VALIDATION_ERROR",
+                message=f"{key} is not editable in this slice.",
+                http_status=400,
+            )
+
+        if key == "video_thumbnails_enabled":
+            if not isinstance(value, bool):
+                raise ServiceLayerException(
+                    code="VALIDATION_ERROR",
+                    message="video_thumbnails_enabled must be a boolean.",
+                    http_status=400,
+                )
+            if version != 1:
+                raise ServiceLayerException(
+                    code="STATE_CONFLICT",
+                    message="App setting version conflict for video_thumbnails_enabled: expected 1, got stale.",
+                    http_status=409,
+                )
+        elif key == "canonical_read_cache_enabled":
+            if not isinstance(value, bool):
+                raise ServiceLayerException(
+                    code="VALIDATION_ERROR",
+                    message="canonical_read_cache_enabled must be a boolean.",
+                    http_status=400,
+                )
+            if version != 3:
+                raise ServiceLayerException(
+                    code="STATE_CONFLICT",
+                    message="App setting version conflict for canonical_read_cache_enabled: expected 3, got stale.",
+                    http_status=409,
+                )
+        else:
+            if not isinstance(value, (int, float)) or isinstance(value, bool) or float(value) <= 0:
+                raise ServiceLayerException(
+                    code="VALIDATION_ERROR",
+                    message="canonical_read_cache_ttl_seconds must be > 0.",
+                    http_status=400,
+                )
+            if version != 4:
+                raise ServiceLayerException(
+                    code="STATE_CONFLICT",
+                    message="App setting version conflict for canonical_read_cache_ttl_seconds: expected 4, got stale.",
+                    http_status=409,
+                )
+
+        category, value_type = self._editable[key]
+        return {
+            "key": key,
+            "category": category,
+            "value_type": value_type,
+            "is_sensitive": False,
+            "runtime_dual_read_enabled": True,
+            "db_present": True,
+            "effective_source": "db",
+            "updated_at": "2026-03-22T10:00:00+00:00",
+            "updated_by": "operator_console:admin",
+            "version": version + 1,
+            "source": "admin_ui",
+            "value_json": {"value": value},
+        }
+
     def benchmark_metadata_queue(self, *, items: int, batch_size: int, challenge_word: str | None) -> dict[str, object]:
+        """
+        Queue a metadata benchmark run and return a representation of the queued operation.
+        
+        Parameters:
+        	items (int): Number of items to include in the benchmark.
+        	batch_size (int): Batch size to process at a time.
+        	challenge_word (str | None): Must equal "media-manager" to authorize the operation.
+        
+        Returns:
+        	dict[str, object]: A payload describing the queued operation and benchmark run, including `operation_run_id`, `benchmark` metadata, and the provided `items`/`batch_size` parameters.
+        
+        Raises:
+        	ValueError: If `challenge_word` is not "media-manager".
+        """
         if challenge_word != "media-manager":
             raise ValueError("challenge_word is incorrect.")
         return {
@@ -3665,6 +3810,115 @@ def test_admin_app_settings_returns_envelope() -> None:
     assert dual_read["effective_source"] == "db"
     assert non_dual_read["effective_source"] is None
     assert "mutation" not in payload["data"]["result"]
+
+
+def test_patch_admin_app_setting_updates_video_thumbnails_enabled() -> None:
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/video_thumbnails_enabled",
+            json={"value": False, "version": 1},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()["data"]["result"]
+    assert payload["key"] == "video_thumbnails_enabled"
+    assert payload["value_json"] == {"value": False}
+    assert payload["version"] == 2
+
+
+def test_patch_admin_app_setting_updates_canonical_read_cache_enabled() -> None:
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/canonical_read_cache_enabled",
+            json={"value": False, "version": 3},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()["data"]["result"]
+    assert payload["key"] == "canonical_read_cache_enabled"
+    assert payload["value_json"] == {"value": False}
+    assert payload["version"] == 4
+
+
+def test_patch_admin_app_setting_updates_canonical_read_cache_ttl_seconds() -> None:
+    """
+    Verifies that PATCH /api/admin/app-settings/canonical_read_cache_ttl_seconds updates the TTL value and increments the stored version.
+    
+    Asserts the endpoint returns 200 and that the response payload's `key` is "canonical_read_cache_ttl_seconds", `value_json` reflects the submitted value, and `version` has been incremented by one.
+    """
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/canonical_read_cache_ttl_seconds",
+            json={"value": 45, "version": 4},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    payload = response.json()["data"]["result"]
+    assert payload["key"] == "canonical_read_cache_ttl_seconds"
+    assert payload["value_json"] == {"value": 45}
+    assert payload["version"] == 5
+
+
+def test_patch_admin_app_setting_rejects_non_allowlisted_key() -> None:
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/directory_picker_enabled",
+            json={"value": True, "version": 1},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "not editable in this slice" in response.json()["errors"][0]["message"].lower()
+
+
+def test_patch_admin_app_setting_returns_validation_error() -> None:
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/canonical_read_cache_ttl_seconds",
+            json={"value": 0, "version": 4},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "must be > 0" in response.json()["errors"][0]["message"]
+
+
+def test_patch_admin_app_setting_returns_version_conflict() -> None:
+    """
+    Verifies that updating an admin app-setting with a stale version returns an HTTP 409 version conflict.
+    
+    This test patches the `canonical_read_cache_enabled` setting with an out-of-date `version` and asserts the response status is 409 and the first error message contains "version conflict".
+    """
+    app.dependency_overrides[get_admin_services] = _FakeAdminServices
+    client = TestClient(app)
+    try:
+        response = client.patch(
+            "/api/admin/app-settings/canonical_read_cache_enabled",
+            json={"value": True, "version": 2},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 409
+    assert "version conflict" in response.json()["errors"][0]["message"].lower()
 
 
 def test_admin_observability_failures_returns_envelope() -> None:

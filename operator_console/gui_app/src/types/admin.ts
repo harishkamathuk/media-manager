@@ -21,6 +21,16 @@ export interface AppSettingsInspection {
   items: AppSettingInspectionItem[];
 }
 
+export type EditableAppSettingKey =
+  | "video_thumbnails_enabled"
+  | "canonical_read_cache_enabled"
+  | "canonical_read_cache_ttl_seconds";
+
+export interface AdminAppSettingPatchPayload {
+  value: boolean | number;
+  version: number;
+}
+
 export interface DbResetPreview {
   affected_tables: string[];
   record_counts?: Record<string, number>;
