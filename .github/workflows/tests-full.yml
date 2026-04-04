@@ -1,6 +1,7 @@
 name: Tests Full
 
 on:
+  pull_request:
   push:
     branches:
       - develop
