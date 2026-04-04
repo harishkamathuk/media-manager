@@ -3,6 +3,7 @@ import { withData } from "@/lib/api/envelope";
 import { mapObservabilityFailures, mapRunItem } from "@/lib/api/mappers/runs";
 import type {
   AdminAppSettingPatchPayload,
+  EditableAppSettingKey,
   AppSettingsInspection,
   AppSettingInspectionItem,
   BenchmarkQueueResult,
@@ -24,8 +25,8 @@ export const adminDbReset = async (params: { dry_run: boolean; challenge_word?: 
 export const getAdminAppSettings = async () =>
   apiGet<AppSettingsInspection>("/admin/app-settings");
 
-export const updateAdminAppSetting = async (key: string, payload: AdminAppSettingPatchPayload) =>
-  apiPatch<AppSettingInspectionItem>(`/admin/app-settings/${key}`, payload);
+export const updateAdminAppSetting = async (key: EditableAppSettingKey, payload: AdminAppSettingPatchPayload) =>
+  apiPatch<AppSettingInspectionItem>(`/admin/app-settings/${encodeURIComponent(key)}`, payload);
 
 export const getAdminObservabilitySummary = async () =>
   apiGet<ObservabilitySummary>("/admin/observability/summary");

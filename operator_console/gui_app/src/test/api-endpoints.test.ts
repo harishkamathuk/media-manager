@@ -132,6 +132,8 @@ describe("api endpoints", () => {
       value: false,
       version: 1,
     });
+    expect(apiGet).not.toHaveBeenCalled();
+    expect(apiPost).not.toHaveBeenCalled();
   });
 
   it("derives canonical policy update payloads through the API client only", async () => {

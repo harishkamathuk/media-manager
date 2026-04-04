@@ -551,6 +551,68 @@ describe("Admin page", () => {
     const conflict = new Error("App setting version conflict for canonical_read_cache_enabled: expected 3, got stale.");
     Object.assign(conflict, { status: 409 });
     mocks.updateAdminAppSetting.mockRejectedValueOnce(conflict);
+    mocks.getAdminAppSettings.mockReset();
+    mocks.getAdminAppSettings.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            key: "video_thumbnails_enabled",
+            category: "ui",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "db",
+            updated_at: "2026-03-20T10:00:00Z",
+            updated_by: "tester",
+            version: 1,
+            source: "bootstrap",
+            value_json: { value: true },
+          },
+          {
+            key: "canonical_read_cache_enabled",
+            category: "performance",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "env_fallback",
+            updated_at: "2026-03-20T10:05:00Z",
+            updated_by: "tester",
+            version: 3,
+            source: "admin_ui",
+            value_json: { value: true },
+          },
+          {
+            key: "canonical_read_cache_ttl_seconds",
+            category: "performance",
+            value_type: "float",
+            is_sensitive: false,
+            runtime_dual_read_enabled: true,
+            db_present: true,
+            effective_source: "db",
+            updated_at: "2026-03-20T10:10:00Z",
+            updated_by: "tester",
+            version: 4,
+            source: "admin_ui",
+            value_json: { value: 30 },
+          },
+          {
+            key: "directory_picker_enabled",
+            category: "ui",
+            value_type: "bool",
+            is_sensitive: false,
+            runtime_dual_read_enabled: false,
+            db_present: false,
+            effective_source: null,
+            updated_at: null,
+            updated_by: null,
+            version: null,
+            source: null,
+          },
+        ],
+      },
+    });
     mocks.getAdminAppSettings.mockResolvedValueOnce({
       data: {
         items: [
@@ -622,7 +684,7 @@ describe("Admin page", () => {
     expect(
       await screen.findByText("App setting version conflict for canonical_read_cache_enabled: expected 3, got stale."),
     ).toBeInTheDocument();
-    expect(await screen.findByText(/v4/)).toBeInTheDocument();
+    expect(await screen.findByText("by operator_console:admin • v4 • admin_ui")).toBeInTheDocument();
   });
 
   it("shows an empty state when no app settings are returned", async () => {

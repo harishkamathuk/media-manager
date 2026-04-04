@@ -2033,6 +2033,7 @@ function SystemHealthTab() {
   const [includeCurrentDay, setIncludeCurrentDay] = useState(false);
   const [editingKey, setEditingKey] = useState<EditableAppSettingKey | null>(null);
   const [editingValue, setEditingValue] = useState<boolean | string>("");
+  const [editingVersion, setEditingVersion] = useState<number | null>(null);
   const [appSettingEditError, setAppSettingEditError] = useState<string | null>(null);
   const appSettingsQuery = useQuery({
     queryKey: queryKeys.adminAppSettings,
@@ -2098,6 +2099,7 @@ function SystemHealthTab() {
       });
       setEditingKey(null);
       setEditingValue("");
+      setEditingVersion(null);
       setAppSettingEditError(null);
     },
     onError: (error) => {
@@ -2109,7 +2111,21 @@ function SystemHealthTab() {
             ? Number((error as { status?: unknown }).status)
             : undefined;
       if (status === 409) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.adminAppSettings });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.adminAppSettings }).then(() => {
+          if (!editingKey) return;
+          const refreshed = queryClient.getQueryData<{ data?: AppSettingsInspection }>(queryKeys.adminAppSettings);
+          const refreshedItem = refreshed?.data?.items?.find((item) => item.key === editingKey);
+          if (!refreshedItem || !isEditableAppSettingKey(refreshedItem.key)) return;
+          const storedValue = getAppSettingStoredValue(refreshedItem);
+          setEditingVersion(refreshedItem.version ?? null);
+          setEditingValue(
+            refreshedItem.value_type === "bool"
+              ? Boolean(storedValue)
+              : storedValue == null
+                ? ""
+                : String(storedValue),
+          );
+        });
       }
     },
   });
@@ -2131,6 +2147,7 @@ function SystemHealthTab() {
     if (!isEditableAppSettingKey(item.key)) return;
     const storedValue = getAppSettingStoredValue(item);
     setEditingKey(item.key);
+    setEditingVersion(item.version ?? null);
     setAppSettingEditError(null);
     if (item.value_type === "bool") {
       setEditingValue(Boolean(storedValue));
@@ -2142,22 +2159,36 @@ function SystemHealthTab() {
   function cancelEditing() {
     setEditingKey(null);
     setEditingValue("");
+    setEditingVersion(null);
     setAppSettingEditError(null);
   }
 
   function saveAppSetting(item: AppSettingInspectionItem) {
     if (!isEditableAppSettingKey(item.key)) return;
-    if (item.version == null) {
+    if (editingVersion == null) {
       setAppSettingEditError("Unable to update this setting because no current version is available.");
       return;
     }
-    const nextValue =
-      item.value_type === "bool" ? Boolean(editingValue) : Number(typeof editingValue === "string" ? editingValue : "");
+    let nextValue: boolean | number;
+    if (item.value_type === "bool") {
+      nextValue = Boolean(editingValue);
+    } else {
+      const rawValue = typeof editingValue === "string" ? editingValue.trim() : "";
+      if (!rawValue) {
+        setAppSettingEditError("Enter a value in seconds.");
+        return;
+      }
+      nextValue = Number(rawValue);
+      if (Number.isNaN(nextValue)) {
+        setAppSettingEditError("Enter a valid numeric value in seconds.");
+        return;
+      }
+    }
     setAppSettingEditError(null);
     appSettingMutation.mutate({
       key: item.key,
       value: nextValue,
-      version: item.version,
+      version: editingVersion,
     });
   }
 
