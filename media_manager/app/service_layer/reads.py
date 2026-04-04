@@ -21,6 +21,7 @@ from media_manager.app.persistence.models import (
     TagSource,
 )
 from media_manager.app.persistence.operator_console import OperatorConsoleReadService
+from media_manager.app.service_layer.admin import EDITABLE_APP_SETTING_KEYS
 from media_manager.app.service_layer.cache import ServiceCache
 from media_manager.app.service_layer.versioning import compute_phase_metadata
 
@@ -375,6 +376,7 @@ class ReadServices:
                     "category": definition.category,
                     "value_type": definition.value_type,
                     "is_sensitive": definition.is_sensitive,
+                    "editable_in_slice": key in EDITABLE_APP_SETTING_KEYS,
                     "runtime_dual_read_enabled": runtime_dual_read_enabled,
                     "db_present": db_present,
                     "effective_source": effective_source,

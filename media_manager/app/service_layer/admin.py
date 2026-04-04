@@ -291,6 +291,7 @@ class AdminServices:
             "category": definition.category,
             "value_type": definition.value_type,
             "is_sensitive": definition.is_sensitive,
+            "editable_in_slice": snapshot.key in EDITABLE_APP_SETTING_KEYS,
             "runtime_dual_read_enabled": runtime_dual_read_enabled,
             "db_present": True,
             "effective_source": "db" if runtime_dual_read_enabled else None,

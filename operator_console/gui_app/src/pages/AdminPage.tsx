@@ -87,7 +87,6 @@ import type {
   BenchmarkRun,
   DbResetPreview,
   DbResetResult,
-  EditableAppSettingKey,
   FailureEventItem,
   HashAuditResult,
   MediaFileRecord,
@@ -122,11 +121,6 @@ const VALID_ADMIN_TABS: AdminTab[] = [
   "reset",
 ];
 const STATUS_EXAMPLES = ["INGESTED", "PROCESSED", "DELETED"] as const;
-const EDITABLE_APP_SETTING_KEYS: readonly EditableAppSettingKey[] = [
-  "video_thumbnails_enabled",
-  "canonical_read_cache_enabled",
-  "canonical_read_cache_ttl_seconds",
-];
 
 const chartConfig = {
   operations: { label: "Operations", color: "hsl(195 85% 42%)" },
@@ -384,8 +378,8 @@ function describeAppSettingDbState(item: AppSettingInspectionItem) {
   };
 }
 
-function isEditableAppSettingKey(key: string): key is EditableAppSettingKey {
-  return (EDITABLE_APP_SETTING_KEYS as readonly string[]).includes(key);
+function isEditableAppSetting(item: AppSettingInspectionItem): boolean {
+  return item.editable_in_slice;
 }
 
 function getAppSettingStoredValue(item: AppSettingInspectionItem): unknown {
@@ -1997,7 +1991,7 @@ function IntegrityCheckTab() {
 function SystemHealthTab() {
   const queryClient = useQueryClient();
   const [includeCurrentDay, setIncludeCurrentDay] = useState(false);
-  const [editingKey, setEditingKey] = useState<EditableAppSettingKey | null>(null);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<boolean | string>("");
   const [editingVersion, setEditingVersion] = useState<number | null>(null);
   const [appSettingEditError, setAppSettingEditError] = useState<string | null>(null);
@@ -2045,7 +2039,7 @@ function SystemHealthTab() {
       value,
       version,
     }: {
-      key: EditableAppSettingKey;
+      key: string;
       value: boolean | number;
       version: number;
     }) => updateAdminAppSetting(key, { value, version }),
@@ -2078,7 +2072,7 @@ function SystemHealthTab() {
         void queryClient.refetchQueries({ queryKey: queryKeys.adminAppSettings }).then(() => {
           const refreshed = queryClient.getQueryData<{ data?: AppSettingsInspection }>(queryKeys.adminAppSettings);
           const refreshedItem = refreshed?.data?.items?.find((item) => item.key === editingKey);
-          if (!refreshedItem || !isEditableAppSettingKey(refreshedItem.key)) return;
+          if (!refreshedItem || !isEditableAppSetting(refreshedItem)) return;
           const storedValue = getAppSettingStoredValue(refreshedItem);
           setEditingVersion(refreshedItem.version ?? null);
           setEditingValue(
@@ -2118,10 +2112,10 @@ function SystemHealthTab() {
   const reconcileResult = reconcileMutation.data?.data as OperationRunReconcileResult | undefined;
 
   function startEditing(item: AppSettingInspectionItem) {
-    if (!isEditableAppSettingKey(item.key)) return;
+    if (!isEditableAppSetting(item)) return;
     const storedValue = getAppSettingStoredValue(item);
     setEditingKey(item.key);
-    setEditingVersion(item.version ?? null);
+    setEditingVersion(item.version ?? 0);
     setAppSettingEditError(null);
     if (item.value_type === "bool") {
       setEditingValue(Boolean(storedValue));
@@ -2138,11 +2132,8 @@ function SystemHealthTab() {
   }
 
   function saveAppSetting(item: AppSettingInspectionItem) {
-    if (!isEditableAppSettingKey(item.key)) return;
-    if (editingVersion == null) {
-      setAppSettingEditError("Unable to update this setting because no current version is available.");
-      return;
-    }
+    if (!isEditableAppSetting(item)) return;
+    const expectedVersion = editingVersion ?? 0;
 
     let nextValue: boolean | number;
     if (item.value_type === "bool") {
@@ -2164,7 +2155,7 @@ function SystemHealthTab() {
     appSettingMutation.mutate({
       key: item.key,
       value: nextValue,
-      version: editingVersion,
+      version: expectedVersion,
     });
   }
 
@@ -2176,7 +2167,7 @@ function SystemHealthTab() {
         <div className="space-y-1">
           <p className="font-mono text-xs font-semibold text-foreground">{item.key}</p>
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.category}</p>
-          {isEditableAppSettingKey(item.key) ? <StatusBadge label="Editable in this slice" severity="info" /> : null}
+          {isEditableAppSetting(item) ? <StatusBadge label="Editable in this slice" severity="info" /> : null}
         </div>
       ),
     },
@@ -2218,7 +2209,7 @@ function SystemHealthTab() {
       key: "value",
       header: "Value",
       render: (item: AppSettingInspectionItem) => {
-        const isEditing = editingKey === item.key && isEditableAppSettingKey(item.key);
+        const isEditing = editingKey === item.key && isEditableAppSetting(item);
         if (!isEditing) {
           return <AppSettingValueCell item={item} />;
         }
@@ -2292,7 +2283,7 @@ function SystemHealthTab() {
       key: "actions",
       header: "Actions",
       render: (item: AppSettingInspectionItem) => {
-        if (!isEditableAppSettingKey(item.key)) {
+        if (!isEditableAppSetting(item)) {
           return <StatusBadge label="Inspection only" severity="neutral" />;
         }
 

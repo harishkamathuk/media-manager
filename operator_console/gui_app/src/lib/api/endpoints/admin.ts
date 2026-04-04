@@ -9,7 +9,6 @@ import type {
   BenchmarkRun,
   DbResetPreview,
   DbResetResult,
-  EditableAppSettingKey,
   ObservabilityMetricsSeries,
   OperationRunReconcileResult,
   ObservabilitySummary,
@@ -25,7 +24,7 @@ export const adminDbReset = async (params: { dry_run: boolean; challenge_word?: 
 export const getAdminAppSettings = async () =>
   apiGet<AppSettingsInspection>("/admin/app-settings");
 
-export const updateAdminAppSetting = async (key: EditableAppSettingKey, payload: AdminAppSettingPatchPayload) =>
+export const updateAdminAppSetting = async (key: string, payload: AdminAppSettingPatchPayload) =>
   apiPatch<AppSettingInspectionItem>(`/admin/app-settings/${encodeURIComponent(key)}`, payload);
 
 export const getAdminObservabilitySummary = async () =>

@@ -253,6 +253,7 @@ describe("Admin page", () => {
             category: "ui",
             value_type: "bool",
             is_sensitive: false,
+            editable_in_slice: true,
             runtime_dual_read_enabled: true,
             db_present: true,
             effective_source: "db",
@@ -267,6 +268,7 @@ describe("Admin page", () => {
             category: "performance",
             value_type: "bool",
             is_sensitive: false,
+            editable_in_slice: true,
             runtime_dual_read_enabled: true,
             db_present: true,
             effective_source: "db",
@@ -281,6 +283,7 @@ describe("Admin page", () => {
             category: "performance",
             value_type: "float",
             is_sensitive: false,
+            editable_in_slice: true,
             runtime_dual_read_enabled: true,
             db_present: true,
             effective_source: "db",
@@ -295,6 +298,7 @@ describe("Admin page", () => {
             category: "ui",
             value_type: "bool",
             is_sensitive: false,
+            editable_in_slice: false,
             runtime_dual_read_enabled: false,
             db_present: false,
             effective_source: null,
@@ -308,6 +312,7 @@ describe("Admin page", () => {
             category: "admin_safety",
             value_type: "string",
             is_sensitive: true,
+            editable_in_slice: false,
             runtime_dual_read_enabled: true,
             db_present: true,
             effective_source: "env_fallback",
@@ -502,6 +507,7 @@ describe("Admin page", () => {
         category: "ui",
         value_type: "bool",
         is_sensitive: false,
+        editable_in_slice: true,
         runtime_dual_read_enabled: true,
         db_present: true,
         effective_source: "db",
@@ -528,6 +534,60 @@ describe("Admin page", () => {
       }),
     );
     expect(await screen.findByText('{"value":false}')).toBeInTheDocument();
+  });
+
+  it("uses version 0 for first-write edits when no durable row exists yet", async () => {
+    mocks.getAdminAppSettings.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            key: "video_thumbnails_enabled",
+            category: "ui",
+            value_type: "bool",
+            is_sensitive: false,
+            editable_in_slice: true,
+            runtime_dual_read_enabled: true,
+            db_present: false,
+            effective_source: "env_fallback",
+            updated_at: null,
+            updated_by: null,
+            version: null,
+            source: null,
+          },
+        ],
+      },
+    });
+    mocks.updateAdminAppSetting.mockResolvedValueOnce({
+      data: {
+        key: "video_thumbnails_enabled",
+        category: "ui",
+        value_type: "bool",
+        is_sensitive: false,
+        editable_in_slice: true,
+        runtime_dual_read_enabled: true,
+        db_present: true,
+        effective_source: "db",
+        updated_at: "2026-03-20T12:00:00Z",
+        updated_by: "operator_console:admin",
+        version: 1,
+        source: "admin_ui",
+        value_json: { value: true },
+      },
+    });
+
+    renderSystemHealthPage();
+
+    const row = (await screen.findByText("video_thumbnails_enabled")).closest("tr");
+    expect(row).not.toBeNull();
+    fireEvent.click(within(row as HTMLElement).getByRole("button", { name: "Edit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() =>
+      expect(mocks.updateAdminAppSetting).toHaveBeenCalledWith("video_thumbnails_enabled", {
+        value: false,
+        version: 0,
+      }),
+    );
   });
 
   it("shows backend validation failures while editing an allowlisted numeric app setting", async () => {

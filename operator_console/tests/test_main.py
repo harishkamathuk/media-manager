@@ -1273,6 +1273,7 @@ class _FakeReadServices:
                     "category": "ui",
                     "value_type": "bool",
                     "is_sensitive": False,
+                    "editable_in_slice": True,
                     "runtime_dual_read_enabled": True,
                     "db_present": True,
                     "effective_source": "db",
@@ -1287,6 +1288,7 @@ class _FakeReadServices:
                     "category": "ui",
                     "value_type": "bool",
                     "is_sensitive": False,
+                    "editable_in_slice": False,
                     "runtime_dual_read_enabled": False,
                     "db_present": False,
                     "effective_source": None,
@@ -1902,6 +1904,7 @@ class _FakeAdminServices:
             "category": category,
             "value_type": value_type,
             "is_sensitive": False,
+            "editable_in_slice": True,
             "runtime_dual_read_enabled": True,
             "db_present": True,
             "effective_source": "db",
@@ -3716,6 +3719,8 @@ def test_admin_app_settings_returns_envelope() -> None:
     items = payload["data"]["result"]["items"]
     dual_read = next(item for item in items if item["key"] == "video_thumbnails_enabled")
     non_dual_read = next(item for item in items if item["key"] == "directory_picker_enabled")
+    assert dual_read["editable_in_slice"] is True
+    assert non_dual_read["editable_in_slice"] is False
     assert dual_read["effective_source"] == "db"
     assert non_dual_read["effective_source"] is None
     assert "mutation" not in payload["data"]["result"]

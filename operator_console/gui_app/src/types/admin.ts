@@ -1,11 +1,6 @@
 import type { LatestMetrics } from "@/types/dashboard";
 import type { Run } from "@/types/runs";
 
-export type EditableAppSettingKey =
-  | "video_thumbnails_enabled"
-  | "canonical_read_cache_enabled"
-  | "canonical_read_cache_ttl_seconds";
-
 export interface AdminAppSettingPatchPayload {
   value: boolean | number;
   version: number;
@@ -16,6 +11,7 @@ export interface AppSettingInspectionItem {
   category: string;
   value_type: string;
   is_sensitive: boolean;
+  editable_in_slice: boolean;
   runtime_dual_read_enabled: boolean;
   db_present: boolean;
   effective_source: "db" | "env_fallback" | null;
