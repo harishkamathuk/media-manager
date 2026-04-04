@@ -31,9 +31,11 @@ RUNTIME_DUAL_READ_KEYS = frozenset(
     {
         "video_thumbnails_enabled",
         "video_thumbnail_cache_dir",
+        "benchmarks_enabled",
         "canonical_read_cache_enabled",
         "canonical_read_cache_ttl_seconds",
         "metadata_upsert_batch_size",
+        "benchmark_stale_after_seconds",
         "benchmark_worker_mode",
         "benchmark_poll_interval_seconds",
     }
