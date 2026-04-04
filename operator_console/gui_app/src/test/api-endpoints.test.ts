@@ -2,10 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/api/client", () => ({
   apiGet: vi.fn(),
+  apiPatch: vi.fn(),
   apiPost: vi.fn(),
 }));
 
-import { apiGet, apiPost } from "@/lib/api/client";
+import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
 import {
   adminDbReset,
   getAdminAppSettings,
@@ -20,6 +21,7 @@ import {
   runIntegrityScan,
   runIngest,
   setDuplicateReclaim,
+  updateAdminAppSetting,
   updatePolicy,
 } from "@/lib/api/endpoints";
 
@@ -108,6 +110,28 @@ describe("api endpoints", () => {
     await getAdminAppSettings();
 
     expect(apiGet).toHaveBeenCalledWith("/admin/app-settings");
+  });
+
+  it("patches allowlisted admin app settings through the API client only", async () => {
+    vi.mocked(apiPatch).mockResolvedValue({
+      ok: true,
+      workflow_version: "v2-service-layer",
+      schema_version: "schema-1",
+      generated_at: "2026-03-14T00:00:00+00:00",
+      data: {
+        key: "video_thumbnails_enabled",
+        value_json: { value: false },
+        version: 2,
+      },
+      errors: [],
+    });
+
+    await updateAdminAppSetting("video_thumbnails_enabled", { value: false, version: 1 });
+
+    expect(apiPatch).toHaveBeenCalledWith("/admin/app-settings/video_thumbnails_enabled", {
+      value: false,
+      version: 1,
+    });
   });
 
   it("derives canonical policy update payloads through the API client only", async () => {

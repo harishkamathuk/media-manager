@@ -51,6 +51,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ApiClientError } from "@/lib/api/client";
 import {
   adminDbReset,
   cancelBenchmarkRun,
@@ -74,6 +75,7 @@ import {
   queueDiscoveryBenchmark,
   queueMetadataBenchmark,
   reconcileStaleOperationRuns,
+  updateAdminAppSetting,
   updatePolicy,
 } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
@@ -85,6 +87,7 @@ import type {
   BenchmarkRun,
   DbResetPreview,
   DbResetResult,
+  EditableAppSettingKey,
   FailureEventItem,
   HashAuditResult,
   MediaFileRecord,
@@ -119,6 +122,11 @@ const VALID_ADMIN_TABS: AdminTab[] = [
   "reset",
 ];
 const STATUS_EXAMPLES = ["INGESTED", "PROCESSED", "DELETED"] as const;
+const EDITABLE_APP_SETTING_KEYS: readonly EditableAppSettingKey[] = [
+  "video_thumbnails_enabled",
+  "canonical_read_cache_enabled",
+  "canonical_read_cache_ttl_seconds",
+];
 
 const chartConfig = {
   operations: { label: "Operations", color: "hsl(195 85% 42%)" },
@@ -374,6 +382,14 @@ function describeAppSettingDbState(item: AppSettingInspectionItem) {
     severity: "success" as const,
     detail: "Durable row available for inspection.",
   };
+}
+
+function isEditableAppSettingKey(key: string): key is EditableAppSettingKey {
+  return (EDITABLE_APP_SETTING_KEYS as readonly string[]).includes(key);
+}
+
+function getAppSettingStoredValue(item: AppSettingInspectionItem): unknown {
+  return item.value_json?.value;
 }
 
 function AppSettingValueCell({ item }: { item: AppSettingInspectionItem }) {
@@ -1981,6 +1997,9 @@ function IntegrityCheckTab() {
 function SystemHealthTab() {
   const queryClient = useQueryClient();
   const [includeCurrentDay, setIncludeCurrentDay] = useState(false);
+  const [editingKey, setEditingKey] = useState<EditableAppSettingKey | null>(null);
+  const [editingValue, setEditingValue] = useState<boolean | string>("");
+  const [appSettingEditError, setAppSettingEditError] = useState<string | null>(null);
   const appSettingsQuery = useQuery({
     queryKey: queryKeys.adminAppSettings,
     queryFn: getAdminAppSettings,
@@ -2019,6 +2038,47 @@ function SystemHealthTab() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.runsRoot });
     },
   });
+  const appSettingMutation = useMutation({
+    mutationFn: ({
+      key,
+      value,
+      version,
+    }: {
+      key: EditableAppSettingKey;
+      value: boolean | number;
+      version: number;
+    }) => updateAdminAppSetting(key, { value, version }),
+    onSuccess: (result) => {
+      const updatedItem = result.data as AppSettingInspectionItem;
+      queryClient.setQueryData(queryKeys.adminAppSettings, (current: { data?: AppSettingsInspection } | undefined) => {
+        if (!current?.data?.items) {
+          return current;
+        }
+        return {
+          ...current,
+          data: {
+            ...current.data,
+            items: current.data.items.map((item) => (item.key === updatedItem.key ? updatedItem : item)),
+          },
+        };
+      });
+      setEditingKey(null);
+      setEditingValue("");
+      setAppSettingEditError(null);
+    },
+    onError: (error) => {
+      setAppSettingEditError(getErrorMessage(error) ?? "Unable to update this app setting.");
+      const status =
+        error instanceof ApiClientError
+          ? error.status
+          : typeof error === "object" && error !== null && "status" in error
+            ? Number((error as { status?: unknown }).status)
+            : undefined;
+      if (status === 409) {
+        void queryClient.invalidateQueries({ queryKey: queryKeys.adminAppSettings });
+      }
+    },
+  });
   const chartRows = useMemo(() => {
     if (!series) return [];
     const operations = new Map(series.series.operation_volume.map((point) => [point.timestamp, point.value]));
@@ -2032,6 +2092,40 @@ function SystemHealthTab() {
       latency: latencyMap.get(point.timestamp) ?? 0,
     }));
   }, [series]);
+
+  function startEditing(item: AppSettingInspectionItem) {
+    if (!isEditableAppSettingKey(item.key)) return;
+    const storedValue = getAppSettingStoredValue(item);
+    setEditingKey(item.key);
+    setAppSettingEditError(null);
+    if (item.value_type === "bool") {
+      setEditingValue(Boolean(storedValue));
+      return;
+    }
+    setEditingValue(storedValue == null ? "" : String(storedValue));
+  }
+
+  function cancelEditing() {
+    setEditingKey(null);
+    setEditingValue("");
+    setAppSettingEditError(null);
+  }
+
+  function saveAppSetting(item: AppSettingInspectionItem) {
+    if (!isEditableAppSettingKey(item.key)) return;
+    if (item.version == null) {
+      setAppSettingEditError("Unable to update this setting because no current version is available.");
+      return;
+    }
+    const nextValue =
+      item.value_type === "bool" ? Boolean(editingValue) : Number(typeof editingValue === "string" ? editingValue : "");
+    setAppSettingEditError(null);
+    appSettingMutation.mutate({
+      key: item.key,
+      value: nextValue,
+      version: item.version,
+    });
+  }
 
   if (summaryQuery.isLoading || runsQuery.isLoading || failuresQuery.isLoading || seriesQuery.isLoading) {
     return <div className="text-sm text-muted-foreground">Loading system health data…</div>;
@@ -2051,6 +2145,7 @@ function SystemHealthTab() {
         <div className="space-y-1">
           <p className="font-mono text-xs font-semibold text-foreground">{item.key}</p>
           <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{item.category}</p>
+          {isEditableAppSettingKey(item.key) ? <StatusBadge label="Editable in this slice" severity="info" /> : null}
         </div>
       ),
     },
@@ -2091,7 +2186,57 @@ function SystemHealthTab() {
     {
       key: "value",
       header: "Value",
-      render: (item: AppSettingInspectionItem) => <AppSettingValueCell item={item} />,
+      render: (item: AppSettingInspectionItem) => {
+        const isEditing = editingKey === item.key && isEditableAppSettingKey(item.key);
+        if (!isEditing) {
+          return <AppSettingValueCell item={item} />;
+        }
+
+        if (item.value_type === "bool") {
+          return (
+            <div className="max-w-[18rem] space-y-3">
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={Boolean(editingValue)}
+                  onCheckedChange={(checked) => setEditingValue(checked)}
+                  aria-label={`Toggle ${item.key}`}
+                />
+                <span className="text-sm text-foreground">{Boolean(editingValue) ? "Enabled" : "Disabled"}</span>
+              </div>
+              {appSettingEditError ? (
+                <p className="text-xs text-destructive">{appSettingEditError}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Boolean value only. Validation remains enforced by the backend.</p>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div className="max-w-[18rem] space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor={`app-setting-${item.key}`} className="sr-only">
+                {item.key}
+              </Label>
+              <Input
+                id={`app-setting-${item.key}`}
+                type="number"
+                inputMode="decimal"
+                step="1"
+                min="0"
+                value={String(editingValue)}
+                onChange={(event) => setEditingValue(event.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">seconds</p>
+            </div>
+            {appSettingEditError ? (
+              <p className="text-xs text-destructive">{appSettingEditError}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">Numeric validation stays server-side for this slice.</p>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "updated_at",
@@ -2109,6 +2254,45 @@ function SystemHealthTab() {
             <p className="max-w-[16rem] text-xs text-muted-foreground">
               {metadata.length ? metadata.join(" • ") : "No update metadata recorded."}
             </p>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (item: AppSettingInspectionItem) => {
+        if (!isEditableAppSettingKey(item.key)) {
+          return <StatusBadge label="Inspection only" severity="neutral" />;
+        }
+
+        const isEditing = editingKey === item.key;
+        const isBusy = appSettingMutation.isPending && editingKey === item.key;
+
+        if (!isEditing) {
+          return (
+            <div className="space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => startEditing(item)}
+                disabled={editingKey !== null || appSettingMutation.isPending}
+              >
+                Edit
+              </Button>
+            </div>
+          );
+        }
+
+        return (
+          <div className="flex flex-col gap-2">
+            <Button size="sm" onClick={() => saveAppSetting(item)} disabled={isBusy}>
+              {isBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Save
+            </Button>
+            <Button variant="ghost" size="sm" onClick={cancelEditing} disabled={isBusy}>
+              Cancel
+            </Button>
           </div>
         );
       },
@@ -2294,6 +2478,7 @@ function SystemHealthTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-2">
+            <StatusBadge label="Editable in this slice" severity="info" />
             <StatusBadge label="Dual-read enabled" severity="success" />
             <StatusBadge label="Inspection only" severity="neutral" />
             <StatusBadge label="Sensitive value redacted" severity="caution" />

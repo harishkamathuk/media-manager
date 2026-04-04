@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from media_manager.app.core.errors import (
+    AppSettingsValidationError,
+    AppSettingsVersionConflictError,
     MediaManagerError,
     OwnerContextClassificationRequiredError,
     OwnerContextOverrideRequiredError,
@@ -29,6 +31,10 @@ def map_exception(exc: Exception) -> ServiceLayerException:
     """Normalize exceptions into deterministic service-layer taxonomy."""
     if isinstance(exc, ServiceLayerException):
         return exc
+    if isinstance(exc, AppSettingsValidationError):
+        return ServiceLayerException(code="VALIDATION_ERROR", message=str(exc), http_status=400)
+    if isinstance(exc, AppSettingsVersionConflictError):
+        return ServiceLayerException(code="STATE_CONFLICT", message=str(exc), http_status=409)
     if isinstance(exc, PolicySettingsValidationError):
         return ServiceLayerException(code="VALIDATION_ERROR", message=str(exc), http_status=400)
     if isinstance(exc, PolicySettingsVersionConflictError):

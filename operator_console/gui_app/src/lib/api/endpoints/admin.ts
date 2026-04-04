@@ -1,8 +1,10 @@
-import { apiGet, apiPost } from "@/lib/api/client";
+import { apiGet, apiPatch, apiPost } from "@/lib/api/client";
 import { withData } from "@/lib/api/envelope";
 import { mapObservabilityFailures, mapRunItem } from "@/lib/api/mappers/runs";
 import type {
+  AdminAppSettingPatchPayload,
   AppSettingsInspection,
+  AppSettingInspectionItem,
   BenchmarkQueueResult,
   BenchmarkRun,
   DbResetPreview,
@@ -21,6 +23,9 @@ export const adminDbReset = async (params: { dry_run: boolean; challenge_word?: 
 
 export const getAdminAppSettings = async () =>
   apiGet<AppSettingsInspection>("/admin/app-settings");
+
+export const updateAdminAppSetting = async (key: string, payload: AdminAppSettingPatchPayload) =>
+  apiPatch<AppSettingInspectionItem>(`/admin/app-settings/${key}`, payload);
 
 export const getAdminObservabilitySummary = async () =>
   apiGet<ObservabilitySummary>("/admin/observability/summary");

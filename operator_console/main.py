@@ -204,6 +204,13 @@ class MetadataBenchmarkPayload(BaseModel):
     challenge_word: str | None = None
 
 
+class AdminAppSettingPatchPayload(BaseModel):
+    """Payload for narrow allowlisted admin app_settings mutations."""
+
+    value: object
+    version: int
+
+
 class DiscoveryBenchmarkPayload(BaseModel):
     """Payload for admin discovery benchmark queue requests."""
 
@@ -1218,6 +1225,17 @@ def create_app() -> FastAPI:
         services: ReadServices = Depends(get_read_services),
     ) -> JSONResponse:
         return _execute_read("admin-app-settings", services.admin_app_settings)
+
+    @app.patch("/api/admin/app-settings/{key}")
+    def admin_update_app_setting(
+        key: str,
+        payload: AdminAppSettingPatchPayload,
+        services: AdminServices = Depends(get_admin_services),
+    ) -> JSONResponse:
+        return _execute_mutation(
+            "admin-update-app-setting",
+            lambda: services.update_app_setting(key=key, value=payload.value, version=payload.version),
+        )
 
     @app.get("/api/admin/observability/operation-runs")
     def admin_observability_operation_runs(
