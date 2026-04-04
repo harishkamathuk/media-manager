@@ -2,6 +2,8 @@ name: Tests Full
 
 on:
   pull_request:
+    paths-ignore:
+      - ".github/workflows/tests-full.yml"
   push:
     branches:
       - develop
