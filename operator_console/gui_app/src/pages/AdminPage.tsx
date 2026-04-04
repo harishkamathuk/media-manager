@@ -320,13 +320,6 @@ function explainPolicyRule(rule: string): string {
     }
 }
 
-function formatPolicyUpdatedAt(value: string | null) {
-  if (!value) return "Not recorded";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
-}
-
 function describeAppSettingRuntime(item: AppSettingInspectionItem) {
   if (!item.runtime_dual_read_enabled) {
     return {
@@ -1469,7 +1462,7 @@ function LibraryRulesTab() {
             </div>
             <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">Updated at</p>
-              <p className="mt-2 text-sm text-foreground">{formatPolicyUpdatedAt(policy.metadata.updated_at)}</p>
+              <p className="mt-2 text-sm text-foreground">{formatOptionalTimestamp(policy.metadata.updated_at)}</p>
             </div>
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/80 p-4">
