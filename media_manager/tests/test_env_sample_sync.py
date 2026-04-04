@@ -11,6 +11,7 @@ RE_DEFAULT_PATH = re.compile(r"""_default_path\(\s*["']([A-Z][A-Z0-9_]*)["']\s*,
 RE_DEFAULT_DAYS = re.compile(r"""_default_days\(\s*["']([A-Z][A-Z0-9_]*)["']\s*,""")
 RE_ENV_OVERRIDE_PATH = re.compile(r"""_env_override_path\(\s*["']([A-Z][A-Z0-9_]*)["']\s*,""")
 RE_ENV_OVERRIDE_DAYS = re.compile(r"""_env_override_days\(\s*["']([A-Z][A-Z0-9_]*)["']\s*,""")
+RE_APP_SETTING_ENV_VAR = re.compile(r"""env_var\s*=\s*["']([A-Z][A-Z0-9_]*)["']""")
 RE_ENV_LINE = re.compile(r"""^([A-Z][A-Z0-9_]*)\s*=""")
 
 SCAN_DIRS = ("media_manager", "migrations", "operator_console", "tools")
@@ -54,6 +55,7 @@ def _discovered_env_vars(files: list[Path]) -> set[str]:
         discovered.update(RE_DEFAULT_DAYS.findall(text))
         discovered.update(RE_ENV_OVERRIDE_PATH.findall(text))
         discovered.update(RE_ENV_OVERRIDE_DAYS.findall(text))
+        discovered.update(RE_APP_SETTING_ENV_VAR.findall(text))
     return discovered
 
 

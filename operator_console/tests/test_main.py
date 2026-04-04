@@ -1264,6 +1264,39 @@ class _FakeReadServices:
             "latest_metrics": self.latest_metrics(),
         }
 
+    def admin_app_settings(self) -> dict[str, object]:
+        return {
+            "items": [
+                {
+                    "key": "video_thumbnails_enabled",
+                    "category": "ui",
+                    "value_type": "bool",
+                    "is_sensitive": False,
+                    "runtime_dual_read_enabled": True,
+                    "db_present": True,
+                    "effective_source": "db",
+                    "updated_at": "2026-03-14T10:00:00+00:00",
+                    "updated_by": "tester",
+                    "version": 1,
+                    "source": "test",
+                    "value_json": {"value": True},
+                },
+                {
+                    "key": "directory_picker_enabled",
+                    "category": "ui",
+                    "value_type": "bool",
+                    "is_sensitive": False,
+                    "runtime_dual_read_enabled": False,
+                    "db_present": False,
+                    "effective_source": None,
+                    "updated_at": None,
+                    "updated_by": None,
+                    "version": None,
+                    "source": None,
+                },
+            ]
+        }
+
     def admin_observability_failures(self, *, limit: int) -> dict[str, object]:
         _ = limit
         return {
@@ -3614,6 +3647,24 @@ def test_admin_observability_summary_returns_envelope() -> None:
     assert payload["ok"] is True
     assert payload["data"]["result"]["metrics_enabled"] is True
     assert payload["data"]["result"]["recent_failure_count"] == 2
+
+
+def test_admin_app_settings_returns_envelope() -> None:
+    app.dependency_overrides[get_read_services] = _FakeReadServices
+    client = TestClient(app)
+    try:
+        response = client.get("/api/admin/app-settings")
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    items = payload["data"]["result"]["items"]
+    dual_read = next(item for item in items if item["key"] == "video_thumbnails_enabled")
+    non_dual_read = next(item for item in items if item["key"] == "directory_picker_enabled")
+    assert dual_read["effective_source"] == "db"
+    assert non_dual_read["effective_source"] is None
+    assert "mutation" not in payload["data"]["result"]
 
 
 def test_admin_observability_failures_returns_envelope() -> None:

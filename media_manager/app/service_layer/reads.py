@@ -9,6 +9,7 @@ from typing import Any
 
 from sqlalchemy import func, select
 
+from media_manager.app.persistence.app_settings import AppSettingsService, RUNTIME_DUAL_READ_KEYS, get_catalog
 from media_manager.app.persistence.models import (
     CanonicalTag,
     FailureEvent,
@@ -355,6 +356,41 @@ class ReadServices:
         }
         self.cache.set(cache_key, payload, ttl_s=5)
         return payload
+
+    def admin_app_settings(self) -> dict[str, object]:
+        service = AppSettingsService(self.session_factory)
+        items: list[dict[str, object]] = []
+
+        with self.session_factory() as session:
+            for key, definition in get_catalog().items():
+                snapshot = service.get_setting(key, session=session)
+                runtime_dual_read_enabled = key in RUNTIME_DUAL_READ_KEYS
+                db_present = snapshot is not None
+                effective_source = None
+                if runtime_dual_read_enabled:
+                    effective_source = "db" if db_present else "env_fallback"
+
+                item: dict[str, object] = {
+                    "key": key,
+                    "category": definition.category,
+                    "value_type": definition.value_type,
+                    "is_sensitive": definition.is_sensitive,
+                    "runtime_dual_read_enabled": runtime_dual_read_enabled,
+                    "db_present": db_present,
+                    "effective_source": effective_source,
+                    "updated_at": snapshot.updated_at.isoformat() if snapshot is not None else None,
+                    "updated_by": snapshot.updated_by if snapshot is not None else None,
+                    "version": snapshot.version if snapshot is not None else None,
+                    "source": snapshot.source if snapshot is not None else None,
+                }
+                if snapshot is not None:
+                    if definition.is_sensitive:
+                        item["value_redacted"] = True
+                    else:
+                        item["value_json"] = dict(snapshot.value_json)
+                items.append(item)
+
+        return {"items": items}
 
     def admin_observability_failures(self, *, limit: int) -> dict[str, object]:
         bounded_limit = max(1, min(100, int(limit)))

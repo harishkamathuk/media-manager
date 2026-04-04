@@ -203,6 +203,10 @@ _CATALOG: dict[str, AppSettingDefinition] = {
 }
 
 
+def get_catalog() -> dict[str, AppSettingDefinition]:
+    return dict(_CATALOG)
+
+
 def _truthy(raw: str) -> bool:
     return raw.strip().lower() in TRUTHY_VALUES
 
