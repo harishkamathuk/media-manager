@@ -9,7 +9,7 @@ from typing import Any
 
 from sqlalchemy import func, select
 
-from media_manager.app.persistence.app_settings import AppSettingsService, RUNTIME_DUAL_READ_KEYS, _CATALOG
+from media_manager.app.persistence.app_settings import AppSettingsService, RUNTIME_DUAL_READ_KEYS, get_catalog
 from media_manager.app.persistence.models import (
     CanonicalTag,
     FailureEvent,
@@ -361,7 +361,7 @@ class ReadServices:
         service = AppSettingsService(self.session_factory)
         items: list[dict[str, object]] = []
 
-        for key, definition in _CATALOG.items():
+        for key, definition in get_catalog().items():
             snapshot = service.get_setting(key)
             runtime_dual_read_enabled = key in RUNTIME_DUAL_READ_KEYS
             db_present = snapshot is not None
