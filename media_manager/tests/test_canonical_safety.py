@@ -49,6 +49,8 @@ def _force_taken_dt(session_factory, value: str) -> None:
                 select(MetadataCode.id).where(MetadataCode.code_type.in_(("TAKEN_DT", "CLASSIFICATION_DT")))
             ).all()
         )
+        if not code_ids:
+            return
         session.execute(
             update(MediaMetadata)
             .where(MediaMetadata.code_id.in_(code_ids))

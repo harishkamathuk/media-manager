@@ -91,6 +91,10 @@ def _force_taken_dt(session_factory, value: str) -> None:
                 )
             ).all()
         }
+        expected = {"TAKEN_DT", "CLASSIFICATION_DT"}
+        missing = expected - set(code_ids.keys())
+        if missing:
+            raise AssertionError(f"Missing metadata codes for deterministic test setup: {sorted(missing)}")
         session.execute(
             update(MediaMetadata)
             .where(MediaMetadata.code_id.in_(tuple(code_ids.values())))
