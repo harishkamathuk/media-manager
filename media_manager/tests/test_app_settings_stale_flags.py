@@ -2,6 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+
+pytestmark = pytest.mark.unit
+
 
 def test_media_manager_ui_v2_enabled_has_no_runtime_python_references() -> None:
     runtime_root = Path(__file__).resolve().parent.parent / "app"

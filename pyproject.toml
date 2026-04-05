@@ -42,6 +42,11 @@ include = ["media_manager*", "operator_console*"]
 
 [tool.pytest.ini_options]
 testpaths = ["media_manager/tests", "operator_console/tests"]
+addopts = "--strict-markers"
+markers = [
+  "unit: pure tests with no DB dependency",
+  "integration: tests that require DB-backed fixtures, persist or query real DB state, or depend on real persistence semantics",
+]
 
 [tool.ruff]
 line-length = 100
