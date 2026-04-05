@@ -74,6 +74,7 @@ def _truncate_all(session_factory) -> None:
                 "TRUNCATE TABLE media_metadata, metadata_codes, planned_actions, "
                 "apply_audit_items, apply_audit_runs, "
                 "canonical_recompute_items, canonical_recompute_runs, canonical_assignments, "
+                "media_file, "
                 "file_instances, file_contents, "
                 "failure_events, files, content_objects, runs RESTART IDENTITY CASCADE"
             )
@@ -82,10 +83,21 @@ def _truncate_all(session_factory) -> None:
 
 def _force_taken_dt(session_factory, value: str) -> None:
     with session_factory.begin() as session:
-        taken_dt_code = session.scalar(select(MetadataCode.id).where(MetadataCode.code_type == "TAKEN_DT"))
+        code_ids = {
+            code_type: code_id
+            for code_type, code_id in session.execute(
+                select(MetadataCode.code_type, MetadataCode.id).where(
+                    MetadataCode.code_type.in_(("TAKEN_DT", "CLASSIFICATION_DT"))
+                )
+            ).all()
+        }
+        expected = {"TAKEN_DT", "CLASSIFICATION_DT"}
+        missing = expected - set(code_ids.keys())
+        if missing:
+            raise AssertionError(f"Missing metadata codes for deterministic test setup: {sorted(missing)}")
         session.execute(
             update(MediaMetadata)
-            .where(MediaMetadata.code_id == taken_dt_code)
+            .where(MediaMetadata.code_id.in_(tuple(code_ids.values())))
             .values(decode_value=value)
         )
 
@@ -96,15 +108,16 @@ def test_phase8_strict_missing_metadata_behavior(tmp_path: Path, session_factory
     ingest = IngestService(session_factory)
     ingest.ingest_paths(files)
 
-    # Remove OWNER metadata for one content to simulate missing required metadata.
+    # Remove TAKEN_DT metadata for one content to simulate missing required metadata
+    # without tripping the separate owner/context classification guard.
     missing_path = files[0]
     with session_factory.begin() as session:
         content_id = session.scalar(select(FileInstance.content_id).where(FileInstance.absolute_path == str(missing_path.resolve())))
-        owner_code_id = session.scalar(select(MetadataCode.id).where(MetadataCode.code_type == "OWNER"))
+        taken_dt_code_id = session.scalar(select(MetadataCode.id).where(MetadataCode.code_type == "TAKEN_DT"))
         session.execute(
             delete(MediaMetadata).where(
                 MediaMetadata.content_id == content_id,
-                MediaMetadata.code_id == owner_code_id,
+                MediaMetadata.code_id == taken_dt_code_id,
             )
         )
 
@@ -156,8 +169,8 @@ def test_phase8_target_occupied_records_failure_and_does_not_retarget(tmp_path: 
     collision_target.parent.mkdir(parents=True, exist_ok=True)
     collision_target.write_bytes(b"preexisting")
 
-    with pytest.raises(Exception):
-        apply_service.apply_run(run.id, collision_mode="rename")
+    with pytest.raises(RuntimeError, match="Apply target path already occupied unexpectedly"):
+        apply_service.apply_run(run.id, collision_mode="fail")
 
 
 def test_phase8_deterministic_replay_and_canonical_assignment(tmp_path: Path, session_factory) -> None:

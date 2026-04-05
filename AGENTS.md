@@ -31,6 +31,65 @@ Rules:
 - Allowed edit branches are `feature/*`, `fix/*`, `docs/*`, and `chore/*`.
 - Do not commit directly to `develop` even if the worktree is clean.
 
+## Pre-Push Validation
+
+Before pushing a branch or opening/updating a PR, agents must run:
+
+1. `python -m pytest -q` from the repository's active project environment
+
+Additional rules:
+
+- If frontend code changed, agents must also run the frontend test command defined by the relevant `package.json` before push/PR.
+- Agents must not push or open/update a PR with failing full local Python suite results unless the user explicitly approves skipping or deferring that validation.
+- If a validation step is skipped with user approval, the agent must state that clearly in its summary.
+
+## PR Metadata Hygiene
+
+Before opening or updating a PR, agents must verify that the PR has the expected repository metadata applied.
+
+Agents must ensure:
+
+- the PR is assigned appropriately
+- the PR has the expected labels for the slice/risk/category
+- the PR is linked to the correct project when the repository workflow expects project tracking
+- any expected project field values are set or explicitly checked
+
+Canonical sources:
+
+- label expectations come from the repository's existing GitHub label taxonomy
+- project and project-field expectations come from the repository's active GitHub project workflow
+
+If any PR metadata step is skipped or cannot be completed, the agent must say so clearly in its summary.
+
+## Issue Metadata Hygiene
+
+Before creating or updating a tracked GitHub issue, agents must verify that the issue has the expected repository metadata applied.
+
+Agents must ensure:
+
+- the issue has the expected labels for the slice/risk/category
+- the issue is linked to the correct project when the repository workflow expects project tracking
+- any expected project field values are set or explicitly checked
+
+Canonical sources:
+
+- label expectations come from the repository's existing GitHub label taxonomy
+- project and project-field expectations come from the repository's active GitHub project workflow
+
+If any issue metadata step is skipped or cannot be completed, the agent must say so clearly in its summary.
+
+## Post-PR Monitoring
+
+After opening a PR, agents must monitor the PR for near-term GitHub status changes and review feedback.
+
+Agents must:
+
+- check for GitHub check status, review status, and bot/reviewer feedback after opening the PR
+- report any actionable review comments, failing checks, or missing metadata back to the user
+- explicitly say if monitoring was attempted but GitHub/network status prevented verification
+
+Agents do not need to monitor indefinitely, but they must perform an initial follow-up pass after PR creation unless the user explicitly declines it.
+
 ---
 
 This repository is developed using agent-driven workflows.

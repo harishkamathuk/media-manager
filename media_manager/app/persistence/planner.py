@@ -34,7 +34,7 @@ from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.decision_intelligence import build_decision_traces, write_decision_trace_artifact
 from media_manager.app.persistence.discovery import process_all_discovery_in_session, process_discovery_paths_in_session
-from media_manager.app.persistence.ingest import ingest_paths_in_session
+from media_manager.app.persistence.ingest import classify_paths_in_session, ingest_paths_in_session
 from media_manager.app.persistence.models import (
     CanonicalAssignment,
     FailureEvent,
@@ -237,6 +237,13 @@ class PlanningService:
                 _log_plan_stage(run.id, "discovery", status="completed", summary="Planner discovery refresh completed")
                 _log_plan_stage(run.id, "load_candidates", status="running", summary="Planner candidate loading started")
                 rows = self._load_candidate_instances(session, input_paths)
+                self._classify_fully_unclassified_candidates(
+                    session,
+                    rows,
+                    owner=run.owner,
+                    context=run.context,
+                    owner_context_override_confirmed=run.owner_context_override_confirmed,
+                )
                 self._ensure_owner_context_classified(session, rows)
                 routing_by_instance_id = self._build_routing_decisions(session, rows)
                 load_candidates_duration_s = perf_counter() - t_load_candidates
@@ -671,6 +678,49 @@ class PlanningService:
             unclassified_group_count=len(unclassified),
             sample_content_id=str(sample_content_id),
             sample_paths=sample_paths or [first_path],
+        )
+
+    def _classify_fully_unclassified_candidates(
+        self,
+        session: Session,
+        rows: list[FileInstance],
+        *,
+        owner: str,
+        context: str,
+        owner_context_override_confirmed: bool,
+    ) -> None:
+        content_ids = sorted({row.content_id for row in rows}, key=str)
+        if not content_ids:
+            return
+
+        metadata_rows = session.execute(
+            select(MediaMetadata.content_id, MetadataCode.code_type, MediaMetadata.decode_value)
+            .select_from(MediaMetadata)
+            .join(MetadataCode, MediaMetadata.code_id == MetadataCode.id)
+            .where(
+                MediaMetadata.content_id.in_(tuple(content_ids)),
+                MetadataCode.code_type.in_(("OWNER", "CONTEXT")),
+            )
+        ).all()
+        metadata_by_content: dict[uuid.UUID, dict[str, str]] = {content_id: {} for content_id in content_ids}
+        for content_id, code_type, decode_value in metadata_rows:
+            metadata_by_content.setdefault(content_id, {})[code_type] = decode_value
+
+        auto_classify_paths = [
+            Path(row.absolute_path)
+            for row in rows
+            if is_unknown_owner_context_value(metadata_by_content.get(row.content_id, {}).get("OWNER"))
+            and is_unknown_owner_context_value(metadata_by_content.get(row.content_id, {}).get("CONTEXT"))
+        ]
+        if not auto_classify_paths:
+            return
+
+        classify_paths_in_session(
+            session,
+            auto_classify_paths,
+            owner=owner,
+            context=context,
+            owner_context_override_confirmed=owner_context_override_confirmed,
         )
 
     def _plan_single_instance(
