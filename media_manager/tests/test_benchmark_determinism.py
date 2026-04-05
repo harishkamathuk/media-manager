@@ -4,6 +4,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
+from media_manager.app.canonical.policies import ShortestPathPolicy
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 from media_manager.app.persistence.canonicalization import append_assignment
 from media_manager.app.persistence.ingest import IngestService
@@ -36,7 +37,7 @@ def _seed_library(tmp_path: Path, session_factory) -> None:
                 session,
                 content_id=content_id,
                 canonical_instance_id=canonical_instance_id,
-                policy_name="ShortestPathPolicy",
+                policy_name=ShortestPathPolicy.name,
                 policy_version="v1",
             )
 
