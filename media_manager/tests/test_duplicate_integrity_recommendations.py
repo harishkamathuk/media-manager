@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import pytest
+
 from media_manager.app.persistence.duplicate_integrity_recommendations import (
     DuplicateRecommendationFacts,
     derive_duplicate_recommendation,
 )
+
+
+pytestmark = pytest.mark.unit
 
 
 def _facts(**overrides: object) -> DuplicateRecommendationFacts:

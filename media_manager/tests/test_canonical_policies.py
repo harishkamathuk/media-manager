@@ -17,6 +17,9 @@ from media_manager.app.core.errors import CanonicalPolicyException
 from media_manager.app.persistence.models import FileInstance, FileInstanceStatus
 
 
+pytestmark = pytest.mark.unit
+
+
 def _instance(path: str, *, seen_second: int) -> FileInstance:
     return FileInstance(
         file_instance_id=uuid.uuid4(),
@@ -140,4 +143,3 @@ def test_policies_raise_for_empty_candidate_list() -> None:
         ShortestPathPolicy().select("x", [], context)
     with pytest.raises(CanonicalPolicyException):
         ExifFilenameFallbackPolicy().select("x", [], context)
-
