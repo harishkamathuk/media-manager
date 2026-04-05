@@ -266,6 +266,19 @@ Run tests:
 
 Tests expect `TEST_DATABASE_URL` to point at a PostgreSQL database prepared for local test runs.
 
+Useful pytest entry points:
+
+```bash
+./.venv/bin/python -m pytest -q
+./.venv/bin/python -m pytest -q -m unit
+./.venv/bin/python -m pytest -q -m integration
+./.venv/bin/python -m pytest -q --durations=20 --durations-min=1.0
+```
+
+In this repo, `integration` marks tests that require DB-backed fixtures, persist or
+query real DB state, or otherwise depend on real persistence semantics.
+Slow-test visibility is explicit and opt-in; the default required suite remains unchanged.
+
 Build the docs:
 
 ```bash

@@ -14,6 +14,9 @@ from media_manager.app.persistence.ingest import IngestSummary
 from media_manager.app.persistence.planner import PlanningSummary
 from media_manager.app.service_layer.operations import OperationServices
 
+# This module intentionally uses fakes and a non-DB session_factory sentinel.
+pytestmark = pytest.mark.unit
+
 
 @dataclass
 class _FakeCache:

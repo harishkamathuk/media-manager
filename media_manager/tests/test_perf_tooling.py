@@ -5,8 +5,10 @@ from media_manager.app.core.metadata_extractor import MetadataItem, upsert_metad
 import media_manager.app.core.perf as perf_module
 from media_manager.app.core.perf import measure_block, profile_performance
 from media_manager.app.persistence.models import FileContent
+import pytest
 
 
+@pytest.mark.unit
 def test_profile_performance_emits_metric(monkeypatch) -> None:
     calls: list[str] = []
 
@@ -23,6 +25,7 @@ def test_profile_performance_emits_metric(monkeypatch) -> None:
     assert "Perf metric" in calls
 
 
+@pytest.mark.unit
 def test_measure_block_emits_metric(monkeypatch) -> None:
     calls: list[str] = []
 
@@ -35,6 +38,7 @@ def test_measure_block_emits_metric(monkeypatch) -> None:
     assert "Perf metric" in calls
 
 
+@pytest.mark.unit
 def test_metadata_cache_stats_are_deterministic() -> None:
     cache = MetadataCache()
     assert cache.stats().hit_rate == 0.0
@@ -51,6 +55,7 @@ def test_metadata_cache_stats_are_deterministic() -> None:
     assert 0.0 < stats.hit_rate <= 1.0
 
 
+@pytest.mark.integration
 def test_upsert_metadata_bulk_includes_batch_metrics(session_factory) -> None:
     with session_factory() as session:
         c1 = FileContent(sha256_hash="h1")
