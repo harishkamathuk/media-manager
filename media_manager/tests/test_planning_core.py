@@ -17,6 +17,9 @@ from media_manager.app.core.path_resolver import (
 )
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_date_extraction_priority_metadata_over_filename_and_fs(tmp_path: Path) -> None:
     p = tmp_path / "IMG_20200101_010101.jpg"
     p.write_bytes(b"abc")

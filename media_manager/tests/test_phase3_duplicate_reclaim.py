@@ -643,9 +643,12 @@ def test_restore_duplicate_reclaim_still_uses_legacy_archive_path_without_bin_na
     recycle_root = tmp_path / "recycle-bin-root"
     monkeypatch.setenv("MEDIA_MANAGER_RECLAIM_ROOT", str(reclaim_root))
     monkeypatch.setenv("MEDIA_MANAGER_RECYCLE_BIN_ROOT", str(recycle_root))
+
     service = Phase3ActionService(session_factory)
     base = datetime(2026, 3, 29, 17, 0, tzinfo=UTC)
+    monkeypatch.setattr("media_manager.app.persistence.phase3_actions._utcnow", lambda: base + timedelta(days=1))
     content_id = UUID("7235b1ed-4dc6-4a0d-88d5-81726006507c")
+
     canonical_instance = UUID("7235b1ed-4dc6-4a0d-88d5-817260065071")
     duplicate_instance = UUID("7235b1ed-4dc6-4a0d-88d5-817260065072")
 
@@ -734,6 +737,7 @@ def test_restore_duplicate_reclaim_prefers_bin_path_over_legacy_archive_path(
     monkeypatch.setenv("MEDIA_MANAGER_RECYCLE_BIN_ROOT", str(recycle_root))
     service = Phase3ActionService(session_factory)
     base = datetime(2026, 3, 29, 18, 0, tzinfo=UTC)
+    monkeypatch.setattr("media_manager.app.persistence.phase3_actions._utcnow", lambda: base + timedelta(days=1))
     content_id = UUID("8235b1ed-4dc6-4a0d-88d5-81726006507c")
     canonical_instance = UUID("8235b1ed-4dc6-4a0d-88d5-817260065071")
     duplicate_instance = UUID("8235b1ed-4dc6-4a0d-88d5-817260065072")
@@ -914,6 +918,7 @@ def test_restore_duplicate_reclaim_fails_safe_when_only_record_archive_path_or_r
     monkeypatch.setenv("MEDIA_MANAGER_RECYCLE_BIN_ROOT", str(recycle_root))
     service = Phase3ActionService(session_factory)
     base = datetime(2026, 3, 29, 20, 0, tzinfo=UTC)
+    monkeypatch.setattr("media_manager.app.persistence.phase3_actions._utcnow", lambda: base + timedelta(days=1))
     content_id = UUID("a235b1ed-4dc6-4a0d-88d5-81726006507c")
     canonical_instance = UUID("a235b1ed-4dc6-4a0d-88d5-817260065071")
     duplicate_instance = UUID("a235b1ed-4dc6-4a0d-88d5-817260065072")
@@ -1004,6 +1009,7 @@ def test_restore_duplicate_reclaim_handles_mixed_new_and_legacy_rows(session_fac
     monkeypatch.setenv("MEDIA_MANAGER_RECYCLE_BIN_ROOT", str(recycle_root))
     service = Phase3ActionService(session_factory)
     base = datetime(2026, 3, 29, 21, 0, tzinfo=UTC)
+    monkeypatch.setattr("media_manager.app.persistence.phase3_actions._utcnow", lambda: base + timedelta(days=1))
 
     content_new = UUID("b235b1ed-4dc6-4a0d-88d5-81726006507c")
     content_legacy = UUID("c235b1ed-4dc6-4a0d-88d5-81726006507c")

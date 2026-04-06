@@ -2,7 +2,12 @@ from __future__ import annotations
 
 import time
 
+import pytest
+
 from media_manager.app.service_layer.cache import ServiceCache
+
+
+pytestmark = pytest.mark.unit
 
 
 def test_service_cache_set_get_and_invalidate() -> None:

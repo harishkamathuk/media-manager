@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import pytest
+
 RE_GETENV = re.compile(r"""os\.getenv\(\s*["']([A-Z][A-Z0-9_]*)["']""")
 RE_ENVIRON = re.compile(r"""os\.environ\[\s*["']([A-Z][A-Z0-9_]*)["']\s*\]""")
 RE_FLAG_ENABLED = re.compile(r"""_flag_enabled\(\s*["']([A-Z][A-Z0-9_]*)["']\s*\)""")
@@ -15,6 +17,9 @@ RE_APP_SETTING_ENV_VAR = re.compile(r"""env_var\s*=\s*["']([A-Z][A-Z0-9_]*)["']"
 RE_ENV_LINE = re.compile(r"""^([A-Z][A-Z0-9_]*)\s*=""")
 
 SCAN_DIRS = ("media_manager", "migrations", "operator_console", "tools")
+
+
+pytestmark = pytest.mark.unit
 
 
 def _repo_root() -> Path:
