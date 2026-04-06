@@ -5,6 +5,9 @@ import pytest
 from media_manager.app.persistence.tag_normalization import normalize_tag_list, normalize_tag_name
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_normalize_tag_name_trims_lowercases_and_collapses_spaces() -> None:
     assert normalize_tag_name("  SUMMER    Trip  ") == "summer trip"
 

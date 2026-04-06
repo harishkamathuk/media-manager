@@ -3,6 +3,11 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+import pytest
+
+
+pytestmark = pytest.mark.unit
+
 
 def test_artifacts_path_is_gitignored() -> None:
     repo_root = Path(__file__).resolve().parents[2]

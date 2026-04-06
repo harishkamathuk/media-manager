@@ -5,6 +5,9 @@ import pytest
 from media_manager.app.persistence.base import get_database_url
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_get_database_url_accepts_valid_postgres_url(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv(
         "DATABASE_URL",
