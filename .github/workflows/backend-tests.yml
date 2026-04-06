@@ -15,6 +15,24 @@ jobs:
     name: Run backend tests and upload coverage
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: mm_user
+          POSTGRES_PASSWORD: mm_pass
+          POSTGRES_DB: media_manager_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U mm_user -d media_manager_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      TEST_DATABASE_URL: postgresql+psycopg://mm_user:mm_pass@localhost:5432/media_manager_test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +40,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install Python dependencies
         run: |
