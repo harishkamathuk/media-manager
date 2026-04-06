@@ -12,6 +12,15 @@ _TOKEN_RE = re.compile(r"^[A-Za-z0-9_]+$")
 
 
 def infer_media_type_from_extension(path: Path) -> str | None:
+    """
+    Infers the media type from the file extension.
+
+    Args:
+        path (Path): The path of the file to infer the media type for.
+
+    Returns:
+        str | None: The media type ("IMG" or "VID") if the extension is recognized, otherwise None.
+    """
     suffix = path.suffix.lower()
     if suffix in _IMAGE_EXTENSIONS:
         return "IMG"
@@ -21,6 +30,15 @@ def infer_media_type_from_extension(path: Path) -> str | None:
 
 
 def _parse_exif_datetime(value: str | None) -> datetime | None:
+    """
+    Parses an EXIF datetime string into a timezone-aware datetime object.
+
+    Args:
+        value (str | None): The EXIF datetime string to parse.
+
+    Returns:
+        datetime | None: A timezone-aware datetime object if parsing is successful, otherwise None.
+    """
     if not value:
         return None
     try:
@@ -30,8 +48,17 @@ def _parse_exif_datetime(value: str | None) -> datetime | None:
     return parsed.replace(tzinfo=UTC)
 
 
-def extract_taken_datetime(path: Path) -> datetime:
-    """Extract capture datetime from EXIF when possible, else file creation timestamp."""
+
+
+def get_capture_datetime(path: Path) -> datetime:
+    """
+    Extracts the capture datetime from EXIF when possible, else file creation timestamp.
+    
+    Args:
+        path (Path): The path of the file to extract the capture datetime for.
+    Returns:
+        datetime: The capture datetime extracted from EXIF or the file's creation timestamp.
+    """
     try:
         from PIL import Image, UnidentifiedImageError
     except Exception:
@@ -54,6 +81,17 @@ def extract_taken_datetime(path: Path) -> datetime:
 
 
 def _normalize_extension(extension: str) -> str:
+    """
+    Normalizes the file extension by converting it to lowercase and removing any leading dot.
+    
+    Args:
+        extension (str): The file extension to normalize.
+
+    Returns:
+        str: The normalized file extension.
+    Raises:
+        ValueError: If the extension is empty.
+    """
     ext = extension.lower()
     if not ext:
         raise ValueError("extension is required")
@@ -63,6 +101,17 @@ def _normalize_extension(extension: str) -> str:
 
 
 def _validate_token(name: str, value: str, max_len: int | None = None) -> None:
+    """
+    Validates a token by checking if it is required, does not exceed the maximum length, and contains only allowed characters.
+
+    Args:
+        name (str): The name of the token being validated.
+        value (str): The value of the token to validate.
+        max_len (int | None): The maximum allowable length for the token. If None, no length check is performed.
+
+    Raises:
+        ValueError: If the token is empty, exceeds the maximum length, or contains invalid characters.
+    """
     if not value:
         raise ValueError(f"{name} is required")
     if max_len is not None and len(value) > max_len:
@@ -78,7 +127,23 @@ def generate_canonical_filename(
     owner: str = "LL",
     context: str = "General",
 ) -> str:
-    """Return deterministic canonical filename with optional millisecond precision."""
+    """
+    Generates a deterministic canonical filename with optional millisecond precision.
+
+    Args:
+        media_type (str): The media type, must be 'IMG' or 'VID'.
+        taken_datetime (datetime): The capture datetime of the media.
+        extension (str): The file extension.
+        owner (str, optional): The owner identifier. Defaults to "LL".
+        context (str, optional): The context identifier. Defaults to "General".
+
+    Returns:
+        str: The generated canonical filename.
+
+    Raises:
+        ValueError: If media_type is not 'IMG' or 'VID', if owner or context contains invalid characters, or if extension is empty.
+
+    """    
     media = media_type.upper()
     if media not in {"IMG", "VID"}:
         raise ValueError("media_type must be IMG or VID")
@@ -95,3 +160,5 @@ def generate_canonical_filename(
         time_part = f"{time_part}{dt_utc.microsecond // 1000:03d}"
     ext = _normalize_extension(extension)
     return f"{media}_{date_part}_{time_part}_{owner}_{context}.{ext}"
+
+
