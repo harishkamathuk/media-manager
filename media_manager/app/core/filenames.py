@@ -141,7 +141,8 @@ def generate_canonical_filename(
         str: The generated canonical filename.
 
     Raises:
-        ValueError: If media_type is not 'IMG' or 'VID', or if owner or context contains invalid characters.
+        ValueError: If media_type is not 'IMG' or 'VID', if owner or context contains invalid characters, or if extension is empty.
+
     """    
     media = media_type.upper()
     if media not in {"IMG", "VID"}:
