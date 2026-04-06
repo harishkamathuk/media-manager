@@ -32,6 +32,7 @@ def infer_media_type_from_extension(path: Path) -> str | None:
 def _parse_exif_datetime(value: str | None) -> datetime | None:
     """
     Parses an EXIF datetime string into a timezone-aware datetime object.
+
     Args:
         value (str | None): The EXIF datetime string to parse.
 
@@ -47,11 +48,14 @@ def _parse_exif_datetime(value: str | None) -> datetime | None:
     return parsed.replace(tzinfo=UTC)
 
 
-def extract_taken_datetime(path: Path) -> datetime:
-    """Extracts the capture datetime from EXIF data if available, otherwise returns the file's creation timestamp.
+
+
+def get_capture_datetime(path: Path) -> datetime:
+    """
+    Extracts the capture datetime from EXIF when possible, else file creation timestamp.
+    
     Args:
         path (Path): The path of the file to extract the capture datetime for.
-
     Returns:
         datetime: The capture datetime extracted from EXIF or the file's creation timestamp.
     """
@@ -79,13 +83,12 @@ def extract_taken_datetime(path: Path) -> datetime:
 def _normalize_extension(extension: str) -> str:
     """
     Normalizes the file extension by converting it to lowercase and removing any leading dot.
-
+    
     Args:
         extension (str): The file extension to normalize.
 
     Returns:
         str: The normalized file extension.
-
     Raises:
         ValueError: If the extension is empty.
     """
@@ -139,7 +142,7 @@ def generate_canonical_filename(
 
     Raises:
         ValueError: If media_type is not 'IMG' or 'VID', or if owner or context contains invalid characters.
-    """
+    """    
     media = media_type.upper()
     if media not in {"IMG", "VID"}:
         raise ValueError("media_type must be IMG or VID")
@@ -156,4 +159,5 @@ def generate_canonical_filename(
         time_part = f"{time_part}{dt_utc.microsecond // 1000:03d}"
     ext = _normalize_extension(extension)
     return f"{media}_{date_part}_{time_part}_{owner}_{context}.{ext}"
+
 
