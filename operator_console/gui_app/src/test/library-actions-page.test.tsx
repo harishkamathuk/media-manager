@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -499,14 +499,16 @@ describe("Import page", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Apply Saved Work" })).toBeDisabled());
     expect(screen.getByText("Apply started. You can monitor progress below while the main screen stays available.")).toBeInTheDocument();
 
-    resolveApply?.({
-      data: {
-        operation: "APPLY",
-        success: true,
-        summary: "Applied saved work.",
-        details: { run_id: "durable-run-1" },
-        duration_ms: 42,
-      },
+    await act(async () => {
+      resolveApply?.({
+        data: {
+          operation: "APPLY",
+          success: true,
+          summary: "Applied saved work.",
+          details: { run_id: "durable-run-1" },
+          duration_ms: 42,
+        },
+      });
     });
   });
 
@@ -629,14 +631,16 @@ describe("Import page", () => {
 
     expect(await screen.findByText("[ FINALIZING INGEST ]")).toBeInTheDocument();
 
-    resolveIngest?.({
-      data: {
-        operation: "INGEST",
-        success: true,
-        summary: "Discovery refreshed.",
-        details: { files_scanned: 2850 },
-        duration_ms: 42,
-      },
+    await act(async () => {
+      resolveIngest?.({
+        data: {
+          operation: "INGEST",
+          success: true,
+          summary: "Discovery refreshed.",
+          details: { files_scanned: 2850 },
+          duration_ms: 42,
+        },
+      });
     });
   }, 10000);
 
@@ -661,14 +665,16 @@ describe("Import page", () => {
 
     expect(await screen.findByText("[ APPLY RUNNING ]")).toBeInTheDocument();
 
-    resolveApply?.({
-      data: {
-        operation: "APPLY",
-        success: true,
-        summary: "Applied saved work.",
-        details: { run_id: "durable-run-1" },
-        duration_ms: 42,
-      },
+    await act(async () => {
+      resolveApply?.({
+        data: {
+          operation: "APPLY",
+          success: true,
+          summary: "Applied saved work.",
+          details: { run_id: "durable-run-1" },
+          duration_ms: 42,
+        },
+      });
     });
   });
 
@@ -692,14 +698,16 @@ describe("Import page", () => {
 
     expect(await screen.findByText("[ CANONICAL RUNNING ]")).toBeInTheDocument();
 
-    resolveCanonical?.({
-      data: {
-        operation: "CANONICAL_RECOMPUTE",
-        success: true,
-        summary: "Previewed canonical refresh.",
-        details: { changed_count: 1 },
-        duration_ms: 42,
-      },
+    await act(async () => {
+      resolveCanonical?.({
+        data: {
+          operation: "CANONICAL_RECOMPUTE",
+          success: true,
+          summary: "Previewed canonical refresh.",
+          details: { changed_count: 1 },
+          duration_ms: 42,
+        },
+      });
     });
   });
 
@@ -723,14 +731,16 @@ describe("Import page", () => {
 
     expect(await screen.findByText("[ TAG RUNNING ]")).toBeInTheDocument();
 
-    resolveTag?.({
-      data: {
-        operation: "TAG_ENRICHMENT",
-        success: true,
-        summary: "Enriched tags.",
-        details: { number_of_items_processed: 2 },
-        duration_ms: 42,
-      },
+    await act(async () => {
+      resolveTag?.({
+        data: {
+          operation: "TAG_ENRICHMENT",
+          success: true,
+          summary: "Enriched tags.",
+          details: { number_of_items_processed: 2 },
+          duration_ms: 42,
+        },
+      });
     });
   });
 });
