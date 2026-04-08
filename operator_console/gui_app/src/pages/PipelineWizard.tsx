@@ -19,9 +19,9 @@ import {
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ExpandableSummaryPanel } from "@/components/ExpandableSummaryPanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { PageShell } from "@/components/layout/PageShell";
 import { LiveProgressPanel } from "@/components/progress/LiveProgressPanel";
 import { JsonViewer } from "@/components/JsonViewer";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -39,7 +39,6 @@ import { CheckpointStep } from "@/components/wizard/CheckpointStep";
 import { DirectoryPickerDialog } from "@/components/wizard/DirectoryPickerDialog";
 import { ExecutionStep } from "@/components/wizard/ExecutionStep";
 import { WizardGuidancePanel } from "@/components/wizard/WizardGuidancePanel";
-import { WizardLayout } from "@/components/wizard/WizardLayout";
 import { WizardProgressHeader, type WizardProgressItem, type WizardProgressStatus } from "@/components/wizard/WizardProgressHeader";
 import { WizardResultConsole } from "@/components/wizard/WizardResultConsole";
 import {
@@ -2317,38 +2316,32 @@ export default function PipelineWizard() {
 
   return (
     <div className="space-y-6">
-      <WizardLayout
-        header={
-          <div className="space-y-4">
-            <TopSurfaceHeader
-              badge="Guided Workflow"
-              title="Organize"
-              description="Guided ingest, planning, apply, chosen-version review, and enrichment with short checkpoints between stages."
-              icon={Sparkles}
-              density="compact"
-            />
-            <WizardProgressHeader
-              currentIndex={currentStepIndex}
-              totalSteps={STEP_ORDER.length}
-              currentTitle={currentMeta.title}
-              currentKind={currentMeta.kind}
-              previousTitle={previousStepTitle}
-              nextTitle={nextStepTitle}
-              items={progressItems}
-              secondaryAction={
-                currentStepId === "summary" ? null : (
-                  <Button type="button" variant="ghost" onClick={() => setConfirmAbortOpen(true)}>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Abort Wizard
-                  </Button>
-                )
-              }
-            />
-          </div>
+      <PageShell
+        variant="workflow"
+        title="Organize"
+        description="Guided ingest, planning, apply, chosen-version review, and enrichment with short checkpoints between stages."
+        controls={
+          <WizardProgressHeader
+            currentIndex={currentStepIndex}
+            totalSteps={STEP_ORDER.length}
+            currentTitle={currentMeta.title}
+            currentKind={currentMeta.kind}
+            previousTitle={previousStepTitle}
+            nextTitle={nextStepTitle}
+            items={progressItems}
+            secondaryAction={
+              currentStepId === "summary" ? null : (
+                <Button type="button" variant="ghost" onClick={() => setConfirmAbortOpen(true)}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Abort Wizard
+                </Button>
+              )
+            }
+          />
         }
       >
         {renderCurrentStep()}
-      </WizardLayout>
+      </PageShell>
 
       <ConfirmDialog
         open={confirmAbortOpen}

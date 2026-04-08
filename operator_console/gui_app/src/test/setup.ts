@@ -28,3 +28,14 @@ Object.defineProperty(HTMLElement.prototype, "releasePointerCapture", {
   writable: true,
   value: () => {},
 });
+
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+Object.defineProperty(globalThis, "ResizeObserver", {
+  writable: true,
+  value: ResizeObserverMock,
+});

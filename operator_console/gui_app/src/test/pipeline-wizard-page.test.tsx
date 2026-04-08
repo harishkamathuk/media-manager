@@ -93,16 +93,17 @@ describe("Pipeline Wizard page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the compact shared top-surface header above the progress workspace", async () => {
+  it("renders the workflow shell header above the progress workspace", async () => {
     renderPage();
 
-    expect(await screen.findByText("Guided Workflow")).toBeInTheDocument();
     expect(screen.getByText("Organize")).toBeInTheDocument();
     expect(
       screen.getByText(
         "Guided ingest, planning, apply, chosen-version review, and enrichment with short checkpoints between stages.",
       ),
     ).toBeInTheDocument();
+    expect(document.querySelector('[data-page-shell="workflow"]')).toBeTruthy();
+    expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
     expect(screen.getAllByText("Progress").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Abort Wizard" })).toBeInTheDocument();
     expect(await screen.findByText("[ INGEST READY ]")).toBeInTheDocument();

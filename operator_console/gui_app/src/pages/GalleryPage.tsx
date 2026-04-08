@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
+import { PageShell } from "@/components/layout/PageShell";
 import { MediaGrid } from "@/components/media/MediaGrid";
 import { MediaPreviewModal } from "@/components/media/MediaPreviewModal";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,7 @@ import { getCanonical, getCanonicalTags } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
 import type { CanonicalFile, PaginatedResponse, Tag } from "@/types";
-import { ArrowUpDown, Grid2X2, Images, LayoutGrid, Loader2, Search, X } from "lucide-react";
+import { ArrowUpDown, Grid2X2, LayoutGrid, Loader2, Search, X } from "lucide-react";
 
 function getErrorMessage(err: unknown): string | null {
   if (!err) return null;
@@ -153,16 +153,9 @@ export default function GalleryPage() {
     setSuggestions(nextSuggestions);
   }, [allTags, selectedTags, tagInput]);
 
-  return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
-      <TopSurfaceHeader
-        badge="Library"
-        title="Browse your media without leaving the flow."
-        description="Use filters, sorting, preview, and the detail view to quickly find the photo or video you need. This page should feel more like a calm library shelf than a dashboard."
-        icon={Images}
-        density="compact"
-        className="rounded-[28px]"
-      >
+  const controls = (
+    <div className="rounded-[28px] border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-wrap gap-3">
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             {selectedTags.length
@@ -178,15 +171,7 @@ export default function GalleryPage() {
               : `${totalCount} item${totalCount === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
           </div>
         </div>
-      </TopSurfaceHeader>
 
-      {galleryQuery.error ? (
-        <ErrorAlert
-          message={getErrorMessage(galleryQuery.error) || "Failed to load gallery"}
-        />
-      ) : null}
-
-      <div className="rounded-[28px] border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3">
             <div className="relative max-w-md">
@@ -290,6 +275,21 @@ export default function GalleryPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  return (
+    <PageShell
+      variant="browse-list"
+      title="Library"
+      description="Use filters, sorting, preview, and the detail view to quickly find the photo or video you need."
+      controls={controls}
+    >
+      {galleryQuery.error ? (
+        <ErrorAlert
+          message={getErrorMessage(galleryQuery.error) || "Failed to load gallery"}
+        />
+      ) : null}
 
       <MediaGrid
         files={items}
@@ -358,6 +358,6 @@ export default function GalleryPage() {
       )}
 
       <MediaPreviewModal file={selectedFile} onClose={() => setSelectedFile(null)} />
-    </div>
+    </PageShell>
   );
 }
