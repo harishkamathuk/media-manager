@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import threading
+from pathlib import Path
 
 import media_manager.app.observability as observability
 from media_manager.app.persistence.ingest import IngestService
@@ -75,9 +75,9 @@ def test_concurrent_planner_runs_record_histograms_without_threading_errors(tmp_
             run_service = RunService(session_factory)
             planner = PlanningService(session_factory)
             root = tmp_path / f"w{index}"
-            duplicate_payload = f"dup-content-{index}".encode("utf-8")
+            duplicate_payload = f"dup-content-{index}".encode()
             files = [
-                _write_file(root / "Media" / "Photos" / "2024" / "01" / f"IMG_2024011{index}.jpg", f"noop-{index}".encode("utf-8")),
+                _write_file(root / "Media" / "Photos" / "2024" / "01" / f"IMG_2024011{index}.jpg", f"noop-{index}".encode()),
                 _write_file(root / "inbox" / f"IMG_2024012{index}.jpg", duplicate_payload),
                 _write_file(root / "inbox" / f"dup_copy_{index}.jpg", duplicate_payload),
             ]

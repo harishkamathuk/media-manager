@@ -8,7 +8,10 @@ from media_manager.app.canonical.policies import ShortestPathPolicy
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 from media_manager.app.persistence.canonicalization import append_assignment
 from media_manager.app.persistence.ingest import IngestService
-from media_manager.app.persistence.materialized_reads import benchmark_planner_lookup, refresh_materialized_view
+from media_manager.app.persistence.materialized_reads import (
+    benchmark_planner_lookup,
+    refresh_materialized_view,
+)
 from media_manager.app.persistence.models import FileContent, FileInstance
 
 

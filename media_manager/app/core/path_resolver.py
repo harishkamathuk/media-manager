@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from pathlib import Path
-import re
-
 
 _DUPLICATE_SUFFIX_RE = re.compile(r"_DUP_(\d+)$")
 _COLLISION_SUFFIX_RE = re.compile(r"_C(\d+)$")

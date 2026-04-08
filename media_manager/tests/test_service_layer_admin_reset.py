@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from sqlalchemy import select, text
 
-from media_manager.app.persistence.base import create_db_engine, create_session_factory, transactional_session
+from media_manager.app.persistence.base import (
+    create_db_engine,
+    create_session_factory,
+    transactional_session,
+)
 from media_manager.app.persistence.models import MediaFile, Run
 from media_manager.app.service_layer.admin import AdminServices
 from media_manager.app.service_layer.errors import ServiceLayerException

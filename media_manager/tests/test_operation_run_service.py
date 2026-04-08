@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from sqlalchemy import select
 
-from media_manager.app.persistence.models import OperationRun
-from media_manager.app.persistence.models import OperationRunStatus, OperationRunType
+from media_manager.app.persistence.models import OperationRun, OperationRunStatus, OperationRunType
 from media_manager.app.persistence.operation_runs import OperationRunService
 
 
@@ -63,7 +62,7 @@ def test_operation_run_service_reconciles_only_stale_started_runs_before_today(s
     failed = service.start(operation_type=OperationRunType.TAG_ENRICHMENT, context={})
     service.fail(UUID(failed.operation_run_id), error_message="boom")
 
-    now_utc = datetime.now(timezone.utc)
+    now_utc = datetime.now(UTC)
     yesterday = now_utc - timedelta(days=1, hours=1)
 
     with session_factory.begin() as session:

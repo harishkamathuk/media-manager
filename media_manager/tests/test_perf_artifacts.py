@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 
 from media_manager.app.core.perf_artifacts import (
-    METRICS_VERSION,
     BASELINE_DIR,
+    METRICS_VERSION,
     StageMetrics,
     artifact_to_ordered_dict,
     baseline_file_path,

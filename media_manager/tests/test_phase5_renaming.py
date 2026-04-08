@@ -7,10 +7,9 @@ from pathlib import Path
 import pytest
 from sqlalchemy import select
 
-import media_manager.app.persistence.apply as apply_module
-import media_manager.app.persistence.planner as planner_module
 import media_manager.app.core.filenames as filenames_module
 import media_manager.app.core.metadata_extractor as metadata_extractor_module
+import media_manager.app.persistence.apply as apply_module
 from media_manager.app.core.filenames import generate_canonical_filename
 from media_manager.app.persistence.apply import ApplyService
 from media_manager.app.persistence.models import PlannedAction

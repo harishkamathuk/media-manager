@@ -1195,7 +1195,7 @@ class LegacyImportService:
                 normalized_path = _normalize_path_for_surrogate(str(row["absolute_path"]))
                 token = _stable_mtime_token(row["mtime"])
                 expected = hashlib.sha256(
-                    f"{normalized_path}|{row['size_bytes']}|{token}".encode("utf-8")
+                    f"{normalized_path}|{row['size_bytes']}|{token}".encode()
                 ).hexdigest()
                 if expected != row["identity_value"]:
                     deterministic_surrogate_mismatches += 1

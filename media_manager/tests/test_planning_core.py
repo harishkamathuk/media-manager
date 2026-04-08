@@ -16,7 +16,6 @@ from media_manager.app.core.path_resolver import (
     resolve_duplicate_path,
 )
 
-
 pytestmark = pytest.mark.unit
 
 

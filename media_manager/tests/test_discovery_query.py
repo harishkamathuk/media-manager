@@ -5,7 +5,10 @@ from uuid import UUID
 
 import pytest
 
-from media_manager.app.persistence.discovery_query import DiscoveryQueryParams, DiscoveryQueryService
+from media_manager.app.persistence.discovery_query import (
+    DiscoveryQueryParams,
+    DiscoveryQueryService,
+)
 from media_manager.app.persistence.models import (
     CanonicalAssignment,
     CanonicalTag,

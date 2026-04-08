@@ -5,10 +5,14 @@ from pathlib import Path
 import pytest
 
 import media_manager.app.observability as observability
-from media_manager.app.observability import mount_metrics_endpoint, read_counter_value, record_ingest_metrics
+import media_manager.app.persistence.materialized_reads as materialized_reads
+from media_manager.app.observability import (
+    mount_metrics_endpoint,
+    read_counter_value,
+    record_ingest_metrics,
+)
 from media_manager.app.persistence.apply import ApplyService
 from media_manager.app.persistence.ingest import IngestService
-import media_manager.app.persistence.materialized_reads as materialized_reads
 from media_manager.app.persistence.materialized_reads import fetch_canonical_metadata
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.persistence.runs import RunService

@@ -7,7 +7,6 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
-
 LEGACY_DUPLICATE_RECLAIM_RECORD_COLUMNS = {
     "content_id",
     "reclaim_status",

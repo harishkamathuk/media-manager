@@ -8,10 +8,11 @@ benchmarks, and production instrumentation without introducing side effects.
 from __future__ import annotations
 
 import functools
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import perf_counter
-from typing import Any, Callable, TypeVar
+from typing import Any, TypeVar
 
 from media_manager.app.core.logging_config import get_logger
 
@@ -168,4 +169,3 @@ def profile_performance(label: str, *, phase: str = "-", action: str = "PERF") -
         return wrapper  # type: ignore[return-value]
 
     return decorator
-

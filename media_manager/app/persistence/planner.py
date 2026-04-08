@@ -2,23 +2,30 @@
 
 from __future__ import annotations
 
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-import time
 from time import perf_counter
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
-from media_manager.app.core.config import StorageRoots, resolve_required_metadata_codes, resolve_storage_roots
+from media_manager.app.core.config import (
+    StorageRoots,
+    resolve_required_metadata_codes,
+    resolve_storage_roots,
+)
 from media_manager.app.core.errors import (
     MissingRequiredMetadataError,
     OwnerContextClassificationRequiredError,
     PlanningStateError,
 )
-from media_manager.app.core.filenames import generate_canonical_filename, infer_media_type_from_extension
+from media_manager.app.core.filenames import (
+    generate_canonical_filename,
+    infer_media_type_from_extension,
+)
 from media_manager.app.core.logging_config import get_logger
 from media_manager.app.core.metadata_cache import MetadataCache
 from media_manager.app.core.metadata_extractor import extract_file_metadata
@@ -32,8 +39,14 @@ from media_manager.app.core.state_machine import RunState, validate_transition
 from media_manager.app.observability import record_planner_metrics, record_planner_stage_duration
 from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.base import transactional_session
-from media_manager.app.persistence.decision_intelligence import build_decision_traces, write_decision_trace_artifact
-from media_manager.app.persistence.discovery import process_all_discovery_in_session, process_discovery_paths_in_session
+from media_manager.app.persistence.decision_intelligence import (
+    build_decision_traces,
+    write_decision_trace_artifact,
+)
+from media_manager.app.persistence.discovery import (
+    process_all_discovery_in_session,
+    process_discovery_paths_in_session,
+)
 from media_manager.app.persistence.ingest import classify_paths_in_session, ingest_paths_in_session
 from media_manager.app.persistence.models import (
     CanonicalAssignment,

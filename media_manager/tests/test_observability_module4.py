@@ -253,8 +253,8 @@ def test_parallel_ingest_runs_update_structured_metrics_without_corruption(
             ingest_service = IngestService(session_factory)
             root = tmp_path / f"t{index}"
             files = [
-                _write_file(root / "media" / f"a_{index}.jpg", f"payload-{index}".encode("utf-8")),
-                _write_file(root / "media" / f"b_{index}.jpg", f"payload-{index}".encode("utf-8")),
+                _write_file(root / "media" / f"a_{index}.jpg", f"payload-{index}".encode()),
+                _write_file(root / "media" / f"b_{index}.jpg", f"payload-{index}".encode()),
             ]
             summary = ingest_service.ingest_paths(files)
             assert summary.files_scanned == files_per_thread

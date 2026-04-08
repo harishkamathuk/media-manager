@@ -2,9 +2,15 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from media_manager.app.core.errors import PolicySettingsValidationError, PolicySettingsVersionConflictError
+from media_manager.app.core.errors import (
+    PolicySettingsValidationError,
+    PolicySettingsVersionConflictError,
+)
 from media_manager.app.persistence.models import OperatorPolicySetting
-from media_manager.app.persistence.policy_settings import PolicySettingsService, UpdatePolicySettingsCommand
+from media_manager.app.persistence.policy_settings import (
+    PolicySettingsService,
+    UpdatePolicySettingsCommand,
+)
 
 
 def _command(**overrides) -> UpdatePolicySettingsCommand:

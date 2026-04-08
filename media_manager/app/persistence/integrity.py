@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import UTC, datetime
 import os
-from pathlib import Path
 import shutil
 import subprocess
-from typing import Any, Callable
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
@@ -16,6 +17,8 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.models import (
+    FileInstance,
+    FileInstanceStatus,
     IntegrityCheck,
     IntegrityCheckRun,
     IntegrityCheckStatus,
@@ -24,8 +27,6 @@ from media_manager.app.persistence.models import (
     IntegrityRunStatus,
     IntegrityScanMode,
     IntegritySignal,
-    FileInstance,
-    FileInstanceStatus,
 )
 
 

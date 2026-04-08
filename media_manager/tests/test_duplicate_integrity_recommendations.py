@@ -7,7 +7,6 @@ from media_manager.app.persistence.duplicate_integrity_recommendations import (
     derive_duplicate_recommendation,
 )
 
-
 pytestmark = pytest.mark.unit
 
 

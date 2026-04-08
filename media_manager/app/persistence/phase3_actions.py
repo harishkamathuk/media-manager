@@ -32,8 +32,8 @@ from media_manager.app.persistence.models import (
     Run,
     RunStateDB,
 )
-from media_manager.app.persistence.runs import RunService
 from media_manager.app.persistence.policy_settings import PolicySettingsService
+from media_manager.app.persistence.runs import RunService
 
 LOGGER = get_logger(__name__)
 

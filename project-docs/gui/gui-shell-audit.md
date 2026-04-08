@@ -53,9 +53,9 @@ Too many pages spend vertical space on:
 
 You do not have twenty patterns. You really have about three:
 
-* **standard admin shell**
-* **workflow shell**
-* **browse/list shell**
+* `standard-admin`
+* `workflow`
+* `browse-list`
 
 That is good news. The product is messy, but not structurally hopeless.
 
@@ -469,17 +469,8 @@ If I compress the whole audit into the fewest possible truths, they are these:
 
 ---
 
-## What this means before any solutioning
+## Foundation delivered, rollout pending
 
-The product does **not** mainly suffer from color, typography, or isolated messy pages.
+The **#8 page shell/layout system** has been implemented. The shell seam and three variants (`standard-admin`, `workflow`, `browse-list`) are now included in the codebase.
 
-It suffers from a **layout contract problem**:
-
-* no strict shell discipline
-* no stable action zones
-* no strong rules for when summary/info bands are allowed
-* no consistent threshold for when a page should become a workflow surface versus a dashboard surface
-
-That is why starting with **#8 page shell/layout system** is correct.
-
-Next step should be **step 3 only: propose a canonical page shell with no more than 2–3 variants**.
+**Next steps**: rollout and validation across existing pages to eliminate the layout contract drift identified in this audit.

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import re
+import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from statistics import mean
-import time
 from time import perf_counter
 
 from sqlalchemy import delete, func, select
@@ -163,7 +163,7 @@ class EnrichmentReprocessingRecord:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def run_tag_enrichment(

@@ -15,9 +15,9 @@ import media_manager.app.persistence.planner as planner_module
 from media_manager.app.observability import (
     mount_metrics_endpoint,
     read_counter_value,
+    record_apply_metrics,
     record_canonical_read_cache_disabled,
     record_canonical_read_cache_metrics,
-    record_apply_metrics,
     record_ingest_metrics,
     record_planner_metrics,
     start_metrics_http_server_if_enabled,

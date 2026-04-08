@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from media_manager.app.persistence.app_settings import bootstrap_app_settings_from_env, render_bootstrap_result
+from media_manager.app.persistence.app_settings import (
+    bootstrap_app_settings_from_env,
+    render_bootstrap_result,
+)
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 
 
