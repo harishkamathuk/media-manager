@@ -12,3 +12,4 @@ This section documents the operating model and runtime invariants for media-mana
 - [Architecture Decision Records](adr/index.md)
 - [State Machine](../STATE_MACHINE.md)
 - [Architecture Guardrails](../ARCHITECTURE_GUARDRAILS.md)
+- [Library readiness restart handoff (2026-04-03)](library-readiness-restart-handoff-2026-04-03.md)
