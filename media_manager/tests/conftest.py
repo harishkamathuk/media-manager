@@ -15,7 +15,6 @@ from media_manager.app.core.config import load_environment
 from media_manager.app.persistence.base import create_session_factory
 from media_manager.app.persistence.runs import RunService
 
-
 PUBLIC_TABLES_TO_TRUNCATE = (
     "media_metadata",
     "metadata_codes",

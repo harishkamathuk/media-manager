@@ -9,7 +9,11 @@ from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from media_manager.app.canonical.factory import build_canonical_policy, resolve_default_policy_name
-from media_manager.app.persistence.canonicalization import append_assignment, build_selection_context, get_active_assignment
+from media_manager.app.persistence.canonicalization import (
+    append_assignment,
+    build_selection_context,
+    get_active_assignment,
+)
 from media_manager.app.persistence.models import FileInstance, MediaFile, MediaFileStatus
 
 

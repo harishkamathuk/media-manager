@@ -7,17 +7,24 @@ import logging
 import os
 import tempfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy import update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from media_manager.app.canonical.factory import resolve_default_policy_name
-from media_manager.app.core.config import REQUIRED_METADATA_CODES, load_environment, resolve_storage_roots
-from media_manager.app.core.errors import AppSettingsValidationError, AppSettingsVersionConflictError
+from media_manager.app.core.config import (
+    REQUIRED_METADATA_CODES,
+    load_environment,
+    resolve_storage_roots,
+)
+from media_manager.app.core.errors import (
+    AppSettingsValidationError,
+    AppSettingsVersionConflictError,
+)
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.models import AppSetting, AppSettingHistory
 
@@ -304,7 +311,7 @@ class AppSettingsService:
                 session.add(row)
                 try:
                     session.flush()
-                except IntegrityError as exc:
+                except IntegrityError:
                     _raise_concurrent_create_conflict(key)
                 session.add(
                     AppSettingHistory(
@@ -330,7 +337,7 @@ class AppSettingsService:
                     scope="global",
                     is_sensitive=definition.is_sensitive,
                     updated_by=updated_by,
-                    updated_at=datetime.now(timezone.utc),
+                    updated_at=datetime.now(UTC),
                     source=source,
                     version=AppSetting.version + 1,
                 )

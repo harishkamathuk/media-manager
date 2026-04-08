@@ -9,8 +9,11 @@ from datetime import timedelta
 from uuid import UUID
 
 from media_manager.app.core.config import load_environment
+from media_manager.app.persistence.admin_benchmarks import (
+    run_discovery_benchmark,
+    run_metadata_benchmark,
+)
 from media_manager.app.persistence.app_settings import AppSettingsService
-from media_manager.app.persistence.admin_benchmarks import run_discovery_benchmark, run_metadata_benchmark
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 from media_manager.app.persistence.benchmark_runs import BenchmarkRunStore
 from media_manager.app.persistence.operation_runs import OperationRunService

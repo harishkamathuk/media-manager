@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import pytest
+
+import media_manager.app.core.perf as perf_module
 from media_manager.app.core.metadata_cache import MetadataCache
 from media_manager.app.core.metadata_extractor import MetadataItem, upsert_metadata_bulk
-import media_manager.app.core.perf as perf_module
 from media_manager.app.core.perf import measure_block, profile_performance
 from media_manager.app.persistence.models import FileContent
-import pytest
 
 
 @pytest.mark.unit

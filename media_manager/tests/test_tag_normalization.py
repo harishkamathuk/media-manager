@@ -4,7 +4,6 @@ import pytest
 
 from media_manager.app.persistence.tag_normalization import normalize_tag_list, normalize_tag_name
 
-
 pytestmark = pytest.mark.unit
 
 

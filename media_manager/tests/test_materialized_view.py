@@ -4,7 +4,10 @@ from pathlib import Path
 
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
 from media_manager.app.persistence.ingest import IngestService
-from media_manager.app.persistence.materialized_reads import fetch_canonical_metadata, refresh_materialized_view
+from media_manager.app.persistence.materialized_reads import (
+    fetch_canonical_metadata,
+    refresh_materialized_view,
+)
 
 
 def _write_file(path: Path, payload: bytes) -> Path:

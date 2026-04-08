@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from media_manager.app.core import perf_batch_tuning as tuning
 from media_manager.app.core.perf_batch_tuning import (
-    BatchAggregate,
     CANDIDATE_BATCH_SIZES,
     MIN_REPEATS,
+    BatchAggregate,
     report_to_dict,
     run_batch_tuning,
 )
@@ -170,4 +170,3 @@ def test_logging_emits_trial_aggregate_recommendation_events(monkeypatch) -> Non
     assert actions.count("batch_trial") == 6
     assert actions.count("batch_aggregate") == 2
     assert actions.count("batch_recommendation") == 1
-

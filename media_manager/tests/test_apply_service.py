@@ -13,9 +13,9 @@ from media_manager.app.persistence.ingest import IngestService
 from media_manager.app.persistence.models import (
     ApplyAuditItem,
     ApplyAuditRun,
-    FileInstance,
     FailureEvent,
     FailurePhase,
+    FileInstance,
     PlannedAction,
     Run,
     RunStateDB,

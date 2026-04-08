@@ -469,6 +469,11 @@ If I compress the whole audit into the fewest possible truths, they are these:
 
 ---
 
+## Foundation delivered, rollout pending
+
+The **#8 page shell/layout system** has been implemented. The shell seam and three variants (`standard-admin`, `workflow`, `browse-list`) are now included in the codebase.
+
+**Next steps**: rollout and validation across existing pages to eliminate the layout contract drift identified in this audit.
 ## Implementation status
 
 The **#8 page shell/layout system** has been implemented. The shell seam and three variants (`standard-admin`, `workflow`, `browse-list`) are now part of the codebase.

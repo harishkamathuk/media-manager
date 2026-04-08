@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections import deque
 import logging
+from collections import deque
 
 LOG_BUFFER: deque[str] = deque(maxlen=1000)
 

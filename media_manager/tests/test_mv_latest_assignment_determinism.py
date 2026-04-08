@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import text
 
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
-from media_manager.app.persistence.materialized_reads import fetch_canonical_metadata, refresh_materialized_view
+from media_manager.app.persistence.materialized_reads import (
+    fetch_canonical_metadata,
+    refresh_materialized_view,
+)
 
 
 def _insert_assignment_fixture(db_url: str) -> tuple[uuid.UUID, uuid.UUID]:
@@ -65,8 +68,8 @@ def _insert_assignment_fixture(db_url: str) -> tuple[uuid.UUID, uuid.UUID]:
                 },
             )
 
-        tie_ts = datetime(2025, 1, 1, tzinfo=timezone.utc)
-        older_ts = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        tie_ts = datetime(2025, 1, 1, tzinfo=UTC)
+        older_ts = datetime(2024, 1, 1, tzinfo=UTC)
 
         conn.execute(
             text(

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import tomllib
+from pathlib import Path
 
 
 def test_project_scripts_expose_api_and_benchmark_worker_entrypoints() -> None:

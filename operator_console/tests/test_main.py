@@ -9,9 +9,9 @@ from uuid import UUID
 
 from fastapi.testclient import TestClient
 
+import operator_console.main as main_module
 from media_manager.app.core.logging_buffer import LOG_BUFFER
 from media_manager.app.service_layer.errors import ServiceLayerException
-import operator_console.main as main_module
 from operator_console.main import (
     app,
     create_app,
@@ -106,7 +106,6 @@ def test_canonical_api_route_inventory_and_v1_removal() -> None:
         "/api/duplicates/reclaim/items",
         "/api/duplicates/reclaim/execute",
         "/api/duplicates/reclaim/restore",
-        "/api/retention/recycle",
         "/api/duplicates/review",
     }
 
@@ -308,7 +307,7 @@ class _FakeService:
         self.last_media_file_call: dict[str, Any] | None = None
         self.last_gallery_detail_id: str | None = None
 
-    def get_dashboard_summary(self) -> "_FakePayload":
+    def get_dashboard_summary(self) -> _FakePayload:
         return _FakePayload(
             {
                 "total_files": 10,
@@ -320,7 +319,7 @@ class _FakeService:
             }
         )
 
-    def get_latest_metrics(self) -> "_FakePayload":
+    def get_latest_metrics(self) -> _FakePayload:
         return _FakePayload(
             {
                 "ingest_time_ms": 12.5,
@@ -332,7 +331,7 @@ class _FakeService:
             }
         )
 
-    def get_run_history(self, limit: int = 50) -> list["_FakePayload"]:
+    def get_run_history(self, limit: int = 50) -> list[_FakePayload]:
         _ = limit
         return [
             _FakePayload(
@@ -350,7 +349,7 @@ class _FakeService:
             )
         ]
 
-    def get_internal_run_history(self, limit: int = 50) -> list["_FakePayload"]:
+    def get_internal_run_history(self, limit: int = 50) -> list[_FakePayload]:
         _ = limit
         return [
             _FakePayload(
@@ -375,7 +374,7 @@ class _FakeService:
             ),
         ]
 
-    def get_duplicate_groups(self, limit: int | None = None) -> list["_FakePayload"]:
+    def get_duplicate_groups(self, limit: int | None = None) -> list[_FakePayload]:
         _ = limit
         return [
             _FakePayload(
@@ -476,7 +475,7 @@ class _FakeService:
         base = ("city", "city night", "travel", "wildlife")
         return tuple(base[: max(1, min(50, int(limit)))])
 
-    def get_canonical_gallery_detail(self, file_id: UUID) -> "_FakePayload | None":
+    def get_canonical_gallery_detail(self, file_id: UUID) -> _FakePayload | None:
         self.last_gallery_detail_id = str(file_id)
         if str(file_id) != "33333333-0000-0000-0000-000000000001":
             return None

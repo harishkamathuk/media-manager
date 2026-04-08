@@ -14,9 +14,9 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from media_manager.app.core.date_extraction import filename_has_date
-from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER
 from media_manager.app.core.hashing import sha256_file
 from media_manager.app.core.logging_config import get_logger
+from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER
 from media_manager.app.persistence.models import FileContent, MediaMetadata, MetadataCode
 
 logger = get_logger(__name__)

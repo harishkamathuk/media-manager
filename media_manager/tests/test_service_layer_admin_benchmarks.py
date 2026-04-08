@@ -5,7 +5,13 @@ from uuid import UUID
 from sqlalchemy import select
 
 from media_manager.app.persistence.admin_benchmarks import BenchmarkExecutionResult
-from media_manager.app.persistence.models import BenchmarkRun, BenchmarkRunStatus, OperationRun, OperationRunStatus, OperationRunType
+from media_manager.app.persistence.models import (
+    BenchmarkRun,
+    BenchmarkRunStatus,
+    OperationRun,
+    OperationRunStatus,
+    OperationRunType,
+)
 from media_manager.app.service_layer.admin import AdminServices
 from media_manager.app.service_layer.errors import ServiceLayerException
 from media_manager.app.workers import benchmark_runner

@@ -16,9 +16,9 @@ import random
 import threading
 import uuid
 from dataclasses import dataclass
+from statistics import pstdev
 from time import perf_counter
 from typing import Any
-from statistics import pstdev
 
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
@@ -26,7 +26,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from media_manager.app.core.logging_config import get_logger
 from media_manager.app.core.ttl_cache import TTLCache
-from media_manager.app.observability import record_canonical_read_cache_disabled, record_canonical_read_cache_metrics
+from media_manager.app.observability import (
+    record_canonical_read_cache_disabled,
+    record_canonical_read_cache_metrics,
+)
 from media_manager.app.persistence.app_settings import AppSettingsService
 
 

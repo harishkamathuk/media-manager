@@ -5,11 +5,11 @@ from __future__ import annotations
 import errno
 import re
 import shutil
+import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-import time
 from typing import Literal
 
 from sqlalchemy import func, select
@@ -18,33 +18,33 @@ from sqlalchemy.orm import Session, sessionmaker
 from media_manager.app.core.errors import (
     ApplyIntegrityException,
     ApplyStateError,
-    ApplyTargetParentInvalidError,
     ApplyTargetOccupiedError,
+    ApplyTargetParentInvalidError,
     CanonicalUnreadableError,
     CollisionResolutionError,
     RunNotFoundError,
 )
 from media_manager.app.core.logging_config import get_logger
-from media_manager.app.core.state_machine import RunState, validate_transition
 from media_manager.app.core.path_resolver import collision_filename
+from media_manager.app.core.state_machine import RunState, validate_transition
 from media_manager.app.observability import record_apply_metrics
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.models import (
     ApplyAuditItem,
     ApplyAuditRun,
-    FailureEvent,
-    FailurePhase,
     CanonicalAssignment,
     DuplicateBinState,
     DuplicateReclaimItem,
     DuplicateReclaimItemStatus,
+    DuplicateReclaimRecord,
+    DuplicateReclaimStatus,
+    FailureEvent,
+    FailurePhase,
     FileInstance,
     FileInstanceStatus,
     IntegrityQuarantineRecord,
     IntegrityQuarantineStatus,
     MediaFile,
-    DuplicateReclaimRecord,
-    DuplicateReclaimStatus,
     MediaFileStatus,
     PlannedAction,
     PlannedActionRole,
@@ -108,7 +108,7 @@ def is_canonical_readable(path: Path) -> bool:
         with path.open("rb") as handle:
             handle.read(1)
         return True
-    except (OSError, IOError):
+    except OSError:
         return False
 
 
@@ -1273,7 +1273,7 @@ class ApplyService:
                 )
             try:
                 readable = is_canonical_readable(runtime_path)
-            except (OSError, IOError):
+            except OSError:
                 readable = False
             if not readable:
                 return CanonicalGuardContext(
@@ -1286,4 +1286,4 @@ class ApplyService:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
