@@ -80,3 +80,6 @@ operator_console/gui_app/dist/
 testdata/manual-qa/
 media_manager/tests/test_manual_qa_fixture_layout.py
 .codex
+
+# Continue extension for source code completion
+.continue/*
