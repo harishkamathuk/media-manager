@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LiveProgressPanel } from "@/components/progress/LiveProgressPanel";
@@ -10,6 +10,7 @@ function renderWithQuery(ui: React.ReactNode) {
     defaultOptions: {
       queries: {
         retry: false,
+        gcTime: 0,
       },
     },
   });
@@ -123,7 +124,9 @@ describe("LiveProgressPanel", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     visibilityState = "visible";
-    document.dispatchEvent(new Event("visibilitychange"));
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   }, 10_000);
 

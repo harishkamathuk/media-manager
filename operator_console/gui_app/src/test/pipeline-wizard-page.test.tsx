@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -37,6 +37,7 @@ function renderPage() {
     defaultOptions: {
       queries: {
         retry: false,
+        gcTime: 0,
       },
     },
   });
@@ -90,7 +91,7 @@ describe("Pipeline Wizard page", () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("renders the workflow shell header above the progress workspace", async () => {
@@ -133,7 +134,9 @@ describe("Pipeline Wizard page", () => {
     expect(await screen.findByText("[ FINALIZING INGEST ]")).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole("button", { name: "Run Ingest" })).toBeDisabled());
 
-    resolveIngest?.({ data: { files_scanned: 2850 } });
+    await act(async () => {
+      resolveIngest?.({ data: { files_scanned: 2850 } });
+    });
   });
 
   it("shows batch naming controls on the plan step and sends them in the plan request", async () => {
@@ -391,11 +394,13 @@ describe("Pipeline Wizard page", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Apply Plan" })).toBeDisabled());
     expect(screen.getByText("Apply started. You can monitor progress below while the wizard stays available.")).toBeInTheDocument();
 
-    resolveApply?.({
-      data: {
-        run_id: "run-apply",
-        summary: { applied_count: 1, moves_count: 1, duplicates_count: 0, errors_count: 0 },
-      },
+    await act(async () => {
+      resolveApply?.({
+        data: {
+          run_id: "run-apply",
+          summary: { applied_count: 1, moves_count: 1, duplicates_count: 0, errors_count: 0 },
+        },
+      });
     });
   }, 10000);
 });
