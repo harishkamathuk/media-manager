@@ -175,7 +175,7 @@ GUI environment:
 ```bash
 cd operator_console/gui_app
 npm install
-cd /home/harish/projects/media-manager
+cd "$(git rev-parse --show-toplevel)"
 ```
 
 Recommended validation before new work:
@@ -339,7 +339,7 @@ npm test -- src/test/duplicates-page.test.tsx
 If broader changes reach the backend or core workflows:
 
 ```bash
-cd /home/harish/projects/media-manager
+cd "$(git rev-parse --show-toplevel)"
 ./.venv/bin/pytest -q
 ```
 
