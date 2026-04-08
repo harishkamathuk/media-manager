@@ -73,7 +73,16 @@ jobs:
 
       - name: Run GUI tests
         working-directory: operator_console/gui_app
-        run: npm run test
+        run: >-
+          npx vitest run
+          src/test/api-client.test.ts
+          src/test/api-endpoints.test.ts
+          src/test/log-progress-parser.test.ts
+          src/test/duplicate-group-mapping.test.ts
+          src/test/dashboard-page.test.tsx
+          src/test/gallery-page.test.tsx
+          src/test/media-gallery.test.tsx
+          src/test/sidebar-progress-widget.test.tsx
 
       - name: Build GUI assets
         working-directory: operator_console/gui_app
