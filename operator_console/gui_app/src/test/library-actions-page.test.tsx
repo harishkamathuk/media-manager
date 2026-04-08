@@ -45,6 +45,7 @@ function renderPage() {
     defaultOptions: {
       queries: {
         retry: false,
+        gcTime: 0,
       },
     },
   });
@@ -204,7 +205,7 @@ describe("Import page", () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("renders the redesigned Import sections", async () => {

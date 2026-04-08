@@ -28,7 +28,7 @@ Rules:
 - If the current branch is `develop`, do not edit files.
 - If the current branch is `develop` and `git status --porcelain` is non-empty, warn that there are uncommitted changes on `develop` and stop.
 - Require creating or switching to a non-protected branch before any edit.
-- Allowed edit branches are `feature/*`, `fix/*`, `docs/*`, and `chore/*`.
+- Allowed edit branches are `feature/*`, `feat/*`, `fix/*`, `docs/*`, and `chore/*`.
 - Do not commit directly to `develop` even if the worktree is clean.
 
 ## Pre-Push Validation
