@@ -184,6 +184,7 @@ export default function GalleryPage() {
                     addTag(tagInput);
                   }
                 }}
+                aria-label="Filter gallery by tag"
                 placeholder="Filter gallery by tag"
                 className="pl-9"
               />
@@ -242,6 +243,7 @@ export default function GalleryPage() {
                 min={0}
                 max={DENSITY_PRESETS.length - 1}
                 step={1}
+                aria-label="Gallery density"
                 className="w-24"
               />
               <LayoutGrid className="h-4 w-4 text-muted-foreground" />
@@ -252,6 +254,7 @@ export default function GalleryPage() {
             <select
               value={sortBy}
               onChange={(event) => updateParams({ sort_by: event.target.value, page: "1" })}
+              aria-label="Sort gallery by"
               className="h-10 rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="created_at">Created</option>

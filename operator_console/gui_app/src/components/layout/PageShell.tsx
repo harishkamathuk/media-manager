@@ -15,8 +15,8 @@ interface PageShellProps {
 
 const bodyLayoutClasses: Record<PageShellVariant, string> = {
   "standard-admin": "xl:grid xl:grid-cols-[minmax(0,1.45fr)_22rem] xl:items-start",
-  workflow: "min-w-0",
-  "browse-list": "min-w-0",
+  workflow: "grid min-w-0",
+  "browse-list": "grid min-w-0",
 };
 
 export function PageShell({
@@ -29,6 +29,8 @@ export function PageShell({
 }: PageShellProps) {
   const workflow = variant === "workflow";
   const standardAdmin = variant === "standard-admin";
+  const bodyLayoutClass =
+    standardAdmin && !secondary ? "" : bodyLayoutClasses[variant];
 
   return (
     <div
@@ -62,8 +64,8 @@ export function PageShell({
           </section>
         ) : null}
 
-        <div className={cn("gap-6", bodyLayoutClasses[variant])}>
-          <main className="min-w-0">{children}</main>
+        <div className={cn("gap-6", bodyLayoutClass)}>
+          <div className="min-w-0">{children}</div>
           {secondary ? (
             <aside
               data-page-shell-secondary

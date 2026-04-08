@@ -2315,7 +2315,7 @@ export default function PipelineWizard() {
   };
 
   return (
-    <div className="space-y-6">
+    <>
       <PageShell
         variant="workflow"
         title="Organize"
@@ -2407,7 +2407,7 @@ export default function PipelineWizard() {
           updateStepInput(pickerTarget, { folder_path: path });
         }}
       />
-    </div>
+    </>
   );
 }
 
