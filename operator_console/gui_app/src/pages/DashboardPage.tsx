@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
+import { PageShell } from "@/components/layout/PageShell";
 import { MediaPreviewModal } from "@/components/media/MediaPreviewModal";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { getHome } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
 import type { CanonicalFile, HomePageData } from "@/types";
-import { ArrowRight, Copy, ImageIcon, Images, Sparkles, Video } from "lucide-react";
+import { ArrowRight, Copy, ImageIcon, Images, Video } from "lucide-react";
 
 function getErrorMessage(err: unknown): string | null {
   if (!err) return null;
@@ -132,18 +132,52 @@ function QuickLinkCard({
   );
 }
 
-function HeroSkeleton() {
+function SummarySkeleton() {
   return (
-    <div className="overflow-hidden rounded-[30px] border border-border/70 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.18),transparent_36%),linear-gradient(135deg,hsl(var(--card))_0%,hsl(var(--secondary)/0.22)_100%)] p-6 shadow-sm">
-      <div className="space-y-4">
-        <Skeleton className="h-4 w-32" />
-        <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-5 w-full max-w-2xl" />
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} className="h-24 rounded-2xl" />
-          ))}
-        </div>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Skeleton key={index} className="h-24 rounded-2xl" />
+      ))}
+    </div>
+  );
+}
+
+function LibrarySummaryCards({
+  totalAssets,
+  images,
+  videos,
+  duplicateGroups,
+}: {
+  totalAssets: number;
+  images: number;
+  videos: number;
+  duplicateGroups: number;
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Total assets
+        </p>
+        <p className="mt-2 text-2xl font-semibold">{totalAssets}</p>
+      </div>
+      <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Images
+        </p>
+        <p className="mt-2 text-2xl font-semibold">{images}</p>
+      </div>
+      <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Videos
+        </p>
+        <p className="mt-2 text-2xl font-semibold">{videos}</p>
+      </div>
+      <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          Duplicate groups
+        </p>
+        <p className="mt-2 text-2xl font-semibold">{duplicateGroups}</p>
       </div>
     </div>
   );
@@ -181,178 +215,158 @@ export default function DashboardPage() {
     home?.recent_images ?? home?.recent_media.filter((file) => file.file_type === "image") ?? [];
   const recentVideos =
     home?.recent_videos ?? home?.recent_media.filter((file) => file.file_type === "video") ?? [];
+  const controls =
+    homeQuery.isLoading && !home ? (
+      <SummarySkeleton />
+    ) : home ? (
+      <LibrarySummaryCards
+        totalAssets={home.library_summary.total_assets}
+        images={home.library_summary.images}
+        videos={home.library_summary.videos}
+        duplicateGroups={home.library_summary.duplicate_groups}
+      />
+    ) : null;
+  const secondary = home ? (
+    <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
+      <Card className="rounded-[28px] border-border/70 bg-background/90 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardDescription>Go where you need to work</CardDescription>
+          <CardTitle className="text-xl">Quick Links</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Button asChild className="w-full justify-between">
+            <Link to={home.guided_entry?.route ?? "/pipeline-wizard"}>
+              {home.guided_entry?.label ?? "Open Organize"}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+          <p className="text-sm leading-6 text-muted-foreground">
+            {home.guided_entry?.helper ?? "Guided ingest, planning, apply, and review"}
+          </p>
+          <div className="grid gap-3 pt-2">
+            <QuickLinkCard
+              title="Duplicate Review"
+              description="Inspect duplicate groups and confirm which items need review."
+              href="/duplicates"
+              icon={<Copy className="h-4 w-4" />}
+            />
+            <QuickLinkCard
+              title="Open Library"
+              description="Browse canonical media with previews, filters, and detail pages."
+              href="/gallery"
+              icon={<Images className="h-4 w-4" />}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-[28px] border-border/70 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardDescription>Items that need review before you continue</CardDescription>
+          <CardTitle className="text-xl">Needs Attention</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Link
+            to="/duplicates"
+            className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
+          >
+            <div>
+              <p className="text-sm font-semibold">Duplicate groups</p>
+              <p className="mt-1 text-sm text-muted-foreground">Review likely duplicate clusters.</p>
+            </div>
+            <span className="text-2xl font-semibold">{home.attention_summary.duplicate_groups}</span>
+          </Link>
+          <Link
+            to="/admin?tab=activity"
+            className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
+          >
+            <div>
+              <p className="text-sm font-semibold">Failed runs</p>
+              <p className="mt-1 text-sm text-muted-foreground">Open Admin Diagnostics to review jobs that need follow-up.</p>
+            </div>
+            <span className="text-2xl font-semibold">{home.attention_summary.failed_runs}</span>
+          </Link>
+          <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4">
+            <div>
+              <p className="text-sm font-semibold">Untagged assets</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Canonical items that still need metadata enrichment.
+              </p>
+            </div>
+            <span className="text-2xl font-semibold">{home.attention_summary.untagged_assets}</span>
+          </div>
+          <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+              Recommended workflow
+            </p>
+            <p className="mt-2 text-sm leading-6 text-foreground/90">
+              Start in Organize for guided ingest and review, then use Duplicate Review and
+              Library as follow-up tools when you want more detail. Use Admin if
+              a job needs troubleshooting.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ) : null;
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
-      {homeQuery.isLoading && !home ? <HeroSkeleton /> : null}
+    <PageShell
+      variant="standard-admin"
+      title="Media Manager"
+      description="Browse recent media, review what needs attention, and jump into the guided workflow when you're ready."
+      controls={controls}
+      secondary={secondary}
+    >
       {error ? <ErrorAlert message={error} /> : null}
 
       {home ? (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
-          <div className="space-y-6">
-            <TopSurfaceHeader
-              badge="Library Overview"
-              title="Media Manager"
-              description="Browse recent media, review what needs attention, and jump into the guided workflow when you're ready."
-              icon={Sparkles}
-              className="rounded-[30px]"
-            >
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Total assets
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">{home.library_summary.total_assets}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Images
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">{home.library_summary.images}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Videos
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">{home.library_summary.videos}</p>
-                </div>
-                <div className="rounded-2xl border border-border/70 bg-background/85 p-4 shadow-sm">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Duplicate groups
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold">{home.library_summary.duplicate_groups}</p>
-                </div>
+        <div className="space-y-6">
+          <section className="space-y-4">
+            <SectionHeader
+              title="Recent Images"
+              description="Newest image items ready for review."
+              actionLabel="View All Media"
+              actionHref="/gallery"
+            />
+            {recentImages.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {recentImages.map((file) => (
+                  <MediaThumbCard key={file.id} file={file} onPreview={setSelectedFile} />
+                ))}
               </div>
-            </TopSurfaceHeader>
-
-            <section className="space-y-4">
-              <SectionHeader
-                title="Recent Images"
-                description="Newest image items ready for review."
-                actionLabel="View All Media"
-                actionHref="/gallery"
+            ) : (
+              <EmptyMediaRow
+                title="No recent images yet"
+                description="Image uploads will appear here once they are added to the library."
               />
-              {recentImages.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {recentImages.map((file) => (
-                    <MediaThumbCard key={file.id} file={file} onPreview={setSelectedFile} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyMediaRow
-                  title="No recent images yet"
-                  description="Image uploads will appear here once they are added to the library."
-                />
-              )}
-            </section>
+            )}
+          </section>
 
-            <section className="space-y-4">
-              <SectionHeader
-                title="Recent Videos"
-                description="Newest video items ready for review."
-                actionLabel="View All Media"
-                actionHref="/gallery"
+          <section className="space-y-4">
+            <SectionHeader
+              title="Recent Videos"
+              description="Newest video items ready for review."
+              actionLabel="View All Media"
+              actionHref="/gallery"
+            />
+            {recentVideos.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {recentVideos.map((file) => (
+                  <MediaThumbCard key={file.id} file={file} onPreview={setSelectedFile} />
+                ))}
+              </div>
+            ) : (
+              <EmptyMediaRow
+                title="No recent videos yet"
+                description="Video uploads will appear here once they are added to the library."
               />
-              {recentVideos.length ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {recentVideos.map((file) => (
-                    <MediaThumbCard key={file.id} file={file} onPreview={setSelectedFile} />
-                  ))}
-                </div>
-              ) : (
-                <EmptyMediaRow
-                  title="No recent videos yet"
-                  description="Video uploads will appear here once they are added to the library."
-                />
-              )}
-            </section>
-          </div>
-
-          <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <Card className="rounded-[28px] border-border/70 bg-background/90 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardDescription>Go where you need to work</CardDescription>
-                <CardTitle className="text-xl">Quick Links</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button asChild className="w-full justify-between">
-                  <Link to={home.guided_entry?.route ?? "/pipeline-wizard"}>
-                    {home.guided_entry?.label ?? "Open Organize"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {home.guided_entry?.helper ?? "Guided ingest, planning, apply, and review"}
-                </p>
-                <div className="grid gap-3 pt-2">
-                  <QuickLinkCard
-                    title="Duplicate Review"
-                    description="Inspect duplicate groups and confirm which items need review."
-                    href="/duplicates"
-                    icon={<Copy className="h-4 w-4" />}
-                  />
-                  <QuickLinkCard
-                    title="Open Library"
-                    description="Browse canonical media with previews, filters, and detail pages."
-                    href="/gallery"
-                    icon={<Images className="h-4 w-4" />}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-[28px] border-border/70 shadow-sm">
-              <CardHeader className="pb-3">
-                <CardDescription>Items that need review before you continue</CardDescription>
-                <CardTitle className="text-xl">Needs Attention</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Link
-                  to="/duplicates"
-                  className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
-                >
-                  <div>
-                    <p className="text-sm font-semibold">Duplicate groups</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Review likely duplicate clusters.</p>
-                  </div>
-                  <span className="text-2xl font-semibold">{home.attention_summary.duplicate_groups}</span>
-                </Link>
-                <Link
-                  to="/admin?tab=activity"
-                  className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
-                >
-                  <div>
-                    <p className="text-sm font-semibold">Failed runs</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Open Admin Diagnostics to review jobs that need follow-up.</p>
-                  </div>
-                  <span className="text-2xl font-semibold">{home.attention_summary.failed_runs}</span>
-                </Link>
-                <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4">
-                  <div>
-                    <p className="text-sm font-semibold">Untagged assets</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Canonical items that still need metadata enrichment.
-                    </p>
-                  </div>
-                  <span className="text-2xl font-semibold">{home.attention_summary.untagged_assets}</span>
-                </div>
-                <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                    Recommended workflow
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-foreground/90">
-                    Start in Organize for guided ingest and review, then use Duplicate Review and
-                    Library as follow-up tools when you want more detail. Use Admin if
-                    a job needs troubleshooting.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            )}
+          </section>
         </div>
       ) : null}
 
       <MediaPreviewModal file={selectedFile} onClose={() => setSelectedFile(null)} />
-    </div>
+    </PageShell>
   );
 }

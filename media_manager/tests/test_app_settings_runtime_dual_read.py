@@ -6,9 +6,12 @@ from pathlib import Path
 import pytest
 
 from media_manager.app.core.errors import AppSettingsValidationError
-from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence import materialized_reads
-from media_manager.app.persistence.operator_console import _video_thumbnail_cache_dir, _video_thumbnails_enabled
+from media_manager.app.persistence.app_settings import AppSettingsService
+from media_manager.app.persistence.operator_console import (
+    _video_thumbnail_cache_dir,
+    _video_thumbnails_enabled,
+)
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.workers import benchmark_runner
 

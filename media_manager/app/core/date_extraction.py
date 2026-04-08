@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
-
 _DATE_PATTERNS = [
     re.compile(r"(?P<y>19\d{2}|20\d{2})[-_]?((?P<m>0[1-9]|1[0-2]))[-_]?((?P<d>0[1-9]|[12]\d|3[01]))"),
 ]

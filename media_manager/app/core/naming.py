@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from media_manager.app.persistence.models import NamingStrategyDB
 
-
 DEFAULT_OWNER = "LL"
 DEFAULT_CONTEXT = "General"
 UNKNOWN_OWNER = "UNKNOWN"

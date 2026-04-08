@@ -6,9 +6,10 @@ aggregates runtime/throughput statistics, and recommends a safe default.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from statistics import mean, median, pstdev
-from typing import Any, Callable, Sequence
+from typing import Any
 
 from media_manager.app.core.logging_config import get_logger
 

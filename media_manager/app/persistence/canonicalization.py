@@ -1,11 +1,11 @@
 from __future__ import annotations
 
+import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-import time
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
@@ -49,7 +49,7 @@ class RecomputeSummary:
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def get_active_assignment(session: Session, content_id: uuid.UUID) -> CanonicalAssignment | None:

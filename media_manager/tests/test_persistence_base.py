@@ -4,7 +4,6 @@ import pytest
 
 from media_manager.app.persistence.base import get_database_url
 
-
 pytestmark = pytest.mark.unit
 
 

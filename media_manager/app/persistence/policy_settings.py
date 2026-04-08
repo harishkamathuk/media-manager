@@ -5,15 +5,18 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from media_manager.app.canonical.factory import build_canonical_policy, resolve_default_policy_name
+from media_manager.app.core.errors import (
+    PolicySettingsValidationError,
+    PolicySettingsVersionConflictError,
+)
 from media_manager.app.core.naming import normalize_naming_strategy
-from media_manager.app.core.errors import PolicySettingsValidationError, PolicySettingsVersionConflictError
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.models import NamingStrategyDB, OperatorPolicySetting
 
@@ -109,7 +112,7 @@ class PolicySettingsSnapshot:
                 "enabled": self.recanonicalization_enabled,
             },
             "metadata": {
-                "updated_at": self.updated_at.astimezone(timezone.utc).isoformat(),
+                "updated_at": self.updated_at.astimezone(UTC).isoformat(),
                 "version": self.version,
             },
         }
@@ -160,7 +163,7 @@ class PolicySettingsService:
                 .where(OperatorPolicySetting.id == _POLICY_ROW_ID)
                 .with_for_update()
             )
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
 
             if row is None:
                 if validated.version != 0:
@@ -302,7 +305,7 @@ class PolicySettingsService:
             recycle_purge_days=self._default_days("MEDIA_MANAGER_RECYCLE_PURGE_DAYS", 30),
             automation_mode="NOTIFY_ONLY",
             recanonicalization_enabled=False,
-            updated_at=datetime.fromtimestamp(0, tz=timezone.utc),
+            updated_at=datetime.fromtimestamp(0, tz=UTC),
             version=0,
         )
 

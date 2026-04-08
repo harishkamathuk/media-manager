@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -16,7 +16,6 @@ from media_manager.app.canonical.policies import (
 from media_manager.app.core.errors import CanonicalPolicyException
 from media_manager.app.persistence.models import FileInstance, FileInstanceStatus
 
-
 pytestmark = pytest.mark.unit
 
 
@@ -26,8 +25,8 @@ def _instance(path: str, *, seen_second: int) -> FileInstance:
         content_id=uuid.uuid4(),
         absolute_path=path,
         filesystem_id=None,
-        first_seen_at=datetime(2024, 1, 1, 0, 0, seen_second, tzinfo=timezone.utc),
-        last_seen_at=datetime(2024, 1, 1, 0, 0, seen_second, tzinfo=timezone.utc),
+        first_seen_at=datetime(2024, 1, 1, 0, 0, seen_second, tzinfo=UTC),
+        last_seen_at=datetime(2024, 1, 1, 0, 0, seen_second, tzinfo=UTC),
         status=FileInstanceStatus.ACTIVE.value,
         ingestion_run_id=None,
     )

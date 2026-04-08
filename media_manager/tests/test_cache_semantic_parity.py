@@ -4,12 +4,15 @@ from pathlib import Path
 
 from sqlalchemy import select
 
+import media_manager.app.observability as observability
 import media_manager.app.persistence.materialized_reads as materialized_reads
 from media_manager.app.core.ttl_cache import TTLCache
-import media_manager.app.observability as observability
 from media_manager.app.observability import read_counter_value
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
-from media_manager.app.persistence.materialized_reads import fetch_canonical_metadata, refresh_materialized_view
+from media_manager.app.persistence.materialized_reads import (
+    fetch_canonical_metadata,
+    refresh_materialized_view,
+)
 from media_manager.app.persistence.models import PlannedAction
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.persistence.runs import RunService

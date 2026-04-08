@@ -11,7 +11,11 @@ from uuid import UUID
 
 from sqlalchemy import select
 
-from media_manager.app.persistence.base import create_db_engine, create_session_factory, transactional_session
+from media_manager.app.persistence.base import (
+    create_db_engine,
+    create_session_factory,
+    transactional_session,
+)
 from media_manager.app.persistence.models import (
     CanonicalAssignment,
     DuplicateReclaimRecord,

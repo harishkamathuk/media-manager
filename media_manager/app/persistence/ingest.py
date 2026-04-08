@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-import time
 from time import perf_counter
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, sessionmaker
 
+import media_manager.app.core.metadata_extractor as metadata_extractor
+from media_manager.app.core.errors import (
+    OwnerContextClassificationRequiredError,
+    OwnerContextOverrideRequiredError,
+)
 from media_manager.app.core.hashing import sha256_file
 from media_manager.app.core.logging_config import get_logger
 from media_manager.app.core.naming import (
@@ -21,20 +26,15 @@ from media_manager.app.core.naming import (
     UNKNOWN_OWNER,
     is_unknown_owner_context_value,
 )
-import media_manager.app.core.metadata_extractor as metadata_extractor
-from media_manager.app.core.errors import (
-    OwnerContextClassificationRequiredError,
-    OwnerContextOverrideRequiredError,
-)
 from media_manager.app.observability import record_ingest_metrics, record_ingest_structured_metrics
 from media_manager.app.persistence.base import transactional_session
 from media_manager.app.persistence.models import (
     FileContent,
     FileInstance,
     FileInstanceStatus,
-    MediaMetadata,
     MediaFile,
     MediaFileStatus,
+    MediaMetadata,
     MetadataCode,
 )
 

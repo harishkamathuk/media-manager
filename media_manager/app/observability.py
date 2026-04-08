@@ -9,15 +9,22 @@ from __future__ import annotations
 
 import os
 import threading
-from collections.abc import Iterable
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 
 from media_manager.app.core.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 try:
-    from prometheus_client import Counter, Gauge, Histogram, REGISTRY, generate_latest, make_asgi_app, start_http_server
+    from prometheus_client import (
+        REGISTRY,
+        Counter,
+        Gauge,
+        Histogram,
+        generate_latest,
+        make_asgi_app,
+        start_http_server,
+    )
 except Exception:  # pragma: no cover - fallback path when dependency is unavailable.
     Counter = None  # type: ignore[assignment]
     Gauge = None  # type: ignore[assignment]
@@ -449,7 +456,7 @@ def mount_metrics_endpoint(app: object, path: str = "/metrics") -> bool:
     if not _is_histogram_supported() or make_asgi_app is None:
         return False
     try:
-        mount = getattr(app, "mount")
+        mount = app.mount
         mount(path, make_asgi_app())
         return True
     except Exception:

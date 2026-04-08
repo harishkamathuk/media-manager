@@ -5,12 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminPage from "@/pages/AdminPage";
 
-class MockResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
 const mocks = vi.hoisted(() => ({
   adminDbReset: vi.fn(),
   cancelBenchmarkRun: vi.fn(),
@@ -119,7 +113,6 @@ function renderSystemHealthPage() {
 
 describe("Admin page", () => {
   beforeEach(() => {
-    vi.stubGlobal("ResizeObserver", MockResizeObserver);
     vi.spyOn(globalThis, "fetch").mockResolvedValue({
       ok: true,
       json: async () => [],

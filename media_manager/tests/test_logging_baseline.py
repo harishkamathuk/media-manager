@@ -17,12 +17,19 @@ import media_manager.app.persistence.tag_enrichment as tag_module
 from media_manager.app.canonical.context import CanonicalContext
 from media_manager.app.canonical.policies import ShortestPathPolicy
 from media_manager.app.persistence.apply import ApplyService
-from media_manager.app.persistence.canonicalization import RecomputeMode, recompute_canonical_assignments
+from media_manager.app.persistence.canonicalization import (
+    RecomputeMode,
+    recompute_canonical_assignments,
+)
 from media_manager.app.persistence.ingest import IngestService
 from media_manager.app.persistence.models import FailureEvent, FailurePhase, Run
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.persistence.runs import RunService
-from media_manager.app.persistence.tag_enrichment import EnrichmentScope, TagEnrichmentCommand, run_tag_enrichment
+from media_manager.app.persistence.tag_enrichment import (
+    EnrichmentScope,
+    TagEnrichmentCommand,
+    run_tag_enrichment,
+)
 from media_manager.tests.test_tag_enrichment_service import _seed_canonical_item, _upsert_metadata
 
 

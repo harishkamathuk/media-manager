@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 
@@ -12,8 +12,7 @@ from media_manager.app.persistence.media_file_queries import (
 )
 from media_manager.app.persistence.models import MediaFile, MediaFileStatus
 
-
-BASE_TS = datetime(2026, 1, 1, tzinfo=timezone.utc)
+BASE_TS = datetime(2026, 1, 1, tzinfo=UTC)
 
 
 def _add_media_file(

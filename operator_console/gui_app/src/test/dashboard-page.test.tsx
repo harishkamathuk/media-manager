@@ -75,15 +75,15 @@ describe("Dashboard page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the shared top-surface header with the dashboard quick links", async () => {
+  it("renders the standard admin shell with quick links in the supporting rail", async () => {
     renderPage();
 
-    expect(await screen.findByText("Library Overview")).toBeInTheDocument();
-    expect(screen.getByText("Media Manager")).toBeInTheDocument();
+    expect(await screen.findByText("Media Manager")).toBeInTheDocument();
     expect(
       screen.getByText("Browse recent media, review what needs attention, and jump into the guided workflow when you're ready."),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Organize" })).toBeInTheDocument();
+    expect(document.querySelector('[data-page-shell="standard-admin"]')).toBeTruthy();
+    expect(await screen.findByRole("link", { name: "Open Organize" })).toBeInTheDocument();
     expect(screen.getByText("Quick Links")).toBeInTheDocument();
   });
 });

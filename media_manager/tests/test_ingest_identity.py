@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from time import sleep
 
 from sqlalchemy import select
 
-import media_manager.app.persistence.ingest as ingest_module
 import media_manager.app.core.metadata_extractor as metadata_extractor
+import media_manager.app.persistence.ingest as ingest_module
 from media_manager.app.core.hashing import sha256_file
 from media_manager.app.persistence.discovery import process_discovery_paths_in_session
 from media_manager.app.persistence.ingest import IngestService
@@ -269,7 +269,7 @@ def test_ingest_fills_missing_hash_for_existing_live_row(tmp_path: Path, session
     ingest = IngestService(session_factory)
     target = _write_file(tmp_path / "missing-hash.jpg", b"payload")
     expected_digest = sha256_file(target)
-    discovered_at = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    discovered_at = datetime(2020, 1, 1, tzinfo=UTC)
 
     with session_factory.begin() as session:
         session.add(
@@ -297,7 +297,7 @@ def test_ingest_preserves_existing_discovered_at(tmp_path: Path, session_factory
     ingest = IngestService(session_factory)
     target = _write_file(tmp_path / "discovered-at.jpg", b"payload")
     expected_digest = sha256_file(target)
-    discovered_at = datetime(2019, 6, 1, tzinfo=timezone.utc)
+    discovered_at = datetime(2019, 6, 1, tzinfo=UTC)
 
     with session_factory.begin() as session:
         session.add(

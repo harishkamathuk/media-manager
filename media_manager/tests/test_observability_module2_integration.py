@@ -6,7 +6,10 @@ import pytest
 
 import media_manager.app.observability as observability
 from media_manager.app.persistence.ingest import IngestService
-from media_manager.app.persistence.materialized_reads import fetch_canonical_metadata, refresh_materialized_view
+from media_manager.app.persistence.materialized_reads import (
+    fetch_canonical_metadata,
+    refresh_materialized_view,
+)
 from media_manager.app.persistence.planner import PlanningService
 from media_manager.app.persistence.runs import RunService
 from operator_console.main import app as operator_console_app

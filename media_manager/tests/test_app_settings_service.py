@@ -6,8 +6,11 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from media_manager.app.core.errors import AppSettingsValidationError, AppSettingsVersionConflictError
-from media_manager.app.persistence.app_settings import AppSettingsService, _CATALOG
+from media_manager.app.core.errors import (
+    AppSettingsValidationError,
+    AppSettingsVersionConflictError,
+)
+from media_manager.app.persistence.app_settings import _CATALOG, AppSettingsService
 from media_manager.app.persistence.models import AppSetting, AppSettingHistory
 
 

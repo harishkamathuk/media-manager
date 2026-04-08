@@ -2,28 +2,28 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from functools import lru_cache
 import logging
 import os
-from pathlib import Path
 import threading
 import time
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
-from pydantic import BaseModel, ConfigDict, Field
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, ConfigDict, Field
 
 from media_manager.app.core.logging_buffer import get_buffered_logs
 from media_manager.app.core.logging_config import get_logger
 from media_manager.app.observability import mount_metrics_endpoint
 from media_manager.app.persistence.base import create_db_engine, create_session_factory
+from media_manager.app.persistence.models import TagSource
 from media_manager.app.persistence.operation_runs import OperationRunService
 from media_manager.app.persistence.operator_console import OperatorConsoleReadService
-from media_manager.app.persistence.models import TagSource
 from media_manager.app.service_layer import (
     AdminServices,
     OperationServices,

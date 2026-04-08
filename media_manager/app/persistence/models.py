@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from sqlalchemy import (
-    CheckConstraint,
     BigInteger,
+    CheckConstraint,
     DateTime,
     Enum,
     Float,
@@ -29,7 +29,7 @@ class Base(DeclarativeBase):
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class RunStateDB(StrEnum):

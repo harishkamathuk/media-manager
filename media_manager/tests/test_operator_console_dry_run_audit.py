@@ -2,7 +2,13 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from media_manager.app.persistence.models import CanonicalRecomputeRun, MediaFile, MediaFileStatus, Run, RunStateDB
+from media_manager.app.persistence.models import (
+    CanonicalRecomputeRun,
+    MediaFile,
+    MediaFileStatus,
+    Run,
+    RunStateDB,
+)
 from media_manager.app.persistence.operator_console import OperatorConsoleReadService
 
 

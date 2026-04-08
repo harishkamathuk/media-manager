@@ -1,0 +1,38 @@
+name: Tests GUI Heavy
+
+on:
+  pull_request:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: tests-gui-heavy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gui-heavy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: operator_console/gui_app/package-lock.json
+
+      - name: Install GUI dependencies
+        working-directory: operator_console/gui_app
+        run: npm ci
+
+      - name: Run heavy GUI tests
+        working-directory: operator_console/gui_app
+        run: >-
+          npx vitest run
+          src/test/duplicates-page.test.tsx
+          src/test/integrity-page.test.tsx
+          src/test/admin-page.test.tsx

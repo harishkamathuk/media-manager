@@ -6,7 +6,6 @@ import pytest
 
 from media_manager.app.service_layer.cache import ServiceCache
 
-
 pytestmark = pytest.mark.unit
 
 

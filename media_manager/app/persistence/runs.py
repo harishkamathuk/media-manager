@@ -11,25 +11,31 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
-from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER, normalize_naming_strategy
 from media_manager.app.core.errors import (
     InvalidRunTransitionError,
     RunNotFoundError,
     TransitionConflictError,
 )
+from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER, normalize_naming_strategy
 from media_manager.app.core.state_machine import RunState, validate_transition
 from media_manager.app.persistence.base import transactional_session
-from media_manager.app.persistence.models import FailureEvent, FailurePhase, NamingStrategyDB, Run, RunStateDB
+from media_manager.app.persistence.models import (
+    FailureEvent,
+    FailurePhase,
+    NamingStrategyDB,
+    Run,
+    RunStateDB,
+)
 
 
 def _now_utc() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @dataclass(frozen=True)

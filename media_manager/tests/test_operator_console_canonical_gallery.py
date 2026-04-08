@@ -1,18 +1,23 @@
 from __future__ import annotations
 
+import subprocess
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-import time
-from uuid import UUID
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
-import subprocess
 
-from media_manager.app.persistence.models import CanonicalAssignment, FileContent, FileInstance, FileInstanceStatus, Tag
-from media_manager.app.persistence.models import TagSource
-from media_manager.app.persistence.tagging import upsert_canonical_tag
+from media_manager.app.persistence.models import (
+    CanonicalAssignment,
+    FileContent,
+    FileInstance,
+    FileInstanceStatus,
+    Tag,
+    TagSource,
+)
 from media_manager.app.persistence.operator_console import OperatorConsoleReadService
+from media_manager.app.persistence.tagging import upsert_canonical_tag
 
 
 def _add_content(session, content_id: UUID, sha256_hash: str, at: datetime) -> None:
@@ -619,7 +624,7 @@ def test_resolve_video_thumbnail_source_regenerates_when_source_changes(
     def fake_run(command: list[str], check: bool, capture_output: bool, text: bool):
         calls.append(command)
         output_path = Path(command[-1])
-        output_path.write_bytes(f"jpeg-{len(calls)}".encode("utf-8"))
+        output_path.write_bytes(f"jpeg-{len(calls)}".encode())
         return subprocess.CompletedProcess(command, 0, "", "")
 
     monkeypatch.setattr("media_manager.app.persistence.operator_console.shutil.which", lambda _: "/usr/bin/ffmpeg")

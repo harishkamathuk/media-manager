@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime, timedelta
 from statistics import median
 from time import perf_counter
-import uuid
 
 from sqlalchemy import delete, inspect, select, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from media_manager.app.core.metadata_cache import MetadataCache
 from media_manager.app.core.metadata_extractor import MetadataItem, upsert_metadata_bulk
-from media_manager.app.persistence.discovery_query import DiscoveryQueryParams, DiscoveryQueryService
+from media_manager.app.persistence.discovery_query import (
+    DiscoveryQueryParams,
+    DiscoveryQueryService,
+)
 from media_manager.app.persistence.models import (
     CanonicalAssignment,
     CanonicalTag,

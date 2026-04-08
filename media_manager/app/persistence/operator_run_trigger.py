@@ -7,11 +7,18 @@ from pathlib import Path
 
 from media_manager.app.canonical.context import CanonicalContext
 from media_manager.app.canonical.factory import build_canonical_policy
-from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER
 from media_manager.app.core.errors import MediaManagerError
+from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER
 from media_manager.app.persistence.apply import ApplyService, ApplySummary
-from media_manager.app.persistence.canonicalization import RecomputeMode, recompute_canonical_assignments
-from media_manager.app.persistence.ingest import IngestService, IngestSummary, IngestValidationReport
+from media_manager.app.persistence.canonicalization import (
+    RecomputeMode,
+    recompute_canonical_assignments,
+)
+from media_manager.app.persistence.ingest import (
+    IngestService,
+    IngestSummary,
+    IngestValidationReport,
+)
 from media_manager.app.persistence.planner import PlanningService, PlanningSummary
 from media_manager.app.persistence.runs import RunService
 

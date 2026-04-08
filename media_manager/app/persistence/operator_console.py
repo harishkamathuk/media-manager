@@ -21,26 +21,29 @@ from sqlalchemy.orm import Session, aliased, sessionmaker
 from media_manager.app.core.filenames import infer_media_type_from_extension
 from media_manager.app.core.hashing import sha256_file
 from media_manager.app.core.logging_config import get_logger
-from media_manager.app.core.perf_artifacts import BASELINE_DIR, read_performance_artifact_json, load_baseline_json
+from media_manager.app.core.perf_artifacts import (
+    BASELINE_DIR,
+    load_baseline_json,
+    read_performance_artifact_json,
+)
 from media_manager.app.core.perf_comparator import compare_to_baseline
+from media_manager.app.persistence.app_settings import AppSettingsService
 from media_manager.app.persistence.discovery_query import (
     DiscoveryQueryParams,
     DiscoveryQueryService,
 )
-from media_manager.app.persistence.app_settings import AppSettingsService
-from media_manager.app.persistence.duplicate_reviews import compute_duplicate_group_signature
 from media_manager.app.persistence.duplicate_integrity_recommendations import (
     DuplicateRecommendation,
     DuplicateRecommendationFacts,
     derive_duplicate_recommendation,
 )
+from media_manager.app.persistence.duplicate_reviews import compute_duplicate_group_signature
 from media_manager.app.persistence.media_file_queries import (
     get_history_by_path,
     get_reappearances_after_deleted,
     get_rows_by_hash,
     get_rows_by_status,
 )
-from media_manager.app.persistence.policy_settings import PolicySettingsService
 from media_manager.app.persistence.models import (
     ApplyAuditRun,
     CanonicalAssignment,
@@ -48,14 +51,14 @@ from media_manager.app.persistence.models import (
     DuplicateGroupReview,
     DuplicateReclaimItem,
     DuplicateReclaimRecord,
+    FileContent,
     FileInstance,
     FileInstanceStatus,
-    FileContent,
     IntegrityCheck,
     IntegrityCheckRun,
     IntegrityQuarantineRecord,
-    IntegritySignal,
     IntegrityReviewDecision,
+    IntegritySignal,
     MediaFile,
     MediaFileStatus,
     OperationRun,
@@ -66,6 +69,7 @@ from media_manager.app.persistence.models import (
     Tag,
     TagSource,
 )
+from media_manager.app.persistence.policy_settings import PolicySettingsService
 
 PERF_RUN_DIR = Path("artifacts/perf/runs")
 _WINDOWS_DRIVE_PATH_RE = re.compile(r"^([A-Za-z]):[\\/](.*)$")

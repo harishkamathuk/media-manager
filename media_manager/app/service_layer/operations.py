@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import re
 import time
+from dataclasses import dataclass
+from pathlib import Path
 from uuid import UUID
 
 from media_manager.app.canonical.context import CanonicalContext
@@ -14,18 +14,28 @@ from media_manager.app.canonical.factory import build_canonical_policy
 from media_manager.app.core.logging_config import get_logger
 from media_manager.app.core.naming import DEFAULT_CONTEXT, DEFAULT_OWNER, normalize_naming_strategy
 from media_manager.app.persistence.apply import ApplyService
+from media_manager.app.persistence.canonicalization import (
+    RecomputeMode,
+    recompute_canonical_assignments,
+)
 from media_manager.app.persistence.duplicate_reclaim import DuplicateReclaimService
-from media_manager.app.persistence.canonicalization import RecomputeMode, recompute_canonical_assignments
 from media_manager.app.persistence.duplicate_reviews import DuplicateReviewService
 from media_manager.app.persistence.ingest import IngestService
 from media_manager.app.persistence.integrity import IntegrityService
+from media_manager.app.persistence.models import OperationRunStatus, OperationRunType, TagSource
 from media_manager.app.persistence.operation_runs import OperationRunService
 from media_manager.app.persistence.phase3_actions import Phase3ActionService
 from media_manager.app.persistence.planner import PlanningService
-from media_manager.app.persistence.policy_settings import PolicySettingsService, UpdatePolicySettingsCommand
-from media_manager.app.persistence.models import OperationRunStatus, OperationRunType, TagSource
+from media_manager.app.persistence.policy_settings import (
+    PolicySettingsService,
+    UpdatePolicySettingsCommand,
+)
 from media_manager.app.persistence.runs import RunService
-from media_manager.app.persistence.tag_enrichment import EnrichmentScope, TagEnrichmentCommand, run_tag_enrichment
+from media_manager.app.persistence.tag_enrichment import (
+    EnrichmentScope,
+    TagEnrichmentCommand,
+    run_tag_enrichment,
+)
 from media_manager.app.service_layer.cache import ServiceCache
 
 _WINDOWS_DRIVE_PATH_RE = re.compile(r"^([A-Za-z]):[\\/](.*)$")

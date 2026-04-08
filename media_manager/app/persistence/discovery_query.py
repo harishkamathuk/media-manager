@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
+
 from sqlalchemy import case, distinct, func, or_, select
 from sqlalchemy.orm import Session, sessionmaker
 

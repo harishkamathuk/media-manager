@@ -2,12 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from sqlalchemy import select
 
 from media_manager.app.canonical.context import CanonicalContext
 from media_manager.app.canonical.policies import (
-    CanonicalPolicy,
     ExifFilenameFallbackPolicy,
     FirstSeenPolicy,
     ShortestPathPolicy,

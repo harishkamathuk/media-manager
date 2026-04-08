@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import select, text, update
@@ -14,9 +14,9 @@ from media_manager.app.persistence.models import (
     FileInstance,
     MediaMetadata,
     MetadataCode,
+    Tag,
     TagEnrichmentItem,
     TagEnrichmentRun,
-    Tag,
     TagSource,
 )
 from media_manager.app.persistence.tag_enrichment import (
@@ -47,7 +47,7 @@ def _seed_canonical_item(session_factory, *, content_id: uuid.UUID, path_suffix:
                 canonical_instance_id=instance_id,
                 policy_name="FIRST_SEEN",
                 policy_version="v1",
-                assigned_at=datetime.now(timezone.utc),
+                assigned_at=datetime.now(UTC),
             )
         )
 

@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-import os
 from typing import Any
 
 from sqlalchemy import func, select
 
-from media_manager.app.persistence.app_settings import AppSettingsService, RUNTIME_DUAL_READ_KEYS, get_catalog
+from media_manager.app.persistence.app_settings import (
+    RUNTIME_DUAL_READ_KEYS,
+    AppSettingsService,
+    get_catalog,
+)
 from media_manager.app.persistence.models import (
     CanonicalTag,
     FailureEvent,

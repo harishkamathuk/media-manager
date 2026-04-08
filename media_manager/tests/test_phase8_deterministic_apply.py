@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
 import shutil
+from pathlib import Path
 
 import pytest
 from sqlalchemy import delete, select, text, update
@@ -30,7 +30,7 @@ def _write_file(path: Path, payload: bytes) -> Path:
 def _build_dataset(root: Path, total_files: int = 50) -> list[Path]:
     files: list[Path] = []
     for idx in range(total_files):
-        payload = f"payload-{idx}".encode("utf-8")
+        payload = f"payload-{idx}".encode()
         files.append(_write_file(root / "inbox" / f"IMG_{idx:04d}.jpg", payload))
 
     # extra duplicates
