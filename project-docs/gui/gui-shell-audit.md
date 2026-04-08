@@ -124,11 +124,11 @@ Across the product, the page header often acts as all of these at once:
 
 That is bad discipline for an operator UI.
 
-A header should usually do only a small number of things:
+A header should do three things:
 
 * identify the page
-* optionally show compact context/state
-* optionally expose page-level actions
+* show compact state
+* expose page-level actions
 
 Instead, many pages use the header as a landing-page billboard. That is why the product often reads like a guided brochure rather than a working console.
 
