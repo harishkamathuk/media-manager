@@ -74,7 +74,7 @@ jobs:
       - name: Run GUI tests
         working-directory: operator_console/gui_app
         run: >-
-          npx vitest run
+          npx vitest run --maxWorkers=1
           src/test/api-client.test.ts
           src/test/api-endpoints.test.ts
           src/test/log-progress-parser.test.ts
