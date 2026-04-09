@@ -77,7 +77,7 @@ export default function GalleryPage() {
   const [tagInput, setTagInput] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const tagsParam = searchParams.get("tags") || "";
-  const selectedTags = tagsParam.split(",").filter(Boolean);
+  const selectedTags = useMemo(() => tagsParam.split(",").filter(Boolean), [tagsParam]);
   const sortBy = searchParams.get("sort_by") || "created_at";
   const sortOrder = searchParams.get("sort_order") || "desc";
   const page = Math.max(1, Number(searchParams.get("page") || 1));
@@ -131,7 +131,7 @@ export default function GalleryPage() {
 
   const data = (galleryQuery.data as PaginatedResponse<CanonicalFile> | undefined) ?? null;
   const items = data?.items ?? [];
-  const allTags = (tagsQuery.data as Tag[] | undefined) ?? [];
+  const allTags = useMemo(() => (tagsQuery.data as Tag[] | undefined) ?? [], [tagsQuery.data]);
   const totalCount = data?.total_count ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
   const visiblePages = useMemo(() => getVisiblePages(page, totalPages), [page, totalPages]);
@@ -155,7 +155,7 @@ export default function GalleryPage() {
 
   const controls = (
     <div className="rounded-[28px] border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-3">
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             {selectedTags.length
@@ -212,6 +212,7 @@ export default function GalleryPage() {
                     key={tag}
                     type="button"
                     onClick={() => removeTag(tag)}
+                    aria-label={`Remove tag filter ${tag}`}
                     className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
                   >
                     {tag}
@@ -294,71 +295,73 @@ export default function GalleryPage() {
         />
       ) : null}
 
-      <MediaGrid
-        files={items}
-        loading={galleryQuery.isLoading && !data}
-        gridClassName={densityPreset.gridClassName}
-        skeletonCount={densityPreset.limit}
-        density={densityPreset.key}
-        emptyTitle="No media files"
-        emptyDescription={
-          selectedTags.length
-            ? "Try adjusting your tag filters or sort order."
-            : "Run an ingest to populate the gallery."
-        }
-        onPreview={setSelectedFile}
-        getDetailHref={(file) => `/gallery/${file.id}`}
-      />
+      <div data-page-primary-surface className="-mt-1 space-y-5">
+        <MediaGrid
+          files={items}
+          loading={galleryQuery.isLoading && !data}
+          gridClassName={densityPreset.gridClassName}
+          skeletonCount={densityPreset.limit}
+          density={densityPreset.key}
+          emptyTitle="No media files"
+          emptyDescription={
+            selectedTags.length
+              ? "Try adjusting your tag filters or sort order."
+              : "Run an ingest to populate the gallery."
+          }
+          onPreview={setSelectedFile}
+          getDetailHref={(file) => `/gallery/${file.id}`}
+        />
 
-      {data && totalPages > 1 && (
-        <Pagination className="justify-center">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (page === 1) return;
-                  updateParams({ page: page - 1 <= 1 ? undefined : String(page - 1) });
-                }}
-                className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-            {visiblePages.map((pageNumber, index) =>
-              pageNumber === "ellipsis" ? (
-                <PaginationItem key={`ellipsis-${index}`}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={pageNumber}>
-                  <PaginationLink
-                    href="#"
-                    isActive={pageNumber === page}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      updateParams({ page: pageNumber === 1 ? undefined : String(pageNumber) });
-                    }}
-                    className="cursor-pointer"
-                  >
-                    {pageNumber}
-                  </PaginationLink>
-                </PaginationItem>
-              ),
-            )}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(event) => {
-                  event.preventDefault();
-                  if (page >= totalPages) return;
-                  updateParams({ page: String(page + 1) });
-                }}
-                className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+        {data && totalPages > 1 && (
+          <Pagination className="justify-center">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (page === 1) return;
+                    updateParams({ page: page - 1 <= 1 ? undefined : String(page - 1) });
+                  }}
+                  className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {visiblePages.map((pageNumber, index) =>
+                pageNumber === "ellipsis" ? (
+                  <PaginationItem key={`ellipsis-${index}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={pageNumber}>
+                    <PaginationLink
+                      href="#"
+                      isActive={pageNumber === page}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        updateParams({ page: pageNumber === 1 ? undefined : String(pageNumber) });
+                      }}
+                      className="cursor-pointer"
+                    >
+                      {pageNumber}
+                    </PaginationLink>
+                  </PaginationItem>
+                ),
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    if (page >= totalPages) return;
+                    updateParams({ page: String(page + 1) });
+                  }}
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </div>
 
       <MediaPreviewModal file={selectedFile} onClose={() => setSelectedFile(null)} />
     </PageShell>
