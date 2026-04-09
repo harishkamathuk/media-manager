@@ -223,7 +223,8 @@ describe("Import page", () => {
     expect(screen.queryByText("Mutating")).not.toBeInTheDocument();
     const pageControls = screen.getByTestId("operations-page-controls");
     const pageHeader = screen.getByTestId("operations-page-header");
-    expect(pageHeader.querySelector("a")).toBeNull();
+    expect(within(pageHeader).queryByRole("link")).toBeNull();
+    expect(within(pageHeader).queryByRole("button")).toBeNull();
 
     expect(within(pageControls).getByRole("link", { name: "Open Organize" })).toBeInTheDocument();
     expect(within(pageControls).getByRole("link", { name: "Review Activity" })).toBeInTheDocument();

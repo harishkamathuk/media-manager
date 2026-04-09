@@ -295,7 +295,8 @@ describe("DuplicatesPage", () => {
 
     const pageControls = await screen.findByTestId("duplicates-page-controls");
     const pageHeader = screen.getByTestId("duplicates-page-header");
-    expect(pageHeader.querySelector("button")).toBeNull();
+    expect(within(pageHeader).queryByRole("button")).toBeNull();
+    expect(within(pageHeader).queryByRole("link")).toBeNull();
 
     expect(within(pageControls).getByRole("tab", { name: "Review duplicates" })).toBeInTheDocument();
     expect(within(pageControls).getByRole("tab", { name: "Ready for Bin" })).toBeInTheDocument();
