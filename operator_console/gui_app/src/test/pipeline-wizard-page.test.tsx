@@ -105,6 +105,7 @@ describe("Pipeline Wizard page", () => {
     ).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="workflow"]')).toBeTruthy();
     expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
+    expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
     expect(screen.getAllByText("Progress").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Abort Wizard" })).toBeInTheDocument();
     expect(await screen.findByText("[ INGEST READY ]")).toBeInTheDocument();

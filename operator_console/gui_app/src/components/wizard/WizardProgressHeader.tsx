@@ -96,9 +96,9 @@ export function WizardProgressHeader({
 }: WizardProgressHeaderProps) {
   return (
     <Card className="rounded-2xl border-border/80 bg-card/80 shadow-sm">
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="space-y-2.5 p-4">
         <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1 space-y-2">
+          <div className="min-w-0 flex-1 space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Progress</p>
             <div className="flex items-center gap-2">
               {items.map((item, index) => (
@@ -112,7 +112,7 @@ export function WizardProgressHeader({
           {secondaryAction}
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <p className="text-sm text-muted-foreground">
             Step {currentIndex + 1} of {totalSteps}
           </p>

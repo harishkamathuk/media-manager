@@ -80,9 +80,10 @@ describe("Gallery page", () => {
     ).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="browse-list"]')).toBeTruthy();
     expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
+    expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
     expect(screen.getByPlaceholderText("Filter gallery by tag")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Descending" })).toBeInTheDocument();
-    expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    expect(await screen.findByText("1 item · Page 1 of 1")).toBeInTheDocument();
   });
 
   it("keeps filter controls interactive inside the shell controls row", async () => {
@@ -92,9 +93,7 @@ describe("Gallery page", () => {
     fireEvent.change(input, { target: { value: "travel" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /travel/i })).toBeInTheDocument();
-    });
+    expect(await screen.findByRole("button", { name: "Remove tag filter travel" })).toBeInTheDocument();
     expect(mocks.getCanonical).toHaveBeenLastCalledWith(
       expect.objectContaining({
         page: 1,

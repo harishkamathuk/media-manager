@@ -2340,7 +2340,9 @@ export default function PipelineWizard() {
           />
         }
       >
-        {renderCurrentStep()}
+        <div data-page-primary-surface className="-mt-1">
+          {renderCurrentStep()}
+        </div>
       </PageShell>
 
       <ConfirmDialog
