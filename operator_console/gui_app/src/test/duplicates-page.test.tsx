@@ -293,6 +293,16 @@ describe("DuplicatesPage", () => {
   it("defaults to the review tab with comparison content dominant and no Recycle Bin actions", async () => {
     renderPage();
 
+    const pageControls = await screen.findByTestId("duplicates-page-controls");
+    const pageHeader = screen.getByTestId("duplicates-page-header");
+    expect(within(pageHeader).queryByRole("button")).toBeNull();
+    expect(within(pageHeader).queryByRole("link")).toBeNull();
+
+    expect(within(pageControls).getByRole("tab", { name: "Review duplicates" })).toBeInTheDocument();
+    expect(within(pageControls).getByRole("tab", { name: "Ready for Bin" })).toBeInTheDocument();
+    expect(within(pageControls).getByRole("tab", { name: "Recycle Bin" })).toBeInTheDocument();
+    expect(within(pageControls).getByRole("tab", { name: "Playback issues" })).toBeInTheDocument();
+
     expect(await screen.findByRole("heading", { name: "Review duplicates" })).toBeInTheDocument();
     expect(screen.getByTestId("review-group-navigation-hidden")).toBeInTheDocument();
     expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);

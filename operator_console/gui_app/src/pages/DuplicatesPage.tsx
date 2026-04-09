@@ -1482,15 +1482,17 @@ export default function DuplicatesPage() {
           : "max-w-[120rem] gap-4 px-3 py-4 sm:px-4 lg:px-5",
       )}
     >
-      <TopSurfaceHeader
-        badge="Duplicate Review"
-        title="Work duplicate decisions in focused steps."
-        description="Compare duplicates, move extra copies to the Recycle Bin, restore them if needed, and keep playback review separate."
-        icon={Copy}
-        density={activeTab === "review" ? "compact" : "default"}
-        className={activeTab === "review" ? "rounded-[24px]" : undefined}
-        contentClassName={activeTab === "review" ? "px-4 py-3 sm:px-4 lg:px-5 lg:py-4" : undefined}
-      />
+      <div data-page-header data-testid="duplicates-page-header">
+        <TopSurfaceHeader
+          badge="Duplicate Review"
+          title="Work duplicate decisions in focused steps."
+          description="Compare duplicates, move extra copies to the Recycle Bin, restore them if needed, and keep playback review separate."
+          icon={Copy}
+          density={activeTab === "review" ? "compact" : "default"}
+          className={activeTab === "review" ? "rounded-[24px]" : undefined}
+          contentClassName={activeTab === "review" ? "px-4 py-3 sm:px-4 lg:px-5 lg:py-4" : undefined}
+        />
+      </div>
 
       {duplicatesQuery.error && (
         <ErrorAlert message={getErrorMessage(duplicatesQuery.error) || "Failed to load duplicate groups"} />
@@ -1525,15 +1527,21 @@ export default function DuplicatesPage() {
         />
       ) : (
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as DuplicatesTab)} className="space-y-4">
+          <section
+            data-page-controls
+            data-testid="duplicates-page-controls"
+            className="rounded-[24px] border border-border/70 bg-card/95 p-1 shadow-sm"
+          >
+            <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 rounded-[18px] bg-muted/60 p-1">
+              <TabsTrigger value="review">Review duplicates</TabsTrigger>
+              <TabsTrigger value="ready-for-bin">Ready for Bin</TabsTrigger>
+              <TabsTrigger value="recycle-bin">Recycle Bin</TabsTrigger>
+              <TabsTrigger value="playback-issues">Playback issues</TabsTrigger>
+            </TabsList>
+          </section>
+
           <Card className={cn("rounded-[24px] border-border/70 bg-card/95 shadow-sm", activeTab === "review" && "shadow-none")}>
             <CardContent className={cn("space-y-4 p-4", activeTab === "review" && "space-y-3 p-2.5 sm:p-3")}>
-              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 rounded-[18px] bg-muted/60 p-1">
-                <TabsTrigger value="review">Review duplicates</TabsTrigger>
-                <TabsTrigger value="ready-for-bin">Ready for Bin</TabsTrigger>
-                <TabsTrigger value="recycle-bin">Recycle Bin</TabsTrigger>
-                <TabsTrigger value="playback-issues">Playback issues</TabsTrigger>
-              </TabsList>
-
               <TabsContent value="review" className="mt-0">
                 <div className="space-y-2">
                   <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">

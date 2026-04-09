@@ -697,24 +697,26 @@ export default function OperationsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <TopSurfaceHeader
-        badge="Import"
-        title="Continue the pipeline with more room to think and review."
-        description="Each action below opens into its own full-width workspace so you can review guidance, inputs, and results without squeezing the important parts into side-by-side cards."
-        icon={Sparkles}
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button asChild size="sm">
-            <Link to="/pipeline-wizard">
-              Open Organize
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/admin?tab=activity">Review Activity</Link>
-          </Button>
-        </div>
-      </TopSurfaceHeader>
+      <div data-page-header data-testid="operations-page-header">
+        <TopSurfaceHeader
+          badge="Import"
+          title="Continue the pipeline with more room to think and review."
+          description="Each action below opens into its own full-width workspace so you can review guidance, inputs, and results without squeezing the important parts into side-by-side cards."
+          icon={Sparkles}
+        />
+      </div>
+
+      <section data-page-controls data-testid="operations-page-controls" className="flex flex-wrap gap-3">
+        <Button asChild size="sm">
+          <Link to="/pipeline-wizard">
+            Open Organize
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+        <Button asChild variant="outline" size="sm">
+          <Link to="/admin?tab=activity">Review Activity</Link>
+        </Button>
+      </section>
 
       {/* Keep one shared live panel above the action sections so progress stays visible while users move between explicit operation controls. */}
       <LiveProgressPanel
