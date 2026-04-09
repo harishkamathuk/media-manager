@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -221,7 +221,12 @@ describe("Import page", () => {
     expect(screen.getByText("Add Searchable Details")).toBeInTheDocument();
     expect(screen.queryByText("Legacy Composite Run")).not.toBeInTheDocument();
     expect(screen.queryByText("Mutating")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Open Organize" })).toBeInTheDocument();
+    const pageControls = screen.getByTestId("operations-page-controls");
+    const pageHeader = screen.getByTestId("operations-page-header");
+    expect(pageHeader.querySelector("a")).toBeNull();
+
+    expect(within(pageControls).getByRole("link", { name: "Open Organize" })).toBeInTheDocument();
+    expect(within(pageControls).getByRole("link", { name: "Review Activity" })).toBeInTheDocument();
     expect(await screen.findByText("[ WAITING FOR LOGS ]")).toBeInTheDocument();
   });
 
