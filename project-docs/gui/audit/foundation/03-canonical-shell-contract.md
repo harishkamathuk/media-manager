@@ -1,414 +1,732 @@
-# Recurring layout drift across the product
+# Canonical page shell proposal
 
-## Cross-Page Drift
 
-Below is the **cross-page drift only**. No shell contract yet, no implementation plan yet.
+1. Core rule: one shared base shell for everything
 
----
+Every page should inherit the same base frame.
 
-### 1. Top-of-page inflation is the core structural problem
+Base shell contract
 
-This is the biggest recurring issue across the product.
+A. Persistent app chrome
 
-Most pages spend too much vertical space before the operator reaches the real work surface. That inflation usually comes from some combination of:
+Already present and broadly fine:
 
-* large hero headers
-* explanatory intro copy
-* tab strips
-* KPI or summary cards
-* notices/banners
-* secondary control bars
+left nav
 
-The result is predictable:
+top system bar
 
-* the real task starts below the fold
-* the page feels slower than it is
-* operators must scroll before they can even orient themselves to the job
 
-This is visible on:
+Do not let individual pages reinvent this layer.
 
-* **Home**
-* **Import**
-* **Organize**
-* **Library**
-* **Duplicate Review** almost everywhere
-* **Integrity Checks**
-* most **Admin** tabs
+B. Page container
 
-This is not just “a bit roomy.” It is a systemic shell problem.
+Inside the chrome, every page should start with one consistent page container:
 
----
+same max width behavior
 
-### 2. Headers are trying to do too many jobs
+same top padding
 
-Across the product, the page header often acts as all of these at once:
+same left/right padding
 
-* title
-* mission statement
-* status summary
-* workflow explanation
-* CTA container
-* navigation preface
-* state display
+same vertical spacing rhythm
 
-That is bad discipline for an operator UI.
+same content alignment line
 
-A header should usually do only a small number of things:
 
-* identify the page
-* optionally show compact context/state
-* optionally expose page-level actions
+This is the first discipline you are missing.
 
-Instead, many pages use the header as a landing-page billboard. That is why the product often reads like a guided brochure rather than a working console.
+C. Standard page anatomy
 
-Strong examples:
+Every page should be composed from these zones only:
 
-* **Home**
-* **Import**
-* **Library**
-* **Duplicate Review**
-* **Integrity Checks**
-* **Admin workspace**
+1. Page header
+
+
+2. Optional page controls row
+
+
+3. Primary work area
+
+
+4. Optional secondary/supporting area
+
+
+
+That is it.
+
+No random extra intro band, no floating summary strip, no ad hoc card row unless the shell variant explicitly allows it.
+
 
 ---
 
-### 3. Control placement is inconsistent and fragmented
+2. Variant A — Standard admin shell
 
-The product does not yet have a stable action hierarchy.
+This should be the default shell for most pages.
 
-Controls appear in too many different places:
+Use it for:
 
-* inside hero headers
-* in subheaders below tabs
-* on the left of one control row and the right of another
-* inside cards
-* at the bottom of a comparison section
-* embedded in local detail panes
+Home
 
-That causes two problems:
+Integrity Checks
 
-* operators cannot build muscle memory
-* the page feels noisier because the eye has to keep hunting for the “real” action point
+most Admin tabs
 
-Recurring examples:
+simple settings/tool pages
 
-* **Import**: CTAs in header, live state below, setup lower down
-* **Duplicate Review**: filters, group navigation, human review actions, movement actions, selection actions all separated
-* **Integrity Checks**: scan actions in hero, queue filters lower, detail actions in panel
-* **Admin**: tab-level actions vary widely from section to section
+overview/monitoring pages
 
-This drift is exactly why issue **#9** exists, but the root cause starts in the shell.
+
+Structure
+
+Zone 1: Compact page header
+
+Contains only:
+
+page title
+
+short one-line description or context
+
+optional compact page-level status on the right
+
+
+It should not contain:
+
+large CTA buttons
+
+multiple cards
+
+long explanation blocks
+
+workflow teaching copy
+
+duplicated navigation
+
+
+Zone 2: Optional page controls row
+
+Directly below the header.
+
+This row is for page-scoped controls such as:
+
+primary page action
+
+secondary action
+
+mode toggle
+
+filter summary
+
+date range
+
+scan/run action
+
+
+This row should be:
+
+compact
+
+horizontal
+
+predictable
+
+visually subordinate to the title but above content
+
+
+Zone 3: Main content body
+
+This is the dominant area.
+
+Allowed content types:
+
+overview metrics
+
+table/list
+
+split master-detail
+
+form/tool panel
+
+dashboard blocks
+
+
+Zone 4: Secondary/supporting content
+
+Only below the main work area, or in a right-side panel when the page genuinely needs persistent detail.
+
+Good uses:
+
+technical notes
+
+logs
+
+expanded diagnostics
+
+secondary charts
+
+explanatory help
+
+
+Not allowed:
+
+repeating the page introduction again
+
+
+When to use
+
+Use this shell when the user is primarily:
+
+monitoring
+
+checking status
+
+configuring
+
+launching a tool
+
+reading operational summaries
+
+
+Pages that should use it
+
+Home
+
+Integrity Checks
+
+Admin Overview
+
+Admin Library Rules
+
+Admin Integrity Check
+
+Admin System Health
+
+Admin Performance Lab
+
+Admin Reset
+
+
 
 ---
 
-### 4. Workflow pages are not giving priority to the work surface
+3. Variant B — Workflow shell
 
-Your most important operator workflows are:
+This is for sequential task execution and decision-heavy review.
 
-* Organize
-* Duplicate Review
-* Integrity Checks
-* parts of Admin Activity / File History
+Use it for:
 
-These pages should foreground the **primary working surface**:
+Import
 
-* the current step
-* the current comparison
-* the queue and selected item
-* the input form and current output
+Organize
 
-Instead, many pages foreground surrounding explanation and supporting state first.
+Duplicate Review / Review duplicates
 
-The clearest failure is **Duplicate Review**:
 
-* the recommendation, tabs, filters, review state, notices, and group navigation all appear before the visual comparison really takes hold
-* the image comparison itself does not dominate the page strongly enough
-* supporting metadata is consuming premium space that should belong to visual judgement
+This is the most important shell in your product because this is where operator effectiveness lives or dies.
 
-That same pattern appears in **Organize**:
+Structure
 
-* intro + progress + workspace staging pushes the actual step surface down
+Zone 1: Compact workflow header
 
-And in **Integrity Checks**:
+Contains only:
 
-* scan hero + summary + KPI band delay the actual queue/detail workspace
+workflow title
 
-This is not cosmetic drift. It directly harms task completion.
+current context or short subtitle
 
----
+compact progress/status summary on the right if needed
 
-### 5. Supporting information is routinely over-promoted
 
-The product often gives too much visual weight to information that is real but secondary.
+It must not be a hero banner.
 
-Recurring examples:
+Zone 2: Workflow control row
 
-* summary stats
-* helper copy
-* workflow reminders
-* chip badges
-* section framing cards
-* state labels
-* “what this helps with / when to use it / try questions like” blocks
+This is a fixed, disciplined control band directly under the header.
 
-These things are not useless. The problem is **rank**.
+Allowed contents:
 
-They often appear:
+step indicator
 
-* too high on the page
-* too large
-* too boxed-off
-* too repeated across sibling screens
+current mode/tab
 
-This is especially visible in:
+back/next/group navigation
 
-* **Admin**
-* **Duplicate Review**
-* **Integrity Checks**
-* **Library** header state chips
+primary workflow action
 
-The product keeps explaining itself instead of getting on with the job.
+optional scoped filters relevant to the current workflow only
 
----
 
-### 6. The UI overuses cards as layout scaffolding
+This row is where workflow control belongs.
+Not in the page header.
+Not scattered in multiple stacked strips.
 
-Cards are being used for too many roles:
+Zone 3: Primary work surface
 
-* grouping
-* navigation
-* summaries
-* workflow framing
-* item display
-* tool launchers
-* detail containers
-* state containers
-
-When everything becomes a bordered rounded rectangle, hierarchy weakens. The screen turns into a pile of compartments rather than a controlled workspace.
-
-You can see this on:
-
-* **Home**
-* **Admin Overview**
-* **Ready for Bin**
-* **Recycle Bin**
-* **System Health**
-* **Library Rules**
-* **File History**
-* **Performance Lab**
-
-This creates two specific forms of drift:
-
-* **visual fragmentation**
-* **wasted padding**
-
-The product often feels boxed rather than structured.
-
----
-
-### 7. Browse/list workflows are not optimized for scan efficiency
-
-Several pages are fundamentally browse, queue, or list workflows, but they are rendered with too much per-item ceremony.
+This must dominate the page.
 
 Examples:
 
-* **Ready for Bin**
-* **Recycle Bin**
-* **Integrity Queue**
-* **Admin Activity**
-* parts of **Library**
+current import setup step
 
-The core issue is that these pages often prefer:
+current organize step form
 
-* large cards
-* oversized item blocks
-* repeated labels
-* verbose per-item metadata
-* large side-by-side visual containers
+duplicate comparison workspace
 
-when the task really needs:
 
-* fast scanning
-* clear sort/filter model
-* compact row/card density
-* obvious primary action per item
-* tighter alignment
+The page should reach this area fast.
 
-This is why some pages feel much heavier than the underlying task actually is.
+Zone 4: Secondary evidence / detail
 
----
-
-### 8. There is weak separation between page-level, section-level, and item-level controls
-
-A mature admin UI usually distinguishes:
-
-* **page-level** controls: global to the screen
-* **section-level** controls: affect one region
-* **item-level** controls: affect a row/card/group/file
-
-Your current layouts often blur these boundaries.
+Below the primary work surface, or in a collapsible side panel if truly needed.
 
 Examples:
 
-* duplicate review state chips vs group navigation vs review decisions
-* recycle-bin mode toggles vs item restore actions
-* integrity scan controls vs queue filters vs file actions
-* admin tab navigation vs in-panel tool actions
+technical details
 
-This causes accidental competition:
+step guidance
 
-* page-level actions look like section utilities
-* item-level actions float like page controls
-* operators cannot quickly infer “what scope does this affect?”
+extra metadata
 
-That is a shell and rhythm problem, not just a component problem.
+audit trail
 
----
+additional candidate thumbnails
 
-### 9. Repeated explanatory blocks create cross-page sameness without real consistency
 
-A lot of pages use a repeated pattern like:
+Core rule:
 
-* what this helps with
-* when to use it
-* try questions like
+supporting detail must not push the primary work surface off the first screen
 
-On paper that sounds consistent. In practice it is over-applied.
 
-Why this drifts:
+Special rule for visual review workflows
 
-* it makes many pages start with the same educational overhead
-* it consumes prime space even on pages used repeatedly by the same operator
-* it gives a false sense of consistency while the actual work areas remain inconsistent
+For duplicate comparison:
 
-This is especially visible across the **Admin** tabs.
+image comparison is the work surface
 
-So the product has consistency in the wrong layer:
+recommendation is support
 
-* **same explanation framing**
-* **different real workspace structures**
+review status is support
 
-That is backwards.
+technical details are tertiary
 
----
 
-### 10. Tabbed pages often duplicate hierarchy instead of simplifying it
+That ordering must become structural, not merely stylistic.
 
-Tabs are supposed to reduce complexity by segmenting modes.
+When to use
 
-But on several pages, the tab system sits underneath:
+Use this shell when the operator is primarily:
 
-* a hero header
-* a secondary explanatory section
-* local title/subtitle
-* summary cards
+progressing through steps
 
-So the tabs do not reduce hierarchy. They add another layer to it.
+making decisions
 
-Most visible in:
+reviewing one unit at a time
 
-* **Duplicate Review**
-* **Admin**
+executing a guided process
 
-This is why those pages feel stacked rather than composed.
+
+Pages that should use it
+
+Import
+
+Organize
+
+Duplicate Review → Review duplicates
+
+
 
 ---
 
-### 11. Visual workflows are not behaving like visual workflows
+4. Variant C — Browse/list shell
 
-Where the operator must judge media or compare files, the page should privilege:
+This is for scanning many items, queues, galleries, lists, or feeds.
 
-* image visibility
-* comparison clarity
-* immediate context
-* decisive action placement
+Use it for:
 
-Instead, the product frequently privileges:
+Library
 
-* metadata
-* status wrappers
-* labels
-* banners
-* descriptive framing
-* secondary chips
+Duplicate Review → Ready for Bin
 
-That is the wrong tradeoff.
+Duplicate Review → Recycle Bin
 
-This is the sharpest UX drift in:
+Duplicate Review → Playback issues
 
-* **Duplicate Review**
-* parts of **Library**
-* indirectly **Integrity Checks** when file detail overflows and reduces readable workspace
+Integrity queue/detail area
 
-In plain English: on the screens where the images should win, the chrome wins.
+Admin Activity
+
+Admin File History
+
+System Health feeds/log-style sections
+
+
+Structure
+
+Zone 1: Compact page or section header
+
+Contains:
+
+title
+
+concise context
+
+optional result count or scope summary
+
+
+Do not put filter state into a big hero.
+
+Zone 2: Sticky toolbar row
+
+This is the key feature of this shell.
+
+Contains:
+
+filters
+
+sort
+
+density/view mode
+
+search
+
+batch action
+
+result count
+
+maybe one primary action
+
+
+This row should be:
+
+compact
+
+sticky where useful
+
+stable across sibling pages
+
+
+This is where Library and queue pages are currently drifting badly.
+
+Zone 3: Result area
+
+The result area is dominant and starts early.
+
+Possible sub-patterns:
+
+table/list
+
+gallery grid
+
+compact cards
+
+split list-detail
+
+focus mode item panel
+
+
+Zone 4: Optional detail panel or bulk footer
+
+Used only if the page needs:
+
+selected item detail
+
+batch operation controls
+
+drill-in preview
+
+
+Important density rule
+
+This shell must optimize for scan efficiency. That means:
+
+compact metadata
+
+constrained card height
+
+no oversized explanatory boxes between toolbar and results
+
+item actions predictable and repeated consistently
+
+
+When to use
+
+Use this shell when the operator is primarily:
+
+scanning
+
+filtering
+
+selecting
+
+triaging
+
+browsing
+
+restoring/moving items in bulk
+
+reviewing feeds or history
+
+
+Pages that should use it
+
+Library
+
+Duplicate Review → Ready for Bin
+
+Duplicate Review → Recycle Bin
+
+Duplicate Review → Playback issues
+
+Integrity Checks → queue/detail work area
+
+Admin Activity
+
+Admin File History
+
+parts of Admin System Health
+
+
 
 ---
 
-### 12. Dense technical content is not being constrained well enough
+5. Hard rules that apply across all variants
 
-On technical/admin pages, long paths, logs, IDs, and error payloads are allowed to dictate layout too often.
+These are the real contract. Without these, the variants will collapse into soft opinion.
 
-This produces:
+Rule 1: No hero banners in operator pages
 
-* horizontal overflow
-* broken alignment
-* panels that feel stretched by content
-* a rough, uncontained working surface
+Large marketing-style headers are banned.
 
-You pointed this out correctly in **Integrity Checks** and it also appears in some **Admin** detail/log views.
+Allowed:
 
-That means the current layout system is not imposing enough discipline on:
+compact title row
 
-* overflow handling
-* text wrapping/truncation
-* fixed versus flexible panel behavior
-* scroll ownership
+one-line subtitle
 
-That is a structural issue, not just “bad sample data.”
+compact status/action area
 
----
 
-## The recurring drift, reduced to a blunt list
+Not allowed:
 
-If I compress the whole audit into the fewest possible truths, they are these:
+giant padded header panels that delay the job
 
-### Primary drift
 
-* **Too much page starts before the page actually starts**
-
-### Structural drift
-
-* headers are oversized and overloaded
-* control placement is inconsistent
-* page hierarchy has too many stacked bands
-* cards are overused as layout containers
-* supporting information is over-promoted
-
-### Workflow drift
-
-* work surfaces start too low
-* browse/queue views are not dense enough
-* visual review screens do not prioritize the visuals
-* page/section/item action scopes are blurred
-
-### Technical drift
-
-* long technical content is not properly contained
-* repeated “help” framing crowds operational use
 
 ---
 
-## What this means before any solutioning
+Rule 2: One primary control row per page
 
-The product does **not** mainly suffer from color, typography, or isolated messy pages.
+A page may have:
 
-It suffers from a **layout contract problem**:
+one page/workflow toolbar row
 
-* no strict shell discipline
-* no stable action zones
-* no strong rules for when summary/info bands are allowed
-* no consistent threshold for when a page should become a workflow surface versus a dashboard surface
 
-That is why starting with **#8 page shell/layout system** is correct.
+Not:
 
-Next step should be **step 3 only: propose a canonical page shell with no more than 2–3 variants**.
+header CTAs
+
+another filter row
+
+another status row
+
+another action strip
+
+another mode row unless the shell explicitly needs them and they are structurally distinct
+
+
+Right now too many pages have 3–5 bands before content.
+
+
+---
+
+Rule 3: The primary work surface must begin early
+
+On common laptop resolution, the operator should see the start of the real work without needing to scroll through ceremony.
+
+This is especially mandatory for:
+
+Organize
+
+Duplicate Review
+
+Library
+
+Integrity queue/detail
+
+
+
+---
+
+Rule 4: Supporting content must be demoted
+
+These can exist, but must not dominate above the fold:
+
+KPI cards
+
+guidance text
+
+“what this helps with”
+
+recommendation explanations
+
+technical notes
+
+notices unless critical
+
+repeated chip/status clusters
+
+
+
+---
+
+Rule 5: Action scope must be visually obvious
+
+Every action must read as one of:
+
+page-level
+
+section-level
+
+item-level
+
+
+No ambiguity.
+
+Examples:
+
+page action in toolbar
+
+section action in section header
+
+item action inside row/card/detail panel
+
+
+
+---
+
+Rule 6: Cards are not the default layout primitive
+
+Use cards only when they represent:
+
+a real item
+
+a real metric
+
+a real tool block
+
+a real grouped surface
+
+
+Do not use cards just to create spacing or containment everywhere.
+
+
+---
+
+Rule 7: Long technical content must be contained
+
+Paths, hashes, logs, and payloads must never be allowed to break the layout.
+
+That means shell-level rules for:
+
+wrapping
+
+truncation
+
+internal scroll
+
+fixed panel boundaries
+
+
+
+---
+
+Rule 8: Tabs are mode selectors, not extra page introductions
+
+If a page has tabs:
+
+the tab content should begin quickly
+
+each tab must not repeat a big page intro pattern
+
+sibling tabs should share the same internal shell where possible
+
+
+This is especially relevant for:
+
+Duplicate Review
+
+Admin
+
+
+
+---
+
+6. Mapping your current product to the three-shell model
+
+Standard admin shell
+
+Home
+
+Integrity Checks top-level page
+
+Admin Overview
+
+Admin Library Rules
+
+Admin Integrity Check
+
+Admin System Health
+
+Admin Performance Lab
+
+Admin Reset
+
+
+Workflow shell
+
+Import
+
+Organize
+
+Duplicate Review → Review duplicates
+
+
+Browse/list shell
+
+Library
+
+Duplicate Review → Ready for Bin
+
+Duplicate Review → Recycle Bin
+
+Duplicate Review → Playback issues
+
+Integrity queue/detail region
+
+Admin Activity
+
+Admin File History
+
+System Health feeds and diagnostics lists
+
+
+
+---
+
+7. What this shell model deliberately avoids
+
+This proposal is deliberately strict. It avoids:
+
+a separate “dashboard shell”
+
+a separate “settings shell”
+
+a separate “detail shell”
+
+a separate “analytics shell”
+
+a separate “gallery shell”
+
+
+Why? Because those are mostly content differences, not true shell differences.
+
+If you allow too many shell names, the team will rationalize inconsistency instead of fixing it.
