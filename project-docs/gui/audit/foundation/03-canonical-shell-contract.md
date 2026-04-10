@@ -246,7 +246,7 @@ Use this shell when the operator is primarily:
 
 ---
 
-## 4. Variant C — Browse/list shell
+## 4. Variant C — Browse-list shell (`browse-list`)
 
 This is for scanning many items, queues, galleries, lists, or feeds.
 
@@ -324,7 +324,7 @@ This shell must optimize for scan efficiency. That means:
 * no oversized explanatory boxes between toolbar and results
 * item actions predictable and repeated consistently
 
-### When to use 3
+### When to use Zone 4
 
 Use this shell when the operator is primarily:
 
@@ -476,7 +476,7 @@ This is especially relevant for:
 
 ## 6. Mapping your current product to the three-shell model
 
-### Standard admin shell
+### Standard admin shell (`standard-admin`)
 
 * Home
 * Integrity Checks top-level page
@@ -487,13 +487,13 @@ This is especially relevant for:
 * Admin Performance Lab
 * Admin Reset
 
-### Workflow shell
+### Workflow shell (`workflow`)
 
 * Import
 * Organize
 * Duplicate Review → Review duplicates
 
-#### Browse/list shell
+### Browse-list shell (`browse-list`)
 
 * Library
 * Duplicate Review → Ready for Bin
@@ -526,7 +526,6 @@ If you allow too many shell names, the team will rationalize inconsistency inste
 
 If I had to reduce this to one sentence:
 
-**Build one compact admin page frame, then allow only three page modes: standard admin, workflow, and browse/list.**
+**Build one compact admin page frame, then allow only three page modes: `standard-admin`, `workflow`, and `browse-list`.**
 
 That is enough structure to clean this product up without creating a design system fantasy.
-
