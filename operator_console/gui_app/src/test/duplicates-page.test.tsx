@@ -949,7 +949,7 @@ describe("DuplicatesPage", () => {
           original_path: "/library/alpha-copy.jpg",
           archive_path: "/tmp/media-manager/reclaim/group-alpha/group-alpha-duplicate-0-alpha-copy.jpg",
           item_status: "ARCHIVED",
-          expires_at: "2026-04-10T10:00:00+00:00",
+          expires_at: "2099-04-10T10:00:00+00:00",
         },
       ];
       return { data: { summary: { applied_count: 1, skipped_count: 0, moves_count: 1 } } };
