@@ -313,6 +313,35 @@ describe("DuplicatesPage", () => {
     expect(screen.queryByRole("button", { name: "Mark safe to remove" })).not.toBeInTheDocument();
   });
 
+  it("renders recommendation-led review zones in top-level order and keeps mark actions in the decision zone", async () => {
+    renderPage();
+
+    const recommendationZone = await screen.findByTestId("review-recommendation-zone");
+    const decisionControlsZone = screen.getByTestId("review-decision-controls-zone");
+    const comparisonZone = screen.getByTestId("review-comparison-zone");
+    const supportingZone = screen.getByTestId("review-supporting-zone");
+
+    expect(recommendationZone).toBeInTheDocument();
+    expect(decisionControlsZone).toBeInTheDocument();
+    expect(comparisonZone).toBeInTheDocument();
+    expect(supportingZone).toBeInTheDocument();
+
+    expect(
+      recommendationZone.compareDocumentPosition(decisionControlsZone) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+    expect(
+      decisionControlsZone.compareDocumentPosition(comparisonZone) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+    expect(
+      comparisonZone.compareDocumentPosition(supportingZone) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).not.toBe(0);
+
+    expect(within(decisionControlsZone).getByRole("button", { name: "Mark as looks right" })).toBeInTheDocument();
+    expect(within(decisionControlsZone).getByRole("button", { name: "Mark as needs review" })).toBeInTheDocument();
+    expect(within(decisionControlsZone).getByRole("button", { name: "Mark as not sure" })).toBeInTheDocument();
+    expect(within(supportingZone).getByRole("button", { name: "Show group navigation" })).toBeInTheDocument();
+  });
+
   it("shows the system recommendation separately from the human review state on Review duplicates", async () => {
     groupsData = [
       {
