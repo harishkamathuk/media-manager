@@ -290,6 +290,11 @@ class Phase3ActionService:
                     existing.recycle_path = None
                     existing.recycled_at = None
                     existing.purge_after_at = None
+                    # TODO(follow-up): purged_at must be reset here so items
+                    # re-entering the reclaim lifecycle after a prior purge are
+                    # not permanently excluded by the `purged_at IS NULL` guard
+                    # in _plan_duplicate_purge.  See PR #75 review discussion.
+                    existing.purged_at = None
                     existing.restored_at = None
                     existing.updated_at = now
 
@@ -446,6 +451,11 @@ class Phase3ActionService:
                 record.recycle_path = None
                 record.recycled_at = None
                 record.purge_after_at = None
+                # TODO(follow-up): purged_at must be reset here so items
+                # re-entering the quarantine lifecycle after a prior purge are
+                # not permanently excluded by the `purged_at IS NULL` guard
+                # in _plan_integrity_purge.  See PR #75 review discussion.
+                record.purged_at = None
                 record.updated_at = now
 
             session.add(
