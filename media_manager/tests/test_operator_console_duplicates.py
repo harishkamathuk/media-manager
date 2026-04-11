@@ -612,12 +612,15 @@ def test_duplicate_reclaim_operator_pages_use_bin_native_authority(session_facto
     base = datetime(2026, 3, 3, 12, 0, tzinfo=UTC)
     archived_content = UUID("eeeeeeee-1111-1111-1111-111111111111")
     recycled_content = UUID("eeeeeeee-2222-2222-2222-222222222222")
+    purged_content = UUID("eeeeeeee-4444-4444-4444-444444444444")
     archived_file = UUID("eeeeeeee-1111-1111-1111-111111111112")
     recycled_file = UUID("eeeeeeee-2222-2222-2222-222222222223")
+    purged_file = UUID("eeeeeeee-4444-4444-4444-444444444445")
 
     with session_factory.begin() as session:
         _add_content(session, archived_content, "hash-archive-page", base)
         _add_content(session, recycled_content, "hash-retention-page", base)
+        _add_content(session, purged_content, "hash-purged-retention-page", base)
         session.flush()
         _add_instance(
             session,
@@ -632,6 +635,13 @@ def test_duplicate_reclaim_operator_pages_use_bin_native_authority(session_facto
             content_id=recycled_content,
             absolute_path="/bin/current-recycled.jpg",
             first_seen_at=base + timedelta(seconds=1),
+        )
+        _add_instance(
+            session,
+            file_instance_id=purged_file,
+            content_id=purged_content,
+            absolute_path="/library/purged.jpg",
+            first_seen_at=base + timedelta(seconds=2),
         )
         session.add_all(
             [
@@ -677,6 +687,27 @@ def test_duplicate_reclaim_operator_pages_use_bin_native_authority(session_facto
                     created_at=base,
                     updated_at=base,
                 ),
+                DuplicateReclaimItem(
+                    file_instance_id=purged_file,
+                    content_id=purged_content,
+                    original_path="/library/purged.jpg",
+                    archive_path="/bin/stale-archive-purged.jpg",
+                    planned_bin_path=None,
+                    bin_path="/bin/stale-purged.jpg",
+                    item_status="RECYCLED",
+                    reclaimed_at=base - timedelta(days=14),
+                    bin_entered_at=base - timedelta(days=14),
+                    expires_at=base - timedelta(days=5),
+                    restore_expires_at=base - timedelta(days=8),
+                    bin_state=DuplicateBinState.PURGED.value,
+                    recycle_path="/bin/deleted-purged.jpg",
+                    recycled_at=base - timedelta(days=10),
+                    purge_after_at=base - timedelta(days=1),
+                    purged_at=base - timedelta(hours=6),
+                    restored_at=None,
+                    created_at=base - timedelta(days=14),
+                    updated_at=base - timedelta(hours=6),
+                ),
             ]
         )
 
@@ -690,6 +721,9 @@ def test_duplicate_reclaim_operator_pages_use_bin_native_authority(session_facto
     retention_item = next(item for item in retention_page.items if item.file_instance_id == str(recycled_file))
     assert retention_item.source_path == "/bin/current-recycled.jpg"
     assert retention_item.retention_expires_at == (base - timedelta(days=1)).isoformat()
+
+    purged_retention_item = next(item for item in retention_page.items if item.file_instance_id == str(purged_file))
+    assert purged_retention_item.source_path == "/library/purged.jpg"
 
 
 def test_duplicate_reclaim_archive_page_does_not_fallback_to_legacy_archive_path_for_archived_rows(session_factory) -> None:

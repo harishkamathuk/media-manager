@@ -269,6 +269,7 @@ class Phase3ActionService:
                             expires_at=expires_at,
                             restore_expires_at=expires_at,
                             bin_state=DuplicateBinState.PENDING_MOVE.value,
+                            purged_at=None,
                             restored_at=None,
                             created_at=now,
                             updated_at=now,
@@ -284,16 +285,13 @@ class Phase3ActionService:
                     existing.bin_path = None
                     existing.item_status = DuplicateReclaimItemStatus.PENDING.value
                     existing.expires_at = expires_at
+                    existing.reclaimed_at = None
                     existing.bin_entered_at = None
                     existing.restore_expires_at = expires_at
                     existing.bin_state = DuplicateBinState.PENDING_MOVE.value
                     existing.recycle_path = None
                     existing.recycled_at = None
                     existing.purge_after_at = None
-                    # TODO(follow-up): purged_at must be reset here so items
-                    # re-entering the reclaim lifecycle after a prior purge are
-                    # not permanently excluded by the `purged_at IS NULL` guard
-                    # in _plan_duplicate_purge.  See PR #75 review discussion.
                     existing.purged_at = None
                     existing.restored_at = None
                     existing.updated_at = now
@@ -438,6 +436,7 @@ class Phase3ActionService:
                         recycle_path=None,
                         recycled_at=None,
                         purge_after_at=None,
+                        purged_at=None,
                         restored_at=None,
                         created_at=now,
                         updated_at=now,
@@ -447,15 +446,13 @@ class Phase3ActionService:
                 record.original_path = file_instance.absolute_path
                 record.quarantine_path = quarantine_path
                 record.quarantine_status = IntegrityQuarantineStatus.PENDING.value
+                record.quarantined_at = None
                 record.expires_at = expires_at
                 record.recycle_path = None
                 record.recycled_at = None
                 record.purge_after_at = None
-                # TODO(follow-up): purged_at must be reset here so items
-                # re-entering the quarantine lifecycle after a prior purge are
-                # not permanently excluded by the `purged_at IS NULL` guard
-                # in _plan_integrity_purge.  See PR #75 review discussion.
                 record.purged_at = None
+                record.restored_at = None
                 record.updated_at = now
 
             session.add(

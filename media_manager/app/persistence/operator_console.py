@@ -453,7 +453,7 @@ def _duplicate_item_restore_expires_at(row: DuplicateReclaimItem) -> datetime | 
 def _duplicate_item_current_location(row: DuplicateReclaimItem) -> str | None:
     if row.bin_state == "IN_BIN" and row.bin_path:
         return row.bin_path
-    if row.item_status == "RECYCLED":
+    if row.item_status == "RECYCLED" and row.purged_at is None:
         return row.recycle_path
     return None
 
