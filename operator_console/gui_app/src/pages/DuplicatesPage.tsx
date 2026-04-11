@@ -1797,11 +1797,11 @@ export default function DuplicatesPage() {
                           </div>
                         </div>
 
-                        <div className={cn("grid gap-3", isReviewQueueOpen ? "xl:grid-cols-[240px_minmax(0,1fr)]" : "grid-cols-1")}>
+                        <div className="grid gap-3">
                           {isReviewQueueOpen ? (
                             <Card
                               id="review-group-navigation"
-                              className="rounded-[20px] border-border/70 bg-card/95 shadow-sm"
+                              className="rounded-[20px] border-border/70 bg-card/95 shadow-sm xl:w-[240px]"
                               data-testid="review-group-navigation"
                             >
                               <CardContent className="space-y-3 p-3">
