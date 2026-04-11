@@ -1527,7 +1527,11 @@ class OperatorConsoleReadService:
                 RetentionRecycleItem(
                     workflow="integrity_quarantine",
                     file_instance_id=str(item.file_instance_id),
-                    source_path=item.quarantine_path if item.quarantine_status == "RECYCLED" else item.original_path,
+                    source_path=(
+                        (item.recycle_path or item.quarantine_path)
+                        if item.quarantine_status == "RECYCLED" and item.purged_at is None
+                        else (item.quarantine_path if item.quarantine_status == "RECYCLED" else item.original_path)
+                    ),
                     recycle_path=item.recycle_path,
                     current_status=item.quarantine_status,
                     retention_expires_at=item.expires_at.isoformat() if item.expires_at is not None else None,
