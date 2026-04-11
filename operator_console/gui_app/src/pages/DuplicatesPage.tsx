@@ -1587,328 +1587,348 @@ export default function DuplicatesPage() {
 
           <TabsContent value="review" className="mt-0">
             <div className="space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsReviewQueueOpen((current) => !current)}
-                  aria-expanded={isReviewQueueOpen}
-                  aria-controls="review-group-navigation"
-                >
-                  {isReviewQueueOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
-                  {isReviewQueueOpen ? "Hide group navigation" : "Show group navigation"}
-                </Button>
-                <div className="flex flex-wrap gap-2">
-                  {reviewOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      type="button"
-                      variant={reviewFilter === option.value ? "default" : "outline"}
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => setReviewFilter(option.value)}
-                    >
-                      {option.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={cn("grid gap-3", isReviewQueueOpen ? "xl:grid-cols-[240px_minmax(0,1fr)]" : "grid-cols-1")}>
-                {isReviewQueueOpen ? (
-                  <Card
-                    id="review-group-navigation"
-                    className="rounded-[20px] border-border/70 bg-card/95 shadow-sm"
-                    data-testid="review-group-navigation"
-                  >
-                    <CardContent className="space-y-3 p-3">
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-foreground">Group navigation</p>
-                        <p className="text-sm text-muted-foreground">Jump to a different duplicate group without interrupting the main review loop.</p>
-                      </div>
-
-                      <ScrollArea className="h-[40rem] pr-2">
-                        <div className="space-y-2">
-                          {filteredGroups.map((group, index) => {
-                            const presentation = restoredReviewGroupIds.has(group.group_id)
-                              ? { label: "Restored", severity: "info" as const }
-                              : getReviewPresentation(currentReviewMark(group), Boolean(group.is_stale));
-                            return (
-                            <DuplicateQueueItem
-                              key={group.group_id}
-                              index={index}
-                              active={selected?.group_id === group.group_id}
-                              group={group}
-                              markLabel={presentation.label}
-                              secondaryStatusText={recycleBinLifecycleGroupIds.has(group.group_id) ? "In Recycle Bin" : null}
-                              onSelect={() => setSelectedId(group.group_id)}
-                            />
-                            );
-                          })}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div data-testid="review-group-navigation-hidden" className="hidden" />
-                )}
-
-                <Card className="rounded-[26px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-4 p-2.5 sm:p-3">
-                    {selected && selectedCanonical ? (
-                      <>
-                        <div className="space-y-3">
-                          <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
-                            <div className="min-w-0 space-y-1.5">
-                              <p
-                                className="truncate text-xl font-semibold tracking-tight text-foreground"
-                                title={basename(selected.canonical_path)}
-                                data-testid="review-group-title"
-                              >
-                                {basename(selected.canonical_path)}
-                              </p>
-                              <p className="text-sm text-muted-foreground">{reviewMetaLine.replace("matching copies", "extra copies").replace("matching copy", "extra copy")}</p>
-                            </div>
-                          </div>
-                          <div
-                            data-testid="review-recommendation-card"
-                            className="rounded-[18px] border border-primary/20 bg-primary/5 px-3 py-3"
-                          >
-                            <div className="space-y-2">
-                              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">System recommendation</p>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <StatusBadge
-                                  label={getRecommendationPresentation(getDuplicateRecommendation(selected)).label}
-                                  severity={getRecommendationPresentation(getDuplicateRecommendation(selected)).severity}
-                                />
+              <Card className="rounded-[26px] border-border/70 bg-card/95 shadow-sm">
+                <CardContent className="space-y-4 p-2.5 sm:p-3">
+                  <>
+                      <section data-testid="review-recommendation-zone" className="space-y-3">
+                        {selected && selectedCanonical ? (
+                          <>
+                            <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
+                              <div className="min-w-0 space-y-1.5">
+                                <p
+                                  className="truncate text-xl font-semibold tracking-tight text-foreground"
+                                  title={basename(selected.canonical_path)}
+                                  data-testid="review-group-title"
+                                >
+                                  {basename(selected.canonical_path)}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{reviewMetaLine.replace("matching copies", "extra copies").replace("matching copy", "extra copy")}</p>
                               </div>
-                              {renderRecommendationDetails(getDuplicateRecommendation(selected))}
                             </div>
-                          </div>
-                          <div
-                            data-testid="review-human-review-card"
-                            className="rounded-[18px] border border-border/70 bg-background/70 px-3 py-3"
-                          >
-                            <div className="space-y-2">
-                              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Human review</p>
-                              <div className="flex flex-wrap items-center gap-2">
-                                <StatusBadge
-                                  label={getReviewPresentation(currentReviewMark(selected), Boolean(selected.is_stale)).label}
-                                  severity={getReviewPresentation(currentReviewMark(selected), Boolean(selected.is_stale)).severity}
-                                />
+                            <div
+                              data-testid="review-recommendation-card"
+                              className="rounded-[18px] border border-primary/20 bg-primary/5 px-3 py-3"
+                            >
+                              <div className="space-y-2">
+                                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">System recommendation</p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <StatusBadge
+                                    label={getRecommendationPresentation(getDuplicateRecommendation(selected)).label}
+                                    severity={getRecommendationPresentation(getDuplicateRecommendation(selected)).severity}
+                                  />
+                                </div>
+                                {renderRecommendationDetails(getDuplicateRecommendation(selected))}
                               </div>
-                              <p className="text-sm text-muted-foreground">
-                                {selected.reviewed_at
-                                  ? `Last reviewed ${new Date(selected.reviewed_at).toLocaleString()}.`
-                                  : "No saved review yet. Choose the mark that best fits this group."}
-                              </p>
                             </div>
-                          </div>
-                          <DuplicateReviewActionBar
-                            activeMark={currentReviewMark(selected)}
-                            hasPrev={selectedIndex > 0}
-                            hasNext={selectedIndex >= 0 && selectedIndex < filteredGroups.length - 1}
-                            onMark={applyReviewMark}
-                            onNext={() => moveSelection(1)}
-                            onPrev={() => moveSelection(-1)}
-                            sticky={false}
-                            compact
-                            progressLabel={reviewProgressLabel}
-                          />
-                          {selectedNeedsRestoredReview ? (
-                            <div className="flex flex-col gap-1 rounded-[18px] border border-primary/20 bg-primary/5 px-3 py-2.5">
-                              <p className="text-sm font-semibold text-foreground">Restored from Recycle Bin</p>
-                              <p className="text-sm text-muted-foreground">Review again before this group can re-enter Ready for Bin.</p>
-                            </div>
-                          ) : null}
-                          {selected && recycleBinLifecycleGroupIds.has(selected.group_id) ? (
-                            <div className="flex flex-col gap-1 rounded-[18px] border border-border/70 bg-background/70 px-3 py-2.5">
-                              <p className="text-sm font-medium text-foreground">In Recycle Bin</p>
-                              <p className="text-sm text-muted-foreground">Extra copies are already in the Recycle Bin. {getPreferredKeepCopyStaysText()}</p>
-                            </div>
-                          ) : null}
-                          {(selected.integrity_issue_count ?? 0) > 0 ? (
-                            <div className="flex flex-col gap-2 rounded-[18px] border border-caution/30 bg-caution/10 px-3 py-2.5 lg:flex-row lg:items-center lg:justify-between">
-                              <div className="min-w-0">
+                          </>
+                        ) : null}
+                      </section>
+
+                      <section data-testid="review-decision-controls-zone" className="space-y-3">
+                        {selected && selectedCanonical ? (
+                          <>
+                            <div
+                              data-testid="review-human-review-card"
+                              className="rounded-[18px] border border-border/70 bg-background/70 px-3 py-3"
+                            >
+                              <div className="space-y-2">
+                                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Human review</p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <StatusBadge
+                                    label={getReviewPresentation(currentReviewMark(selected), Boolean(selected.is_stale)).label}
+                                    severity={getReviewPresentation(currentReviewMark(selected), Boolean(selected.is_stale)).severity}
+                                  />
+                                </div>
                                 <p className="text-sm text-muted-foreground">
-                                  {selected.integrity_issue_count} {binStateLabels.playbackIssue.toLowerCase()}{selected.integrity_issue_count === 1 ? "" : "s"} may affect this decision. Open Playback issues if something needs checking.
+                                  {selected.reviewed_at
+                                    ? `Last reviewed ${new Date(selected.reviewed_at).toLocaleString()}.`
+                                    : "No saved review yet. Choose the mark that best fits this group."}
                                 </p>
                               </div>
-                              <div className="flex gap-2">
-                                <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab("playback-issues")}>
-                                  Open Playback issues
-                                </Button>
-                                <Button asChild type="button" variant="outline" size="sm">
-                                  <Link to="/integrity">
-                                    Integrity review
-                                    <ExternalLink className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </div>
                             </div>
-                          ) : null}
+                            <DuplicateReviewActionBar
+                              activeMark={currentReviewMark(selected)}
+                              hasPrev={selectedIndex > 0}
+                              hasNext={selectedIndex >= 0 && selectedIndex < filteredGroups.length - 1}
+                              onMark={applyReviewMark}
+                              onNext={() => moveSelection(1)}
+                              onPrev={() => moveSelection(-1)}
+                              sticky={false}
+                              compact
+                              progressLabel={reviewProgressLabel}
+                            />
+                          </>
+                        ) : null}
+                      </section>
+
+                      <section data-testid="review-comparison-zone" className="space-y-3">
+                        {selected && selectedCanonical ? (
+                          <>
+                            <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1.05fr)]">
+                              <DuplicateFocusCard
+                                badge={getPreferredKeepCopyLabel()}
+                                description="Use this copy as the point of comparison for the current review."
+                                emphasis="success"
+                                file={selectedCanonical}
+                                previewClassName="h-[26rem] sm:h-[34rem] lg:h-[44rem]"
+                                previewFit="contain"
+                                previewTestId="primary-comparison-preview"
+                                titleTestId="primary-comparison-title"
+                              />
+
+                              {selectedDuplicate ? (
+                                <DuplicateFocusCard
+                                  badge="Extra copy"
+                                  description={`Selected extra copy ${selectedDuplicates.findIndex((file) => file.file_instance_id === selectedDuplicate.file_instance_id) + 1} updates this pane immediately.`}
+                                  emphasis="info"
+                                  file={selectedDuplicate}
+                                  title={`Extra copy: ${basename(selectedDuplicate.path)}`}
+                                  previewClassName="h-[26rem] sm:h-[34rem] lg:h-[44rem]"
+                                  previewFit="contain"
+                                  previewTestId="secondary-comparison-preview"
+                                  titleTestId="secondary-comparison-title"
+                                />
+                              ) : (
+                                <Card className="rounded-[22px] border-border/70 bg-background/85 shadow-sm">
+                                  <CardContent className="flex h-full min-h-[14rem] items-center justify-center p-6 text-center">
+                                    <div className="space-y-2">
+                                      <StatusBadge label="No extra copies" severity="neutral" />
+                                      <p className="text-sm text-muted-foreground">There are no other copies to compare in this group.</p>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              )}
+                            </div>
+
+                            {selectedDuplicates.length ? (
+                              <section className="space-y-2.5">
+                                <div className="flex items-center justify-between gap-3">
+                                  <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                                    Select the extra copy to compare
+                                  </h3>
+                                  {selectedDuplicate ? (
+                                    <p
+                                      className="max-w-[28rem] truncate text-xs text-muted-foreground"
+                                      title={basename(selectedDuplicate.path)}
+                                      data-testid="active-duplicate-caption"
+                                    >
+                                      Comparing: {basename(selectedDuplicate.path)}
+                                    </p>
+                                  ) : null}
+                                </div>
+                                <ScrollArea className="w-full whitespace-nowrap">
+                                  <div className="flex gap-2 pb-2">
+                                    {selectedDuplicates.map((file, index) => {
+                                      const active = selectedDuplicate?.file_instance_id === file.file_instance_id;
+                                      return (
+                                        <button
+                                          key={file.file_instance_id || file.path}
+                                          type="button"
+                                          onClick={() => setSelectedDuplicateId(file.file_instance_id)}
+                                          aria-pressed={active}
+                                          aria-label={`Compare duplicate ${index + 1}: ${basename(file.path)}`}
+                                          className={cn(
+                                            "w-40 shrink-0 rounded-[18px] border p-2 text-left transition-all",
+                                            active
+                                              ? "border-primary bg-primary/8 shadow-sm ring-2 ring-primary/25"
+                                              : "border-border/70 bg-background/80 hover:border-primary/20 hover:bg-muted/30",
+                                          )}
+                                        >
+                                          <div className="mb-2 flex items-center justify-between gap-2">
+                                            <span className="text-[11px] font-medium text-muted-foreground">{index + 1}</span>
+                                            {active ? <StatusBadge label="Comparing" severity="info" /> : null}
+                                          </div>
+                                          <DuplicateMediaPreview
+                                            src={file.preview_url ?? (file.is_image ? file.media_url ?? file.thumbnail_url : null)}
+                                            alt={basename(file.path)}
+                                            isImage={file.is_image}
+                                            mediaType={file.media_type}
+                                            className="h-24 rounded-[16px]"
+                                            fit="contain"
+                                          />
+                                          <p
+                                            className="mt-2 truncate text-xs font-medium text-foreground"
+                                            title={basename(file.path)}
+                                          >
+                                            {basename(file.path)}
+                                          </p>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </ScrollArea>
+                              </section>
+                            ) : null}
+                          </>
+                        ) : (
+                          <EmptyState
+                            title="Select a group to compare"
+                            description="Choose a duplicate group from the current filter to compare the preferred keep copy against an extra copy."
+                          />
+                        )}
+                      </section>
+
+                      <section data-testid="review-supporting-zone" className="space-y-3">
+                        <div className="flex items-center justify-between gap-3">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsReviewQueueOpen((current) => !current)}
+                            aria-expanded={isReviewQueueOpen}
+                            aria-controls="review-group-navigation"
+                          >
+                            {isReviewQueueOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+                            {isReviewQueueOpen ? "Hide group navigation" : "Show group navigation"}
+                          </Button>
+                          <div className="flex flex-wrap gap-2">
+                            {reviewOptions.map((option) => (
+                              <Button
+                                key={option.value}
+                                type="button"
+                                variant={reviewFilter === option.value ? "default" : "outline"}
+                                size="sm"
+                                className="rounded-full"
+                                onClick={() => setReviewFilter(option.value)}
+                              >
+                                {option.label}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
 
-                        <div className="grid gap-2.5 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1.05fr)]">
-                          <DuplicateFocusCard
-                            badge={getPreferredKeepCopyLabel()}
-                            description="Use this copy as the point of comparison for the current review."
-                            emphasis="success"
-                            file={selectedCanonical}
-                            previewClassName="h-[26rem] sm:h-[34rem] lg:h-[44rem]"
-                            previewFit="contain"
-                            previewTestId="primary-comparison-preview"
-                            titleTestId="primary-comparison-title"
-                          />
-
-                          {selectedDuplicate ? (
-                            <DuplicateFocusCard
-                              badge="Extra copy"
-                              description={`Selected extra copy ${selectedDuplicates.findIndex((file) => file.file_instance_id === selectedDuplicate.file_instance_id) + 1} updates this pane immediately.`}
-                              emphasis="info"
-                              file={selectedDuplicate}
-                              title={`Extra copy: ${basename(selectedDuplicate.path)}`}
-                              previewClassName="h-[26rem] sm:h-[34rem] lg:h-[44rem]"
-                              previewFit="contain"
-                              previewTestId="secondary-comparison-preview"
-                              titleTestId="secondary-comparison-title"
-                            />
-                          ) : (
-                            <Card className="rounded-[22px] border-border/70 bg-background/85 shadow-sm">
-                              <CardContent className="flex h-full min-h-[14rem] items-center justify-center p-6 text-center">
-                                <div className="space-y-2">
-                                  <StatusBadge label="No extra copies" severity="neutral" />
-                                  <p className="text-sm text-muted-foreground">There are no other copies to compare in this group.</p>
+                        <div className={cn("grid gap-3", isReviewQueueOpen ? "xl:grid-cols-[240px_minmax(0,1fr)]" : "grid-cols-1")}>
+                          {isReviewQueueOpen ? (
+                            <Card
+                              id="review-group-navigation"
+                              className="rounded-[20px] border-border/70 bg-card/95 shadow-sm"
+                              data-testid="review-group-navigation"
+                            >
+                              <CardContent className="space-y-3 p-3">
+                                <div className="space-y-1">
+                                  <p className="text-sm font-semibold text-foreground">Group navigation</p>
+                                  <p className="text-sm text-muted-foreground">Jump to a different duplicate group without interrupting the main review loop.</p>
                                 </div>
+
+                                <ScrollArea className="h-[40rem] pr-2">
+                                  <div className="space-y-2">
+                                    {filteredGroups.map((group, index) => {
+                                      const presentation = restoredReviewGroupIds.has(group.group_id)
+                                        ? { label: "Restored", severity: "info" as const }
+                                        : getReviewPresentation(currentReviewMark(group), Boolean(group.is_stale));
+                                      return (
+                                      <DuplicateQueueItem
+                                        key={group.group_id}
+                                        index={index}
+                                        active={selected?.group_id === group.group_id}
+                                        group={group}
+                                        markLabel={presentation.label}
+                                        secondaryStatusText={recycleBinLifecycleGroupIds.has(group.group_id) ? "In Recycle Bin" : null}
+                                        onSelect={() => setSelectedId(group.group_id)}
+                                      />
+                                      );
+                                    })}
+                                  </div>
+                                </ScrollArea>
                               </CardContent>
                             </Card>
+                          ) : (
+                            <div data-testid="review-group-navigation-hidden" className="hidden" />
                           )}
                         </div>
 
-                        {selectedDuplicates.length ? (
-                          <section className="space-y-2.5">
-                            <div className="flex items-center justify-between gap-3">
-                              <h3 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                                Select the extra copy to compare
-                              </h3>
-                              {selectedDuplicate ? (
-                                <p
-                                  className="max-w-[28rem] truncate text-xs text-muted-foreground"
-                                  title={basename(selectedDuplicate.path)}
-                                  data-testid="active-duplicate-caption"
-                                >
-                                  Comparing: {basename(selectedDuplicate.path)}
-                                </p>
-                              ) : null}
+                        {selectedNeedsRestoredReview ? (
+                          <div className="flex flex-col gap-1 rounded-[18px] border border-primary/20 bg-primary/5 px-3 py-2.5">
+                            <p className="text-sm font-semibold text-foreground">Restored from Recycle Bin</p>
+                            <p className="text-sm text-muted-foreground">Review again before this group can re-enter Ready for Bin.</p>
+                          </div>
+                        ) : null}
+                        {selected && recycleBinLifecycleGroupIds.has(selected.group_id) ? (
+                          <div className="flex flex-col gap-1 rounded-[18px] border border-border/70 bg-background/70 px-3 py-2.5">
+                            <p className="text-sm font-medium text-foreground">In Recycle Bin</p>
+                            <p className="text-sm text-muted-foreground">Extra copies are already in the Recycle Bin. {getPreferredKeepCopyStaysText()}</p>
+                          </div>
+                        ) : null}
+                        {selected && (selected.integrity_issue_count ?? 0) > 0 ? (
+                          <div className="flex flex-col gap-2 rounded-[18px] border border-caution/30 bg-caution/10 px-3 py-2.5 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="min-w-0">
+                              <p className="text-sm text-muted-foreground">
+                                {selected.integrity_issue_count} {binStateLabels.playbackIssue.toLowerCase()}{selected.integrity_issue_count === 1 ? "" : "s"} may affect this decision. Open Playback issues if something needs checking.
+                              </p>
                             </div>
-                            <ScrollArea className="w-full whitespace-nowrap">
-                              <div className="flex gap-2 pb-2">
-                                {selectedDuplicates.map((file, index) => {
-                                  const active = selectedDuplicate?.file_instance_id === file.file_instance_id;
-                                  return (
-                                    <button
-                                      key={file.file_instance_id || file.path}
-                                      type="button"
-                                      onClick={() => setSelectedDuplicateId(file.file_instance_id)}
-                                      aria-pressed={active}
-                                      aria-label={`Compare duplicate ${index + 1}: ${basename(file.path)}`}
-                                      className={cn(
-                                        "w-40 shrink-0 rounded-[18px] border p-2 text-left transition-all",
-                                        active
-                                          ? "border-primary bg-primary/8 shadow-sm ring-2 ring-primary/25"
-                                          : "border-border/70 bg-background/80 hover:border-primary/20 hover:bg-muted/30",
-                                      )}
-                                    >
-                                      <div className="mb-2 flex items-center justify-between gap-2">
-                                        <span className="text-[11px] font-medium text-muted-foreground">{index + 1}</span>
-                                        {active ? <StatusBadge label="Comparing" severity="info" /> : null}
-                                      </div>
-                                      <DuplicateMediaPreview
-                                        src={file.preview_url ?? (file.is_image ? file.media_url ?? file.thumbnail_url : null)}
-                                        alt={basename(file.path)}
-                                        isImage={file.is_image}
-                                        mediaType={file.media_type}
-                                        className="h-24 rounded-[16px]"
-                                        fit="contain"
-                                      />
-                                      <p
-                                        className="mt-2 truncate text-xs font-medium text-foreground"
-                                        title={basename(file.path)}
-                                      >
-                                        {basename(file.path)}
-                                      </p>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </ScrollArea>
-                          </section>
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm" onClick={() => setActiveTab("playback-issues")}>
+                                Open Playback issues
+                              </Button>
+                              <Button asChild type="button" variant="outline" size="sm">
+                                <Link to="/integrity">
+                                  Integrity review
+                                  <ExternalLink className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </div>
+                          </div>
                         ) : null}
 
-                        <Collapsible className="rounded-[24px] border border-border/70 bg-background/85">
-                        <CollapsibleTrigger asChild>
-                          <button
-                            type="button"
-                            className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
-                          >
-                            <div>
-                              <p className="text-sm font-semibold text-foreground">Technical details</p>
-                              <p className="mt-1 text-sm text-muted-foreground">
-                                Paths and reference IDs for moments when side-by-side review is not enough.
-                              </p>
-                            </div>
-                          </button>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent className="space-y-4 border-t px-5 py-4">
-                          <div className="grid gap-4 lg:grid-cols-2">
-                            <div className="space-y-2">
-                              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                                Group ID
-                              </p>
-                              <p className="break-all font-mono text-xs text-foreground">{selected.group_id}</p>
-                            </div>
-                            <div className="space-y-2">
-                              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                                Preferred keep copy path
-                              </p>
-                              <p className="break-all font-mono text-xs text-foreground">{selected.canonical_path}</p>
-                            </div>
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-                              Group members
-                            </p>
-                            <div className="space-y-2">
-                              {selected.duplicates.map((file) => (
-                                <div
-                                  key={file.file_instance_id || file.path}
-                                  className="rounded-2xl border border-border/70 bg-muted/20 p-3"
-                                >
-                                  <div className="flex flex-wrap items-center gap-2">
-                                    <StatusBadge
-                                      label={file.is_canonical ? getPreferredKeepCopyLabel() : "Extra copy"}
-                                      severity={file.is_canonical ? "success" : "neutral"}
-                                    />
-                                    <StatusBadge label={file.file_instance_id || "No file ID"} severity="neutral" />
-                                  </div>
-                                  <p className="mt-2 break-all font-mono text-xs text-foreground">{file.path}</p>
+                        {selected && selectedCanonical ? (
+                          <Collapsible className="rounded-[24px] border border-border/70 bg-background/85">
+                            <CollapsibleTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left"
+                              >
+                                <div>
+                                  <p className="text-sm font-semibold text-foreground">Technical details</p>
+                                  <p className="mt-1 text-sm text-muted-foreground">
+                                    Paths and reference IDs for moments when side-by-side review is not enough.
+                                  </p>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
-                    </>
-                  ) : (
-                    <EmptyState
-                      title="Select a group to compare"
-                      description="Choose a duplicate group from the current filter to compare the preferred keep copy against an extra copy."
-                    />
-                  )}
+                              </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="space-y-4 border-t px-5 py-4">
+                              <div className="grid gap-4 lg:grid-cols-2">
+                                <div className="space-y-2">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                                    Group ID
+                                  </p>
+                                  <p className="break-all font-mono text-xs text-foreground">{selected.group_id}</p>
+                                </div>
+                                <div className="space-y-2">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                                    Preferred keep copy path
+                                  </p>
+                                  <p className="break-all font-mono text-xs text-foreground">{selected.canonical_path}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                                  Group members
+                                </p>
+                                <div className="space-y-2">
+                                  {selected.duplicates.map((file) => (
+                                    <div
+                                      key={file.file_instance_id || file.path}
+                                      className="rounded-2xl border border-border/70 bg-muted/20 p-3"
+                                    >
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <StatusBadge
+                                          label={file.is_canonical ? getPreferredKeepCopyLabel() : "Extra copy"}
+                                          severity={file.is_canonical ? "success" : "neutral"}
+                                        />
+                                        <StatusBadge label={file.file_instance_id || "No file ID"} severity="neutral" />
+                                      </div>
+                                      <p className="mt-2 break-all font-mono text-xs text-foreground">{file.path}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        ) : null}
+                      </section>
+                  </>
                 </CardContent>
               </Card>
-            </div>
             </div>
           </TabsContent>
 
