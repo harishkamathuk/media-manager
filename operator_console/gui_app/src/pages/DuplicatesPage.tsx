@@ -1590,7 +1590,10 @@ export default function DuplicatesPage() {
               <Card className="rounded-[26px] border-border/70 bg-card/95 shadow-sm">
                 <CardContent className="space-y-4 p-2.5 sm:p-3">
                   <>
-                      <section data-testid="review-recommendation-zone" className="space-y-3">
+                      <section
+                        data-testid="review-recommendation-zone"
+                        className={cn("space-y-3", !(selected && selectedCanonical) && "hidden")}
+                      >
                         {selected && selectedCanonical ? (
                           <>
                             <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
@@ -1624,7 +1627,10 @@ export default function DuplicatesPage() {
                         ) : null}
                       </section>
 
-                      <section data-testid="review-decision-controls-zone" className="space-y-3">
+                      <section
+                        data-testid="review-decision-controls-zone"
+                        className={cn("space-y-3", !(selected && selectedCanonical) && "hidden")}
+                      >
                         {selected && selectedCanonical ? (
                           <>
                             <div
