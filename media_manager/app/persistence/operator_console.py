@@ -1530,7 +1530,7 @@ class OperatorConsoleReadService:
                     source_path=(
                         (item.recycle_path or item.quarantine_path)
                         if item.quarantine_status == "RECYCLED" and item.purged_at is None
-                        else (item.quarantine_path if item.quarantine_status == "RECYCLED" else item.original_path)
+                        else item.original_path
                     ),
                     recycle_path=item.recycle_path,
                     current_status=item.quarantine_status,

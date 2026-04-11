@@ -779,14 +779,18 @@ def test_retention_page_prefers_integrity_recycle_path_and_falls_back_to_quarant
     base = datetime(2026, 3, 4, 12, 0, tzinfo=UTC)
     content_with_recycle = UUID("99999999-1111-1111-1111-111111111111")
     content_without_recycle = UUID("99999999-2222-2222-2222-222222222222")
+    content_purged = UUID("99999999-3333-3333-3333-333333333333")
     file_with_recycle = UUID("99999999-1111-1111-1111-111111111112")
     file_without_recycle = UUID("99999999-2222-2222-2222-222222222223")
+    file_purged = UUID("99999999-3333-3333-3333-333333333334")
     check_with_recycle = UUID("99999999-1111-1111-1111-111111111113")
     check_without_recycle = UUID("99999999-2222-2222-2222-222222222224")
+    check_purged = UUID("99999999-3333-3333-3333-333333333335")
 
     with session_factory.begin() as session:
         _add_content(session, content_with_recycle, "hash-integrity-recycle", base)
         _add_content(session, content_without_recycle, "hash-integrity-fallback", base)
+        _add_content(session, content_purged, "hash-integrity-purged", base)
         session.flush()
         _add_instance(
             session,
@@ -801,6 +805,13 @@ def test_retention_page_prefers_integrity_recycle_path_and_falls_back_to_quarant
             content_id=content_without_recycle,
             absolute_path="/library/integrity-fallback.jpg",
             first_seen_at=base + timedelta(seconds=1),
+        )
+        _add_instance(
+            session,
+            file_instance_id=file_purged,
+            content_id=content_purged,
+            absolute_path="/library/integrity-purged.jpg",
+            first_seen_at=base + timedelta(seconds=2),
         )
         _add_integrity_check(
             session,
@@ -817,6 +828,14 @@ def test_retention_page_prefers_integrity_recycle_path_and_falls_back_to_quarant
             status="SUSPECT",
             at=base + timedelta(seconds=1),
             absolute_path="/quarantine/integrity-fallback.jpg",
+        )
+        _add_integrity_check(
+            session,
+            check_id=check_purged,
+            file_instance_id=file_purged,
+            status="SUSPECT",
+            at=base + timedelta(seconds=2),
+            absolute_path="/quarantine/integrity-purged.jpg",
         )
         session.add_all(
             [
@@ -852,6 +871,22 @@ def test_retention_page_prefers_integrity_recycle_path_and_falls_back_to_quarant
                     created_at=base - timedelta(days=4),
                     updated_at=base,
                 ),
+                IntegrityQuarantineRecord(
+                    file_instance_id=file_purged,
+                    check_id=check_purged,
+                    original_path="/library/integrity-purged.jpg",
+                    quarantine_path="/quarantine/integrity-purged.jpg",
+                    quarantine_status="RECYCLED",
+                    quarantined_at=base - timedelta(days=8),
+                    expires_at=base - timedelta(days=6),
+                    recycle_path="/recycle/integrity-purged.jpg",
+                    recycled_at=base - timedelta(days=5),
+                    purge_after_at=base - timedelta(days=2),
+                    purged_at=base - timedelta(days=1),
+                    restored_at=None,
+                    created_at=base - timedelta(days=8),
+                    updated_at=base - timedelta(days=1),
+                ),
             ]
         )
 
@@ -864,3 +899,7 @@ def test_retention_page_prefers_integrity_recycle_path_and_falls_back_to_quarant
     without_recycle_row = next(item for item in retention_page.items if item.file_instance_id == str(file_without_recycle))
     assert without_recycle_row.workflow == "integrity_quarantine"
     assert without_recycle_row.source_path == "/quarantine/integrity-fallback.jpg"
+
+    purged_row = next(item for item in retention_page.items if item.file_instance_id == str(file_purged))
+    assert purged_row.workflow == "integrity_quarantine"
+    assert purged_row.source_path == "/library/integrity-purged.jpg"
