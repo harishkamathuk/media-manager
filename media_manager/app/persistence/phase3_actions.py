@@ -290,6 +290,11 @@ class Phase3ActionService:
                     existing.recycle_path = None
                     existing.recycled_at = None
                     existing.purge_after_at = None
+                    # TODO(follow-up): purged_at must be reset here so items
+                    # re-entering the reclaim lifecycle after a prior purge are
+                    # not permanently excluded by the `purged_at IS NULL` guard
+                    # in _plan_duplicate_purge.  See PR #75 review discussion.
+                    existing.purged_at = None
                     existing.restored_at = None
                     existing.updated_at = now
 
@@ -446,6 +451,11 @@ class Phase3ActionService:
                 record.recycle_path = None
                 record.recycled_at = None
                 record.purge_after_at = None
+                # TODO(follow-up): purged_at must be reset here so items
+                # re-entering the quarantine lifecycle after a prior purge are
+                # not permanently excluded by the `purged_at IS NULL` guard
+                # in _plan_integrity_purge.  See PR #75 review discussion.
+                record.purged_at = None
                 record.updated_at = now
 
             session.add(
@@ -605,6 +615,7 @@ class Phase3ActionService:
                 DuplicateReclaimItem.purge_after_at.is_not(None),
                 DuplicateReclaimItem.purge_after_at <= _utcnow(),
                 DuplicateReclaimItem.recycle_path.is_not(None),
+                DuplicateReclaimItem.purged_at.is_(None),
             )
             if file_instance_ids:
                 stmt = stmt.where(DuplicateReclaimItem.file_instance_id.in_(file_instance_ids))
@@ -640,6 +651,7 @@ class Phase3ActionService:
                 IntegrityQuarantineRecord.purge_after_at.is_not(None),
                 IntegrityQuarantineRecord.purge_after_at <= _utcnow(),
                 IntegrityQuarantineRecord.recycle_path.is_not(None),
+                IntegrityQuarantineRecord.purged_at.is_(None),
             )
             if file_instance_ids:
                 stmt = stmt.where(IntegrityQuarantineRecord.file_instance_id.in_(file_instance_ids))
