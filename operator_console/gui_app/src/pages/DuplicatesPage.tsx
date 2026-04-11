@@ -1797,7 +1797,7 @@ export default function DuplicatesPage() {
                           </div>
                         </div>
 
-                        <div className="grid gap-3">
+                        <div className="grid gap-3 grid-cols-1">
                           {isReviewQueueOpen ? (
                             <Card
                               id="review-group-navigation"
