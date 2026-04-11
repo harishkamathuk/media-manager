@@ -605,6 +605,7 @@ class Phase3ActionService:
                 DuplicateReclaimItem.purge_after_at.is_not(None),
                 DuplicateReclaimItem.purge_after_at <= _utcnow(),
                 DuplicateReclaimItem.recycle_path.is_not(None),
+                DuplicateReclaimItem.purged_at.is_(None),
             )
             if file_instance_ids:
                 stmt = stmt.where(DuplicateReclaimItem.file_instance_id.in_(file_instance_ids))
@@ -640,6 +641,7 @@ class Phase3ActionService:
                 IntegrityQuarantineRecord.purge_after_at.is_not(None),
                 IntegrityQuarantineRecord.purge_after_at <= _utcnow(),
                 IntegrityQuarantineRecord.recycle_path.is_not(None),
+                IntegrityQuarantineRecord.purged_at.is_(None),
             )
             if file_instance_ids:
                 stmt = stmt.where(IntegrityQuarantineRecord.file_instance_id.in_(file_instance_ids))

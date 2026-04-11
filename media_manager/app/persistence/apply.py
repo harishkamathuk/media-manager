@@ -973,6 +973,7 @@ class ApplyService:
         elif action.action_type == "RECLAIM_PURGE":
             item = session.get(DuplicateReclaimItem, action.file_id)
             if item is not None:
+                item.bin_state = DuplicateBinState.PURGED.value
                 item.purged_at = now
                 item.updated_at = now
                 record = session.get(DuplicateReclaimRecord, item.content_id)
