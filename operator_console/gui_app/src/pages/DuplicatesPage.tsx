@@ -724,8 +724,8 @@ export default function DuplicatesPage() {
       }>,
     [issuesByFileId, sortedGroups],
   );
-  const playbackGroupsWithBrokenItems = duplicatePlaybackGroups.filter((entry) => entry.brokenCount > 0).length;
-  const playbackGroupsWithSuspectOnlyItems = duplicatePlaybackGroups.filter((entry) => entry.brokenCount === 0 && entry.suspectCount > 0).length;
+  const brokenIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.brokenCount, 0);
+  const suspectIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.suspectCount, 0);
   const reviewProgressLabel =
     selectedOverallIndex >= 0 ? `${selectedOverallIndex + 1} of ${sortedGroups.length}` : `0 of ${sortedGroups.length}`;
   const reviewMetaLine = selected
@@ -2307,11 +2307,11 @@ export default function DuplicatesPage() {
                       <div className="flex flex-wrap gap-2">
                         <StatusBadge label={`${duplicatePlaybackGroups.length} group${duplicatePlaybackGroups.length === 1 ? "" : "s"} with playback issues`} severity="neutral" />
                         <StatusBadge
-                          label={`${playbackGroupsWithBrokenItems} item${playbackGroupsWithBrokenItems === 1 ? "" : "s"} won't play`}
+                          label={`${brokenIssueCount} item${brokenIssueCount === 1 ? "" : "s"} won't play`}
                           severity="destructive"
                         />
                         <StatusBadge
-                          label={`${playbackGroupsWithSuspectOnlyItems} item${playbackGroupsWithSuspectOnlyItems === 1 ? "" : "s"} need checking`}
+                          label={`${suspectIssueCount} item${suspectIssueCount === 1 ? "" : "s"} need checking`}
                           severity="caution"
                         />
                       </div>
