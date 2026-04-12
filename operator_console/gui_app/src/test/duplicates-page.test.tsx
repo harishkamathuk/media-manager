@@ -514,15 +514,13 @@ describe("DuplicatesPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Ready for Bin" })).toBeInTheDocument();
     expect(screen.getAllByText("Ready for Bin").length).toBeGreaterThan(0);
+    expect(await screen.findByTestId("ready-for-bin-top-controls")).toBeInTheDocument();
     expect(screen.getByTestId("ready-for-bin-view-focus")).toBeInTheDocument();
     expect(screen.getByTestId("ready-for-bin-focused-panel")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Move to Recycle Bin" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Restore from Recycle Bin" })).not.toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "These groups are currently recommended as safe to move into the Recycle Bin. Restore happens only on the Recycle Bin tab.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Ready groups")).toBeInTheDocument();
+    expect(screen.getByText("Estimated reclaim")).toBeInTheDocument();
   });
 
   it("uses SAFE_TO_MOVE_EXTRAS as the only Ready for Bin bucket filter", async () => {
@@ -633,9 +631,11 @@ describe("DuplicatesPage", () => {
 
     const processView = renderPage("/duplicates?tab=ready-for-bin");
 
+    expect(await screen.findByTestId("ready-for-bin-top-controls")).toBeInTheDocument();
     expect(await screen.findByTestId("ready-for-bin-focused-panel")).toBeInTheDocument();
     expect(screen.queryByTestId("ready-for-bin-gallery")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ready-for-bin-list")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Move all eligible groups" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByTestId("ready-for-bin-view-gallery"));
 
@@ -834,10 +834,18 @@ describe("DuplicatesPage", () => {
 
     renderPage("/duplicates?tab=ready-for-bin");
 
+    const topControls = await screen.findByTestId("ready-for-bin-top-controls");
     expect(await screen.findByTestId("ready-for-bin-focused-panel")).toBeInTheDocument();
+    const focusedPanel = screen.getByTestId("ready-for-bin-focused-panel");
+    expect(topControls.nextElementSibling).toBe(focusedPanel);
     expect(screen.getByTestId("ready-for-bin-focused-title")).toHaveTextContent("alpha-main.jpg");
     expect(screen.getAllByText("Preferred keep copy").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Extra copies").length).toBeGreaterThan(0);
+    expect(within(topControls).getByText("Ready groups")).toBeInTheDocument();
+    expect(within(topControls).getByText("Estimated reclaim")).toBeInTheDocument();
+    expect(within(topControls).getByTestId("ready-for-bin-view-toggle")).toBeInTheDocument();
+    expect(within(focusedPanel).getByTestId("ready-for-bin-single-group-action")).toBeInTheDocument();
+    expect(screen.queryByTestId("ready-for-bin-bulk-action-bar")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Select current group" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
@@ -861,9 +869,12 @@ describe("DuplicatesPage", () => {
 
     renderPage("/duplicates?tab=ready-for-bin");
 
+    expect(screen.queryByTestId("ready-for-bin-bulk-action-bar")).not.toBeInTheDocument();
     fireEvent.click(await screen.findByTestId("ready-for-bin-view-gallery"));
 
     expect(await screen.findByTestId("ready-for-bin-gallery-card-group-alpha")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Move all eligible groups" })).toBeInTheDocument();
+    expect(screen.queryByTestId("ready-for-bin-bulk-action-bar")).not.toBeInTheDocument();
     fireEvent.click(screen.getByLabelText("Select group alpha-main.jpg"));
     fireEvent.click(screen.getByLabelText("Select group beta-main.jpg"));
 
@@ -1005,9 +1016,9 @@ describe("DuplicatesPage", () => {
 
     const processView = renderPage("/duplicates?tab=ready-for-bin");
 
-    expect(
-      await screen.findByText("This workflow view is filtered from the backend recommendation. The preferred keep copy stays in place."),
-    ).toBeInTheDocument();
+    expect(await screen.findByTestId("ready-for-bin-top-controls")).toBeInTheDocument();
+    expect(screen.getByText("Ready groups")).toBeInTheDocument();
+    expect(screen.getByText("Estimated reclaim")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Mark safe to remove" })).not.toBeInTheDocument();
     expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);
     expect(screen.queryByText("beta-main.jpg")).not.toBeInTheDocument();
