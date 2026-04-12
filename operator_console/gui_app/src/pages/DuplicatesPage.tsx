@@ -1227,7 +1227,7 @@ export default function DuplicatesPage() {
       >
         <div className="flex flex-col gap-3 border-b border-border/70 pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Focused Ready for Bin group</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Focused group workspace</p>
             <p data-testid="ready-for-bin-focused-title" className="truncate text-lg font-semibold text-foreground">
               {basename(group.canonical_path)}
             </p>
@@ -1320,6 +1320,7 @@ export default function DuplicatesPage() {
             <Button
               type="button"
               size="sm"
+              data-testid="ready-for-bin-single-group-action"
               onClick={() => void handleMoveEligibleDuplicates([group], "single")}
               disabled={moveToBinMutation.isPending || Boolean(recycleConfigWarning)}
             >
@@ -1557,12 +1558,7 @@ export default function DuplicatesPage() {
               </TabsContent>
 
               <TabsContent value="ready-for-bin" className="mt-0">
-                <div className="space-y-2">
-                  <h2 className="text-xl font-semibold tracking-tight text-foreground">Ready for Bin</h2>
-                  <p className="text-sm text-muted-foreground">
-                    These groups are currently recommended as safe to move into the Recycle Bin. Restore happens only on the Recycle Bin tab.
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Ready for Bin</h2>
               </TabsContent>
 
               <TabsContent value="recycle-bin" className="mt-0">
@@ -1940,58 +1936,73 @@ export default function DuplicatesPage() {
 
           <TabsContent value="ready-for-bin" className="mt-0">
             <div className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-2">
-                <Card className="rounded-[22px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-1 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Ready for Bin</p>
-                    <p className="text-2xl font-semibold text-foreground">{readyGroups.length}</p>
-                    <p className="text-sm text-muted-foreground">{readyExtraCopyCount} extra copies are ready for the Recycle Bin.</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-[22px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-1 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Space you could free up</p>
-                    <p className="text-2xl font-semibold text-foreground">{formatBytes(readyEstimatedBytes)}</p>
-                    <p className="text-sm text-muted-foreground">Estimated space if the ready extra copies move out of the main library.</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
-                <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">View</p>
-                    <p className="text-sm text-muted-foreground">Focus is the primary workflow here. Switch quietly to list or gallery only when you need to scan or bulk-select groups.</p>
-                  </div>
-                  <ToggleGroup
-                    type="single"
-                    value={readyForBinViewMode}
-                    onValueChange={(value) => {
-                      if (value === "focus" || value === "gallery" || value === "list") setReadyForBinViewMode(value);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="justify-start"
-                    data-testid="ready-for-bin-view-toggle"
-                  >
-                    <ToggleGroupItem value="focus" aria-label="Focus view" data-testid="ready-for-bin-view-focus">
-                      <PanelLeft className="h-4 w-4" />
-                      Focus
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="List view" data-testid="ready-for-bin-view-list">
-                      <List className="h-4 w-4" />
-                      List
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="gallery" aria-label="Gallery view" data-testid="ready-for-bin-view-gallery">
-                      <LayoutGrid className="h-4 w-4" />
-                      Gallery
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
+              <Card data-testid="ready-for-bin-top-controls" className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
                 <CardContent className="space-y-4 p-4">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[28rem]">
+                      <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Ready groups</p>
+                        <p className="text-2xl font-semibold text-foreground">{readyGroups.length}</p>
+                        <p className="text-sm text-muted-foreground">{readyExtraCopyCount} extra copies are move-ready.</p>
+                      </div>
+                      <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Estimated reclaim</p>
+                        <p className="text-2xl font-semibold text-foreground">{formatBytes(readyEstimatedBytes)}</p>
+                        <p className="text-sm text-muted-foreground">Potential space from moving ready extra copies.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 flex-col gap-3 xl:items-end">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                        <ToggleGroup
+                          type="single"
+                          value={readyForBinViewMode}
+                          onValueChange={(value) => {
+                            if (value === "focus" || value === "gallery" || value === "list") setReadyForBinViewMode(value);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="justify-start"
+                          data-testid="ready-for-bin-view-toggle"
+                        >
+                          <ToggleGroupItem value="focus" aria-label="Focus view" data-testid="ready-for-bin-view-focus">
+                            <PanelLeft className="h-4 w-4" />
+                            Focus
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="list" aria-label="List view" data-testid="ready-for-bin-view-list">
+                            <List className="h-4 w-4" />
+                            List
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="gallery" aria-label="Gallery view" data-testid="ready-for-bin-view-gallery">
+                            <LayoutGrid className="h-4 w-4" />
+                            Gallery
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+
+                        {readyForBinViewMode !== "focus" ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void handleMoveEligibleDuplicates(readyGroups, "all")}
+                            disabled={moveToBinMutation.isPending || readyGroups.length === 0 || Boolean(recycleConfigWarning)}
+                          >
+                            Move all eligible groups
+                          </Button>
+                        ) : null}
+                      </div>
+
+                      <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground xl:max-w-[32rem]">
+                        {recycleConfigWarning ? (
+                          <p className="text-caution">{recycleConfigWarning}</p>
+                        ) : (
+                          <p>
+                            Recycle Bin: <span className="font-mono text-foreground">{archiveRoot}</span>. Restore window: {archiveRetentionDays} day{archiveRetentionDays === 1 ? "" : "s"}. {getPreferredKeepCopyStaysText()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {recycleBinFeedback ? (
                     <div
                       className={cn(
@@ -2004,162 +2015,131 @@ export default function DuplicatesPage() {
                       {recycleBinFeedback.message}
                     </div>
                   ) : null}
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Ready for Bin</p>
-                      <p className="text-sm text-muted-foreground">This workflow view is filtered from the backend recommendation. {getPreferredKeepCopyStaysText()}</p>
-                    </div>
-                    {readyForBinViewMode !== "focus" ? (
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => void handleMoveEligibleDuplicates(readyGroups, "all")}
-                          disabled={moveToBinMutation.isPending || readyGroups.length === 0 || Boolean(recycleConfigWarning)}
-                        >
-                          Move all eligible groups
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
-                    {recycleConfigWarning ? (
-                      <p className="text-caution">{recycleConfigWarning}</p>
-                    ) : (
-                      <p>
-                        Recycle Bin: <span className="font-mono text-foreground">{archiveRoot}</span>. Current restore window: {archiveRetentionDays} day{archiveRetentionDays === 1 ? "" : "s"}.
-                      </p>
-                    )}
-                  </div>
-
-                  {restoredReviewGroupIds.size ? (
-                    <div className="flex flex-col gap-3 rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
-                      <p>
-                        {restoredReviewGroupIds.size} restored group{restoredReviewGroupIds.size === 1 ? "" : "s"} {restoredReviewGroupIds.size === 1 ? "needs" : "need"} review before {restoredReviewGroupIds.size === 1 ? "it can" : "they can"} re-enter Ready for Bin.
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setReviewFilter("restored");
-                          setActiveTab("review");
-                        }}
-                      >
-                        Review restored groups
-                      </Button>
-                    </div>
-                  ) : null}
-
-                  {!readyGroups.length ? (
-                    <p className="text-sm text-muted-foreground">No eligible extra copies are left to move to the Recycle Bin.</p>
-                  ) : null}
-
-                  {readyForBinViewMode === "focus" ? (
-                    focusedReadyGroup ? renderFocusedReadyGroup(focusedReadyGroup) : null
-                  ) : null}
-
-                  {readyForBinViewMode !== "focus" && selectedReadyGroups.length ? (
-                    <div
-                      data-testid="ready-for-bin-bulk-action-bar"
-                      className="flex flex-col gap-3 rounded-[20px] border border-primary/20 bg-primary/5 px-4 py-3 lg:flex-row lg:items-center lg:justify-between"
-                    >
-                      <div className="space-y-1">
-                        <p className="text-sm font-semibold text-foreground">
-                          {selectedReadyGroups.length} selected group{selectedReadyGroups.length === 1 ? "" : "s"}
-                        </p>
-                        <p className="text-sm text-muted-foreground">Move only the extra copies from the selected groups into the Recycle Bin.</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          onClick={() => void handleMoveEligibleDuplicates(selectedReadyGroups, "selected")}
-                          disabled={moveToBinMutation.isPending || Boolean(recycleConfigWarning)}
-                        >
-                          Move selected groups
-                        </Button>
-                        <Button type="button" variant="outline" onClick={clearReadyGroupSelection}>
-                          Clear selection
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {readyGroups.length && readyForBinViewMode === "gallery" ? (
-                    <div data-testid="ready-for-bin-gallery" className="grid gap-4 xl:grid-cols-2">
-                      {readyGroups.map((group) => renderGalleryReadyCard(group))}
-                    </div>
-                  ) : null}
-
-                  {readyGroups.length && readyForBinViewMode === "list" ? (
-                    <div data-testid="ready-for-bin-list" className="space-y-3">
-                      {readyGroups.map((group) => {
-                        const isSelected = selectedReadyGroupIds.includes(group.group_id);
-                        const recommendation = getDuplicateRecommendation(group);
-                        return (
-                          <div
-                            key={group.group_id}
-                            role="button"
-                            tabIndex={0}
-                            className={cn(
-                              "flex flex-col gap-3 rounded-[22px] border border-border/70 bg-background/70 p-4 lg:flex-row lg:items-center lg:justify-between",
-                              focusedReadyGroupId === group.group_id && "border-primary/30 shadow-sm",
-                              isSelected && "border-primary/45 ring-2 ring-primary/15",
-                            )}
-                            onClick={() => setFocusedReadyGroupId(group.group_id)}
-                            onKeyDown={(event) => {
-                              if (event.key === " " || event.key === "Enter") {
-                                event.preventDefault();
-                                setFocusedReadyGroupId(group.group_id);
-                              }
-                            }}
-                          >
-                            <div className="flex min-w-0 items-start gap-3">
-                              <Checkbox
-                                checked={isSelected}
-                                aria-label={`Select group ${basename(group.canonical_path)}`}
-                                onCheckedChange={(checked) => toggleReadyGroupSelection(group.group_id, Boolean(checked))}
-                                onClick={(event) => event.stopPropagation()}
-                              />
-                              <div className="min-w-0 space-y-2">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <StatusBadge label={binStateLabels.ready} severity="success" />
-                                  <StatusBadge
-                                    label={getRecommendationPresentation(recommendation).label}
-                                    severity={getRecommendationPresentation(recommendation).severity}
-                                  />
-                                  <StatusBadge
-                                    label={`${group.reclaimable_file_count ?? 0} extra cop${(group.reclaimable_file_count ?? 0) === 1 ? "y" : "ies"}`}
-                                    severity="neutral"
-                                  />
-                                  <StatusBadge label={formatBytes(group.estimated_reclaim_bytes ?? 0)} severity="info" />
-                                </div>
-                                <p className="truncate text-sm font-semibold text-foreground">{basename(group.canonical_path)}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {recommendation?.operator_explanation ?? "Move only the extra copies from this group into the Recycle Bin."}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                void handleMoveEligibleDuplicates([group], "single");
-                              }}
-                              disabled={moveToBinMutation.isPending || Boolean(recycleConfigWarning)}
-                            >
-                              Move this group
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : null}
                 </CardContent>
               </Card>
 
+              {readyForBinViewMode === "focus" ? (focusedReadyGroup ? renderFocusedReadyGroup(focusedReadyGroup) : null) : null}
+
+              {restoredReviewGroupIds.size ? (
+                <div className="flex flex-col gap-3 rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
+                  <p>
+                    {restoredReviewGroupIds.size} restored group{restoredReviewGroupIds.size === 1 ? "" : "s"} {restoredReviewGroupIds.size === 1 ? "needs" : "need"} review before {restoredReviewGroupIds.size === 1 ? "it can" : "they can"} re-enter Ready for Bin.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setReviewFilter("restored");
+                      setActiveTab("review");
+                    }}
+                  >
+                    Review restored groups
+                  </Button>
+                </div>
+              ) : null}
+
+              {!readyGroups.length ? <p className="text-sm text-muted-foreground">No eligible extra copies are left to move to the Recycle Bin.</p> : null}
+
+              {readyForBinViewMode !== "focus" && selectedReadyGroups.length ? (
+                <div
+                  data-testid="ready-for-bin-bulk-action-bar"
+                  className="flex flex-col gap-3 rounded-[20px] border border-primary/20 bg-primary/5 px-4 py-3 lg:flex-row lg:items-center lg:justify-between"
+                >
+                  <div className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">
+                      {selectedReadyGroups.length} selected group{selectedReadyGroups.length === 1 ? "" : "s"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Move only the extra copies from the selected groups into the Recycle Bin.</p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => void handleMoveEligibleDuplicates(selectedReadyGroups, "selected")}
+                      disabled={moveToBinMutation.isPending || Boolean(recycleConfigWarning)}
+                    >
+                      Move selected groups
+                    </Button>
+                    <Button type="button" variant="outline" onClick={clearReadyGroupSelection}>
+                      Clear selection
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {readyGroups.length && readyForBinViewMode === "gallery" ? (
+                <div data-testid="ready-for-bin-gallery" className="grid gap-4 xl:grid-cols-2">
+                  {readyGroups.map((group) => renderGalleryReadyCard(group))}
+                </div>
+              ) : null}
+
+              {readyGroups.length && readyForBinViewMode === "list" ? (
+                <div data-testid="ready-for-bin-list" className="space-y-3">
+                  {readyGroups.map((group) => {
+                    const isSelected = selectedReadyGroupIds.includes(group.group_id);
+                    const recommendation = getDuplicateRecommendation(group);
+                    return (
+                      <div
+                        key={group.group_id}
+                        role="button"
+                        tabIndex={0}
+                        className={cn(
+                          "flex flex-col gap-3 rounded-[22px] border border-border/70 bg-background/70 p-4 lg:flex-row lg:items-center lg:justify-between",
+                          focusedReadyGroupId === group.group_id && "border-primary/30 shadow-sm",
+                          isSelected && "border-primary/45 ring-2 ring-primary/15",
+                        )}
+                        onClick={() => setFocusedReadyGroupId(group.group_id)}
+                        onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return;
+                          if (event.key === " " || event.key === "Enter") {
+                            event.preventDefault();
+                            setFocusedReadyGroupId(group.group_id);
+                          }
+                        }}
+                      >
+                        <div className="flex min-w-0 items-start gap-3">
+                          <Checkbox
+                            checked={isSelected}
+                            aria-label={`Select group ${basename(group.canonical_path)}`}
+                            onCheckedChange={(checked) => toggleReadyGroupSelection(group.group_id, Boolean(checked))}
+                            onClick={(event) => event.stopPropagation()}
+                          />
+                          <div className="min-w-0 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <StatusBadge label={binStateLabels.ready} severity="success" />
+                              <StatusBadge
+                                label={getRecommendationPresentation(recommendation).label}
+                                severity={getRecommendationPresentation(recommendation).severity}
+                              />
+                              <StatusBadge
+                                label={`${group.reclaimable_file_count ?? 0} extra cop${(group.reclaimable_file_count ?? 0) === 1 ? "y" : "ies"}`}
+                                severity="neutral"
+                              />
+                              <StatusBadge label={formatBytes(group.estimated_reclaim_bytes ?? 0)} severity="info" />
+                            </div>
+                            <p className="truncate text-sm font-semibold text-foreground">{basename(group.canonical_path)}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {recommendation?.operator_explanation ?? "Move only the extra copies from this group into the Recycle Bin."}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void handleMoveEligibleDuplicates([group], "single");
+                          }}
+                          disabled={moveToBinMutation.isPending || Boolean(recycleConfigWarning)}
+                        >
+                          Move this group
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
           </TabsContent>
 
