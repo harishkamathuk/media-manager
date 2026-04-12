@@ -102,7 +102,7 @@ Every change must respect runtime invariants.
 
 ---
 
-# 1. Core System Invariants
+## 1. Core System Invariants
 
 These must NEVER be violated:
 
@@ -119,7 +119,7 @@ If a proposed change weakens any invariant, it is invalid.
 
 ---
 
-# 2. Architectural Model
+## 2. Architectural Model
 
 The system is composed of:
 
@@ -142,7 +142,7 @@ If uncertain, inspect schema definitions before proposing logic changes.
 
 ---
 
-# 3. Change Discipline
+## 3. Change Discipline
 
 Agents must follow this order:
 
@@ -162,7 +162,7 @@ No change is complete without specifying:
 
 ---
 
-# 4. Planning Rules
+## 4. Planning Rules
 
 Planner:
 - Is pure.
@@ -181,7 +181,7 @@ If adding a new action type:
 
 ---
 
-# 5. Apply Rules
+## 5. Apply Rules
 
 Apply:
 - Consumes planned_actions.
@@ -200,7 +200,7 @@ Resume contract:
 
 ---
 
-# 6. Schema Modifications
+## 6. Schema Modifications
 
 Schema changes require:
 
@@ -217,7 +217,7 @@ Never:
 
 ---
 
-# 7. Testing Expectations
+## 7. Testing Expectations
 
 Any non-trivial change must include:
 
@@ -234,7 +234,7 @@ Tests must validate:
 
 ---
 
-# 8. Observability
+## 8. Observability
 
 All long-running operations must:
 
@@ -249,7 +249,7 @@ No implicit retries.
 
 ---
 
-# 9. Forbidden Patterns
+## 9. Forbidden Patterns
 
 Agents must not:
 
@@ -262,7 +262,7 @@ Agents must not:
 
 ---
 
-# 10. When Unsure
+## 10. When Unsure
 
 If ambiguity exists:
 
@@ -271,3 +271,28 @@ If ambiguity exists:
 - Propose clarification instead of implementation.
 
 This system prioritizes safety and determinism over convenience.
+
+---
+
+## 11. OpenCode Pilot Guardrails
+
+Unless the user explicitly instructs otherwise, agent activity in this repository should default to a conservative mode focused on:
+
+- documentation support
+- repository reading
+- GitHub issue / PR read-and-report tasks
+
+In this conservative mode, agents must not:
+
+- edit code without explicit user instruction
+- create or modify GitHub issues, PRs, or comments without explicit approval
+- run destructive shell commands
+- invent architecture decisions or system behavior not supported by repository sources
+
+For documentation work, agents should:
+
+- prefer the smallest valid documentation artifact
+- prefer updating existing documentation over creating overlapping files where appropriate
+- classify the requested artifact before editing
+- explain why the chosen destination is appropriate
+- draft content before applying file edits when the task is exploratory, note-shaping, or documentation design work
