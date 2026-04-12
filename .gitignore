@@ -83,3 +83,4 @@ media_manager/tests/test_manual_qa_fixture_layout.py
 
 # Continue extension for source code completion
 .continue/*
+opencode.jsonc
