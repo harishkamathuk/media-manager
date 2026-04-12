@@ -1544,7 +1544,13 @@ describe("DuplicatesPage", () => {
     renderPage("/duplicates?tab=playback-issues");
 
     expect(await screen.findByRole("heading", { name: "Playback issues" })).toBeInTheDocument();
+    const topControls = screen.getByTestId("playback-issues-top-controls");
+    const issuesList = screen.getByTestId("playback-issues-list");
+    expect(topControls).toBeInTheDocument();
+    expect(topControls.nextElementSibling).toBe(issuesList);
     expect(screen.getByText("Playback issues in duplicate groups")).toBeInTheDocument();
+    expect(within(topControls).getByRole("button", { name: "Open in review" })).toBeInTheDocument();
+    expect(within(topControls).getByRole("link", { name: "Integrity review" })).toBeInTheDocument();
     expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);
     expect(screen.getAllByText("beta-main.jpg").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Playback issue").length).toBeGreaterThan(0);
@@ -1568,6 +1574,8 @@ describe("DuplicatesPage", () => {
     expect(within(alphaCard).getByText("Playback issue")).toBeInTheDocument();
     expect(within(alphaCard).getByText("Affects preferred keep copy")).toBeInTheDocument();
     expect(within(alphaCard).getByText("Do not move")).toBeInTheDocument();
+    expect(within(alphaCard).getByRole("button", { name: "Open in review" })).toBeInTheDocument();
+    expect(within(alphaCard).getByRole("link", { name: "Integrity review" })).toBeInTheDocument();
     expect(within(betaCard).getByText("Playback issue")).toBeInTheDocument();
     expect(within(betaCard).getByText("Affects extra copy only")).toBeInTheDocument();
     expect(within(betaCard).getByText("Safe to move extra copies")).toBeInTheDocument();
