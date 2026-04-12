@@ -650,6 +650,7 @@ describe("DuplicatesPage", () => {
     renderPage("/duplicates?tab=recycle-bin");
 
     expect(await screen.findByRole("heading", { name: "Recycle Bin" })).toBeInTheDocument();
+    expect(screen.getByTestId("recycle-bin-top-controls")).toBeInTheDocument();
     expect(screen.getByTestId("recycle-bin-gallery")).toBeInTheDocument();
     expect(screen.queryByTestId("recycle-bin-list")).not.toBeInTheDocument();
     expect(screen.queryByTestId("recycle-bin-focused-panel")).not.toBeInTheDocument();
@@ -687,6 +688,7 @@ describe("DuplicatesPage", () => {
 
     renderPage("/duplicates?tab=recycle-bin");
 
+    expect(await screen.findByTestId("recycle-bin-top-controls")).toBeInTheDocument();
     expect(await screen.findByTestId("recycle-bin-gallery")).toBeInTheDocument();
     expect(screen.getAllByText("Restore window ended").length).toBeGreaterThan(0);
     expect(screen.getByText("Restore is still available for this extra copy while the restore window remains open.")).toBeInTheDocument();
@@ -735,7 +737,8 @@ describe("DuplicatesPage", () => {
     renderPage("/duplicates?tab=recycle-bin");
 
     expect(await screen.findByRole("heading", { name: "Recycle Bin" })).toBeInTheDocument();
-    expect(screen.getByText("These extra copies still physically exist in the Recycle Bin across all pages.")).toBeInTheDocument();
+    const topControls = screen.getByTestId("recycle-bin-top-controls");
+    expect(within(topControls).getByText("Extra copies currently held across all pages.")).toBeInTheDocument();
     expect(screen.getByText("Restore available on this page")).toBeInTheDocument();
     expect(screen.getByText("Restore window ended on this page")).toBeInTheDocument();
     expect(screen.getByText("Showing page 1 of 2 for Recycle Bin items.")).toBeInTheDocument();
@@ -746,9 +749,12 @@ describe("DuplicatesPage", () => {
 
     fireEvent.click(screen.getByTestId("recycle-bin-view-focus"));
     expect(await screen.findByTestId("recycle-bin-focused-panel")).toBeInTheDocument();
-    expect(screen.getByTestId("recycle-bin-focused-panel")).toHaveTextContent(
+    const focusedPanel = screen.getByTestId("recycle-bin-focused-panel");
+    expect(topControls.nextElementSibling).toBe(focusedPanel);
+    expect(focusedPanel).toHaveTextContent(
       "Restore is still available for this extra copy while the restore window remains open.",
     );
+    expect(within(focusedPanel).getByTestId("recycle-bin-single-item-action")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Next page" }));
 
@@ -787,7 +793,7 @@ describe("DuplicatesPage", () => {
     renderPage("/duplicates?tab=recycle-bin");
 
     expect(await screen.findByRole("heading", { name: "Recycle Bin" })).toBeInTheDocument();
-    expect(screen.getByText("These extra copies still physically exist in the Recycle Bin across all pages.")).toBeInTheDocument();
+    expect(screen.getByText("Extra copies currently held across all pages.")).toBeInTheDocument();
     expect(screen.getByText("Restore available on this page")).toBeInTheDocument();
     expect(screen.getAllByText("903").length).toBeGreaterThan(0);
     expect(screen.getAllByText("50").length).toBeGreaterThan(0);
@@ -822,6 +828,52 @@ describe("DuplicatesPage", () => {
     expect(screen.getByText("Restore is still available for this extra copy while the restore window remains open.")).toBeInTheDocument();
     expect(screen.getByText("This entry is no longer restorable and remains visible here until a later purge removes it.")).toBeInTheDocument();
     expect(screen.queryByText("Safe to move extra copies")).not.toBeInTheDocument();
+  });
+
+  it("supports focused Previous and Next navigation across recycle bin items", async () => {
+    reclaimItemsData = [
+      {
+        file_instance_id: "archived-alpha",
+        content_id: "group-alpha",
+        original_path: "/library/alpha-copy.jpg",
+        archive_path: "/archive/alpha-copy.jpg",
+        item_status: "ARCHIVED",
+        expires_at: "2099-04-10T10:00:00+00:00",
+      },
+      {
+        file_instance_id: "archived-beta",
+        content_id: "group-beta",
+        original_path: "/library/beta-copy.jpg",
+        archive_path: "/archive/beta-copy.jpg",
+        item_status: "ARCHIVED",
+        expires_at: "2099-04-11T10:00:00+00:00",
+      },
+      {
+        file_instance_id: "archived-gamma",
+        content_id: "group-gamma",
+        original_path: "/library/gamma-copy.jpg",
+        archive_path: "/archive/gamma-copy.jpg",
+        item_status: "ARCHIVED",
+        expires_at: "2020-04-10T10:00:00+00:00",
+      },
+    ];
+
+    renderPage("/duplicates?tab=recycle-bin");
+
+    const topControls = await screen.findByTestId("recycle-bin-top-controls");
+    fireEvent.click(screen.getByTestId("recycle-bin-view-focus"));
+
+    const focusedPanel = await screen.findByTestId("recycle-bin-focused-panel");
+    expect(topControls.nextElementSibling).toBe(focusedPanel);
+    expect(screen.getByTestId("recycle-bin-focused-title")).toHaveTextContent("alpha-copy.jpg");
+    expect(within(topControls).getByTestId("recycle-bin-view-toggle")).toBeInTheDocument();
+    expect(within(focusedPanel).getByTestId("recycle-bin-single-item-action")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    await waitFor(() => expect(screen.getByTestId("recycle-bin-focused-title")).toHaveTextContent("beta-copy.jpg"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous" }));
+    await waitFor(() => expect(screen.getByTestId("recycle-bin-focused-title")).toHaveTextContent("alpha-copy.jpg"));
   });
 
   it("supports focused Previous and Next navigation across ready groups on Ready for Bin", async () => {

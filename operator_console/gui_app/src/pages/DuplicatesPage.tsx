@@ -1141,34 +1141,39 @@ export default function DuplicatesPage() {
     const presentation = getRecycleBinPresentation(item);
 
     return (
-      <Card key={item.file_instance_id} className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
-        <CardContent className="space-y-4 p-4">
+      <Card
+        key={item.file_instance_id}
+        className={cn(
+          "rounded-[22px] border bg-card/95 shadow-sm",
+          item.restore_allowed ? "border-success/25" : "border-caution/25",
+        )}
+      >
+        <CardContent className="space-y-3 p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0 space-y-1">
+            <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge
-                  label={presentation.primary_label}
-                  severity={presentation.primary_severity}
-                />
+                <StatusBadge label={presentation.primary_label} severity={presentation.primary_severity} />
                 {presentation.timing_label ? (
-                  <StatusBadge
-                    label={presentation.timing_label}
-                    severity={presentation.timing_severity}
-                  />
+                  <StatusBadge label={presentation.timing_label} severity={presentation.timing_severity} />
                 ) : null}
               </div>
-              <p className="truncate text-base font-semibold text-foreground">{basename(item.original_path)}</p>
-              <p className="text-sm text-muted-foreground">{presentation.explanation}</p>
+              <div className="min-w-0 space-y-1">
+                <p className="truncate text-sm font-semibold text-foreground">{basename(item.original_path)}</p>
+                <p className="truncate text-xs text-muted-foreground">{item.archive_path}</p>
+              </div>
             </div>
             <Button
               type="button"
-              variant="outline"
+              variant={item.restore_allowed ? "default" : "outline"}
               size="sm"
               onClick={() => void handleRestore(item)}
               disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
             >
               Restore from Recycle Bin
             </Button>
+          </div>
+          <div className="rounded-[18px] border border-border/70 bg-background/60 px-3 py-2 text-sm text-muted-foreground">
+            {presentation.explanation}
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <div className="space-y-2">
@@ -1179,7 +1184,7 @@ export default function DuplicatesPage() {
                   alt={basename(keepCopy.path)}
                   isImage={keepCopy.is_image}
                   mediaType={keepCopy.media_type}
-                  className="aspect-[4/3]"
+                  className="aspect-[4/3] max-h-52"
                   fit="contain"
                 />
               ) : (
@@ -1196,7 +1201,7 @@ export default function DuplicatesPage() {
                   alt={basename(movedCopy.path)}
                   isImage={movedCopy.is_image}
                   mediaType={movedCopy.media_type}
-                  className="aspect-[4/3]"
+                  className="aspect-[4/3] max-h-52"
                   fit="contain"
                 />
               ) : (
@@ -1205,10 +1210,6 @@ export default function DuplicatesPage() {
                 </div>
               )}
             </div>
-          </div>
-          <div className="space-y-1">
-            <p className="truncate text-xs font-medium text-foreground">{basename(item.original_path)}</p>
-            <p className="truncate text-xs text-muted-foreground">{item.archive_path}</p>
           </div>
         </CardContent>
       </Card>
@@ -1345,7 +1346,7 @@ export default function DuplicatesPage() {
       <div data-testid="recycle-bin-focused-panel" className="rounded-[22px] border border-border/70 bg-background/80 p-4">
         <div className="flex flex-col gap-3 border-b border-border/70 pb-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 space-y-1">
-            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Focused Recycle Bin item</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Focused restore workspace</p>
             <p data-testid="recycle-bin-focused-title" className="truncate text-lg font-semibold text-foreground">
               {basename(item.original_path)}
             </p>
@@ -1428,6 +1429,7 @@ export default function DuplicatesPage() {
           <Button
             type="button"
             size="sm"
+            data-testid="recycle-bin-single-item-action"
             onClick={() => void handleRestore(item)}
             disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
           >
@@ -1562,12 +1564,7 @@ export default function DuplicatesPage() {
               </TabsContent>
 
               <TabsContent value="recycle-bin" className="mt-0">
-                <div className="space-y-2">
-                  <h2 className="text-xl font-semibold tracking-tight text-foreground">Recycle Bin</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Browse extra copies already in the Recycle Bin and restore them when needed.
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Recycle Bin</h2>
               </TabsContent>
 
               <TabsContent value="playback-issues" className="mt-0">
@@ -2145,65 +2142,96 @@ export default function DuplicatesPage() {
 
           <TabsContent value="recycle-bin" className="mt-0">
             <div className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                <Card className="rounded-[22px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-1 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">In Recycle Bin</p>
-                    <p className="text-2xl font-semibold text-foreground">{recycleBinTotalCount}</p>
-                    <p className="text-sm text-muted-foreground">These extra copies still physically exist in the Recycle Bin across all pages.</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-[22px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-1 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Restore available on this page</p>
-                    <p className="text-2xl font-semibold text-foreground">{restorableRecycleBinItems.length}</p>
-                    <p className="text-sm text-muted-foreground">These loaded items can still be restored from the Recycle Bin.</p>
-                  </CardContent>
-                </Card>
-                <Card className="rounded-[22px] border-border/70 bg-card/95 shadow-sm">
-                  <CardContent className="space-y-1 p-4">
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Restore window ended on this page</p>
-                    <p className="text-2xl font-semibold text-foreground">{expiredRecycleBinItems.length}</p>
-                    <p className="text-sm text-muted-foreground">These loaded expired items stay visible here until they are purged.</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
-                <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">View</p>
-                    <p className="text-sm text-muted-foreground">Gallery is the primary browsing workflow here. Switch to list for denser scanning or focus for a single-item drill-in.</p>
-                  </div>
-                  <ToggleGroup
-                    type="single"
-                    value={recycleBinViewMode}
-                    onValueChange={(value) => {
-                      if (value === "focus" || value === "gallery" || value === "list") setRecycleBinViewMode(value);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="justify-start"
-                    data-testid="recycle-bin-view-toggle"
-                  >
-                    <ToggleGroupItem value="gallery" aria-label="Gallery view" data-testid="recycle-bin-view-gallery">
-                      <LayoutGrid className="h-4 w-4" />
-                      Gallery
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="list" aria-label="List view" data-testid="recycle-bin-view-list">
-                      <List className="h-4 w-4" />
-                      List
-                    </ToggleGroupItem>
-                    <ToggleGroupItem value="focus" aria-label="Focus view" data-testid="recycle-bin-view-focus">
-                      <PanelLeft className="h-4 w-4" />
-                      Focus
-                    </ToggleGroupItem>
-                  </ToggleGroup>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
+              <Card data-testid="recycle-bin-top-controls" className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
                 <CardContent className="space-y-4 p-4">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[42rem]">
+                      <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">In Recycle Bin</p>
+                        <p className="text-2xl font-semibold text-foreground">{recycleBinTotalCount}</p>
+                        <p className="text-sm text-muted-foreground">Extra copies currently held across all pages.</p>
+                      </div>
+                      <div className="rounded-[18px] border border-success/20 bg-success/5 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Restore available on this page</p>
+                        <p className="text-2xl font-semibold text-foreground">{restorableRecycleBinItems.length}</p>
+                        <p className="text-sm text-muted-foreground">Loaded items still eligible for restore.</p>
+                      </div>
+                      <div className="rounded-[18px] border border-caution/20 bg-caution/5 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Restore window ended on this page</p>
+                        <p className="text-2xl font-semibold text-foreground">{expiredRecycleBinItems.length}</p>
+                        <p className="text-sm text-muted-foreground">Loaded expired items remain visible until purge.</p>
+                      </div>
+                    </div>
+
+                    <div className="flex min-w-0 flex-col gap-3 xl:items-end">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                        <ToggleGroup
+                          type="single"
+                          value={recycleBinViewMode}
+                          onValueChange={(value) => {
+                            if (value === "focus" || value === "gallery" || value === "list") setRecycleBinViewMode(value);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="justify-start"
+                          data-testid="recycle-bin-view-toggle"
+                        >
+                          <ToggleGroupItem value="gallery" aria-label="Gallery view" data-testid="recycle-bin-view-gallery">
+                            <LayoutGrid className="h-4 w-4" />
+                            Gallery
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="list" aria-label="List view" data-testid="recycle-bin-view-list">
+                            <List className="h-4 w-4" />
+                            List
+                          </ToggleGroupItem>
+                          <ToggleGroupItem value="focus" aria-label="Focus view" data-testid="recycle-bin-view-focus">
+                            <PanelLeft className="h-4 w-4" />
+                            Focus
+                          </ToggleGroupItem>
+                        </ToggleGroup>
+
+                        {recycleBinTotalPages > 1 ? (
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRecycleBinPage((current) => Math.max(1, current - 1))}
+                              disabled={recycleBinPage <= 1}
+                            >
+                              Previous page
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setRecycleBinPage((current) => Math.min(recycleBinTotalPages, current + 1))}
+                              disabled={recycleBinPage >= recycleBinTotalPages}
+                            >
+                              Next page
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {recycleBinTotalPages > 1 ? (
+                        <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground xl:max-w-[32rem]">
+                          Showing page {recycleBinPage} of {recycleBinTotalPages} for Recycle Bin items.
+                        </div>
+                      ) : null}
+
+                      {recycleConfigWarning ? (
+                        <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-caution xl:max-w-[32rem]">
+                          {recycleConfigWarning}
+                        </div>
+                      ) : (
+                        <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground xl:max-w-[32rem]">
+                          Recycle Bin: <span className="font-mono text-foreground">{archiveRoot}</span>. Restore window: {archiveRetentionDays} day{archiveRetentionDays === 1 ? "" : "s"}.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {recycleBinFeedback ? (
                     <div
                       className={cn(
@@ -2216,94 +2244,55 @@ export default function DuplicatesPage() {
                       {recycleBinFeedback.message}
                     </div>
                   ) : null}
-
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">In Recycle Bin</p>
-                    <p className="text-sm text-muted-foreground">Browse already moved extra copies here. Restore is available only while the restore window remains open.</p>
-                  </div>
-
-                  {recycleConfigWarning ? (
-                    <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-caution">
-                      {recycleConfigWarning}
-                    </div>
-                  ) : (
-                    <div className="rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
-                      Recycle Bin: <span className="font-mono text-foreground">{archiveRoot}</span>. Current restore window: {archiveRetentionDays} day{archiveRetentionDays === 1 ? "" : "s"}.
-                    </div>
-                  )}
-
-                  {recycleBinTotalPages > 1 ? (
-                    <div className="flex flex-col gap-3 rounded-[18px] border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
-                      <p>
-                        Showing page {recycleBinPage} of {recycleBinTotalPages} for Recycle Bin items.
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setRecycleBinPage((current) => Math.max(1, current - 1))}
-                          disabled={recycleBinPage <= 1}
-                        >
-                          Previous page
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setRecycleBinPage((current) => Math.min(recycleBinTotalPages, current + 1))}
-                          disabled={recycleBinPage >= recycleBinTotalPages}
-                        >
-                          Next page
-                        </Button>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {!recycleBinItems.length ? (
-                    <p className="text-sm text-muted-foreground">No duplicate files are in the Recycle Bin right now.</p>
-                  ) : recycleBinViewMode === "gallery" ? (
-                    <div data-testid="recycle-bin-gallery" className="grid gap-4 xl:grid-cols-3">
-                      {recycleBinItems.map((item) => renderGalleryHoldingCard(item))}
-                    </div>
-                  ) : recycleBinViewMode === "list" ? (
-                    <div data-testid="recycle-bin-list" className="space-y-3">
-                      {recycleBinItems.map((item) => {
-                        const presentation = getRecycleBinPresentation(item);
-                        return (
-                          <div
-                            key={item.file_instance_id}
-                            className="flex flex-col gap-3 rounded-[22px] border border-border/70 bg-background/70 p-4 lg:flex-row lg:items-center lg:justify-between"
-                          >
-                            <div className="min-w-0 space-y-2">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <StatusBadge label={presentation.primary_label} severity={presentation.primary_severity} />
-                                {presentation.timing_label ? (
-                                  <StatusBadge label={presentation.timing_label} severity={presentation.timing_severity} />
-                                ) : null}
-                              </div>
-                              <p className="truncate text-sm font-semibold text-foreground">{basename(item.original_path)}</p>
-                              <p className="text-sm text-muted-foreground">{presentation.explanation}</p>
-                              <p className="truncate text-xs text-muted-foreground">{item.archive_path}</p>
-                            </div>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => void handleRestore(item)}
-                              disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
-                            >
-                              Restore from Recycle Bin
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    focusedArchivedItem ? renderFocusedArchivedItem(focusedArchivedItem) : null
-                  )}
-
                 </CardContent>
               </Card>
+
+              {!recycleBinItems.length ? (
+                <p className="text-sm text-muted-foreground">No duplicate files are in the Recycle Bin right now.</p>
+              ) : recycleBinViewMode === "gallery" ? (
+                <div data-testid="recycle-bin-gallery" className="grid gap-4 xl:grid-cols-3">
+                  {recycleBinItems.map((item) => renderGalleryHoldingCard(item))}
+                </div>
+              ) : recycleBinViewMode === "list" ? (
+                <div data-testid="recycle-bin-list" className="space-y-3">
+                  {recycleBinItems.map((item) => {
+                    const presentation = getRecycleBinPresentation(item);
+                    return (
+                      <div
+                        key={item.file_instance_id}
+                        className={cn(
+                          "flex flex-col gap-3 rounded-[20px] border bg-background/70 px-4 py-3 lg:flex-row lg:items-center lg:justify-between",
+                          item.restore_allowed ? "border-success/20" : "border-caution/20",
+                        )}
+                      >
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <StatusBadge label={presentation.primary_label} severity={presentation.primary_severity} />
+                            {presentation.timing_label ? (
+                              <StatusBadge label={presentation.timing_label} severity={presentation.timing_severity} />
+                            ) : null}
+                          </div>
+                          <div className="min-w-0 space-y-1">
+                            <p className="truncate text-sm font-semibold text-foreground">{basename(item.original_path)}</p>
+                            <p className="truncate text-xs text-muted-foreground">{item.archive_path}</p>
+                          </div>
+                          <p className="text-sm text-muted-foreground">{presentation.explanation}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant={item.restore_allowed ? "default" : "outline"}
+                          onClick={() => void handleRestore(item)}
+                          disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
+                        >
+                          Restore from Recycle Bin
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                focusedArchivedItem ? renderFocusedArchivedItem(focusedArchivedItem) : null
+              )}
             </div>
           </TabsContent>
 
