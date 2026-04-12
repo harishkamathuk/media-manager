@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ChevronLeft, ChevronRight, Copy, ExternalLink, LayoutGrid, List, PanelLeft, PanelLeftClose, ShieldAlert } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, ExternalLink, LayoutGrid, List, PanelLeft, PanelLeftClose, ShieldAlert } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 
 import { ErrorAlert } from "@/components/ErrorAlert";
@@ -724,6 +724,8 @@ export default function DuplicatesPage() {
       }>,
     [issuesByFileId, sortedGroups],
   );
+  const brokenIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.brokenCount, 0);
+  const suspectIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.suspectCount, 0);
   const reviewProgressLabel =
     selectedOverallIndex >= 0 ? `${selectedOverallIndex + 1} of ${sortedGroups.length}` : `0 of ${sortedGroups.length}`;
   const reviewMetaLine = selected
@@ -1568,12 +1570,7 @@ export default function DuplicatesPage() {
               </TabsContent>
 
               <TabsContent value="playback-issues" className="mt-0">
-                <div className="space-y-2">
-                  <h2 className="text-xl font-semibold tracking-tight text-foreground">Playback issues</h2>
-                  <p className="text-sm text-muted-foreground">
-                    Check duplicate-related playback problems here, then continue reviewing duplicates or open Integrity Review for more detail.
-                  </p>
-                </div>
+                <h2 className="text-xl font-semibold tracking-tight text-foreground">Playback issues</h2>
               </TabsContent>
             </CardContent>
           </Card>
@@ -2281,6 +2278,7 @@ export default function DuplicatesPage() {
                         <Button
                           type="button"
                           variant={item.restore_allowed ? "default" : "outline"}
+                          size="sm"
                           onClick={() => void handleRestore(item)}
                           disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
                         >
@@ -2298,37 +2296,37 @@ export default function DuplicatesPage() {
 
           <TabsContent value="playback-issues" className="mt-0">
             <div className="space-y-4">
-              <Card className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
+              <Card data-testid="playback-issues-top-controls" className="rounded-[24px] border-border/70 bg-card/95 shadow-sm">
                 <CardContent className="space-y-3 p-4">
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Playback issues in duplicate groups</p>
-                      <p className="text-sm text-muted-foreground">
-                        This view only shows duplicate groups where a file has a playback issue or needs checking.
-                      </p>
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">Playback issues in duplicate groups</p>
+                        <p className="text-sm text-muted-foreground">Review duplicate-linked playback exceptions here, then choose whether to continue duplicate review or open Integrity Review.</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <StatusBadge label={`${duplicatePlaybackGroups.length} group${duplicatePlaybackGroups.length === 1 ? "" : "s"} with playback issues`} severity="neutral" />
+                        <StatusBadge
+                          label={`${brokenIssueCount} item${brokenIssueCount === 1 ? "" : "s"} won't play`}
+                          severity="destructive"
+                        />
+                        <StatusBadge
+                          label={`${suspectIssueCount} item${suspectIssueCount === 1 ? "" : "s"} need checking`}
+                          severity="caution"
+                        />
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap xl:justify-end">
                       <Button type="button" variant="outline" onClick={() => setActiveTab("review")}>
-                        Back to review
+                        Switch to review tab
                       </Button>
                       <Button asChild type="button" variant="outline">
                         <Link to="/integrity">
-                          Open integrity review
+                          Integrity review
                           <ExternalLink className="h-4 w-4" />
                         </Link>
                       </Button>
                     </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge label={`${duplicatePlaybackGroups.length} group${duplicatePlaybackGroups.length === 1 ? "" : "s"} with playback issues`} severity="neutral" />
-                    <StatusBadge
-                      label={`${duplicatePlaybackGroups.filter((entry) => entry.brokenCount > 0).length} item${duplicatePlaybackGroups.filter((entry) => entry.brokenCount > 0).length === 1 ? "" : "s"} won't play`}
-                      severity="destructive"
-                    />
-                    <StatusBadge
-                      label={`${duplicatePlaybackGroups.filter((entry) => entry.brokenCount === 0 && entry.suspectCount > 0).length} item${duplicatePlaybackGroups.filter((entry) => entry.brokenCount === 0 && entry.suspectCount > 0).length === 1 ? "" : "s"} need checking`}
-                      severity="caution"
-                    />
                   </div>
                 </CardContent>
               </Card>
@@ -2342,7 +2340,7 @@ export default function DuplicatesPage() {
                   description="Integrity Review can still show unrelated file-health findings, but none are attached to the current duplicate groups."
                 />
               ) : (
-                <div className="space-y-4">
+                <div data-testid="playback-issues-list" className="space-y-4">
                   {duplicatePlaybackGroups.map(({ group, issues, brokenCount, suspectCount, affectedFiles }) => {
                     const hasBlockingCue = issues.some(isIssueBlocking);
                     const playbackImpact = getPlaybackImpactPresentation(affectedFiles);
@@ -2352,10 +2350,10 @@ export default function DuplicatesPage() {
                       <Card
                         key={group.group_id}
                         data-testid={`playback-group-card-${group.group_id}`}
-                        className="rounded-[24px] border-border/70 bg-card/95 shadow-sm"
+                        className="rounded-[22px] border-border/70 bg-card/95 shadow-sm"
                       >
-                        <CardContent className="space-y-4 p-4">
-                          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                        <CardContent className="space-y-3 p-4">
+                          <div className="space-y-2">
                             <div className="min-w-0 space-y-2">
                               <div className="flex flex-wrap gap-2">
                                 <StatusBadge
@@ -2370,20 +2368,17 @@ export default function DuplicatesPage() {
                                   />
                                 ) : null}
                               </div>
-                              <p className="truncate text-lg font-semibold text-foreground">{basename(group.canonical_path)}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {hasBlockingCue
-                                  ? "A copy in this group may not play. You can keep reviewing here, but this does not change the current removal rules."
-                                  : "A copy in this group needs checking. Deeper diagnosis still belongs in Integrity Review."}
-                              </p>
-                              <div data-testid={`playback-impact-${group.group_id}`} className="space-y-1">
-                                <p className="text-sm font-medium text-foreground">{playbackImpact.label}</p>
-                                <p className="text-xs text-muted-foreground">{playbackImpact.explanation}</p>
+                              <div className="space-y-1">
+                                <p className="truncate text-lg font-semibold text-foreground">{basename(group.canonical_path)}</p>
+                                <div data-testid={`playback-impact-${group.group_id}`} className="space-y-1">
+                                  <p className="text-sm font-medium text-foreground">{playbackImpact.label}</p>
+                                  <p className="text-xs text-muted-foreground">{playbackImpact.explanation}</p>
+                                </div>
                               </div>
                               {recommendation && recommendationPresentation ? (
                                 <div
                                   data-testid={`playback-recommendation-${group.group_id}`}
-                                  className="space-y-1 rounded-2xl border border-border/70 bg-background/70 px-3 py-2"
+                                  className="space-y-1 rounded-[18px] border border-border/70 bg-background/70 px-3 py-2"
                                 >
                                   <div className="flex flex-wrap items-center gap-2">
                                     <StatusBadge
@@ -2395,28 +2390,10 @@ export default function DuplicatesPage() {
                                 </div>
                               ) : null}
                             </div>
-                            <div className="flex gap-2">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => {
-                                  setSelectedId(group.group_id);
-                                  setActiveTab("review");
-                                }}
-                              >
-                                Open in review
-                              </Button>
-                              <Button asChild type="button" variant="outline">
-                                <Link to="/integrity">
-                                  Integrity review
-                                  <ExternalLink className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </div>
                           </div>
 
-                          <div className="grid gap-3 lg:grid-cols-2">
-                            <div className="rounded-[20px] border border-border/70 bg-background/70 p-4">
+                          <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+                            <div className="rounded-[18px] border border-border/70 bg-background/70 p-4">
                               <p className="text-sm font-semibold text-foreground">Affected files</p>
                               <div className="mt-3 space-y-2">
                                 {affectedFiles.map((file) => {
@@ -2424,7 +2401,7 @@ export default function DuplicatesPage() {
                                   return (
                                     <div
                                       key={file.file_instance_id}
-                                      className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border/70 bg-card/80 px-3 py-2"
+                                      className="flex flex-wrap items-center justify-between gap-2 rounded-[16px] border border-border/70 bg-card/80 px-3 py-2"
                                     >
                                       <span className="min-w-0 truncate text-sm text-foreground">{basename(file.path)}</span>
                                       <div className="flex flex-wrap gap-2">
@@ -2443,23 +2420,35 @@ export default function DuplicatesPage() {
                               </div>
                             </div>
 
-                            <div className="rounded-[20px] border border-border/70 bg-background/70 p-4">
+                            <div className="rounded-[18px] border border-border/70 bg-background/70 p-4">
                               <p className="text-sm font-semibold text-foreground">Next step</p>
-                              <div className="mt-3 rounded-2xl border border-border/70 bg-card/80 p-3">
+                              <div className="mt-3 space-y-3">
                                 <p className="text-sm text-foreground">
                                   {hasBlockingCue
                                     ? "Review this playback issue before moving extra copies to the Recycle Bin."
                                     : "You can continue reviewing duplicates here, but keep this item in mind before moving anything to the Recycle Bin."}
                                 </p>
-                                <p className="mt-2 text-xs text-muted-foreground">
-                                  This note only helps explain what you are seeing here. It does not change the current product behavior.
+                                <p className="text-xs text-muted-foreground">
+                                  `Open in review` returns to Duplicate Review for this group. `Integrity review` opens deeper file-health work.
                                 </p>
                               </div>
-                              <div className="mt-3 flex items-start gap-2 rounded-2xl border border-border/70 bg-card/80 p-3">
-                                <AlertTriangle className="mt-0.5 h-4 w-4 text-caution" />
-                                <p className="text-xs text-muted-foreground">
-                                  Integrity Review remains the place for deeper diagnosis, file-level detail, and playback health work outside duplicate review.
-                                </p>
+                              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedId(group.group_id);
+                                    setActiveTab("review");
+                                  }}
+                                >
+                                  Open in review
+                                </Button>
+                                <Button asChild type="button">
+                                  <Link to="/integrity">
+                                    Integrity review
+                                    <ExternalLink className="h-4 w-4" />
+                                  </Link>
+                                </Button>
                               </div>
                             </div>
                           </div>
