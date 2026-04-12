@@ -1549,7 +1549,7 @@ describe("DuplicatesPage", () => {
     expect(topControls).toBeInTheDocument();
     expect(topControls.nextElementSibling).toBe(issuesList);
     expect(screen.getByText("Playback issues in duplicate groups")).toBeInTheDocument();
-    expect(within(topControls).getByRole("button", { name: "Open in review" })).toBeInTheDocument();
+    expect(within(topControls).getByRole("button", { name: "Switch to review tab" })).toBeInTheDocument();
     expect(within(topControls).getByRole("link", { name: "Integrity review" })).toBeInTheDocument();
     expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);
     expect(screen.getAllByText("beta-main.jpg").length).toBeGreaterThan(0);
