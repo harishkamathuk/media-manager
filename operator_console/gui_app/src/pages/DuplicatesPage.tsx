@@ -2276,6 +2276,7 @@ export default function DuplicatesPage() {
                         <Button
                           type="button"
                           variant={item.restore_allowed ? "default" : "outline"}
+                          size="sm"
                           onClick={() => void handleRestore(item)}
                           disabled={restoreFromBinMutation.isPending || !item.restore_allowed}
                         >
