@@ -95,7 +95,7 @@ When editing project fields, ALWAYS query the exact project item ID for the spec
 
 ```bash
 # Query all project items and find the exact ID for the issue number
-gh api graphql -f query='query{repo:repository(owner:"harishkamathuk",name:"media-manager"){proj:projectV2(number:8){items(first:100){nodes{id content{...on Issue{number}}}}}}' | jq -r '.data.repo.proj.items.nodes[] | select(.content.number == ISSUE_NUMBER) | .id'
+gh api graphql -f query='query{repo:repository(owner:"harishkamathuk",name:"media-manager"){proj:projectV2(number:8){items(first:100){nodes{id content{...on Issue{number}}}}}}}' | jq -r '.data.repo.proj.items.nodes[] | select(.content.number == ISSUE_NUMBER) | .id'
 ```
 
 Why this matters: Using guessed/estimated IDs from earlier queries fails because new issues get new project item IDs. Always query fresh.
