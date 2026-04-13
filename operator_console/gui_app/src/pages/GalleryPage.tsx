@@ -142,6 +142,7 @@ export default function GalleryPage() {
     () => items.filter((item) => mediaTypeFilter === "all" || item.file_type === mediaTypeFilter),
     [items, mediaTypeFilter],
   );
+  const visibleCount = visibleItems.length;
   const allTags = useMemo(() => (tagsQuery.data as Tag[] | undefined) ?? [], [tagsQuery.data]);
   const totalCount = data?.total_count ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
@@ -179,7 +180,7 @@ export default function GalleryPage() {
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             {galleryQuery.isLoading && !data
               ? "Loading gallery..."
-              : `${totalCount} item${totalCount === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
+              : `${mediaTypeFilter !== "all" ? visibleCount : totalCount} item${(mediaTypeFilter !== "all" ? visibleCount : totalCount) === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
           </div>
         </div>
 

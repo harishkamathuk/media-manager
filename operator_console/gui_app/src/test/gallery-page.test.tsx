@@ -148,4 +148,41 @@ describe("Gallery page", () => {
       expect(screen.getByText("clip.mp4")).toBeInTheDocument();
     });
   });
+
+  it("updates status count to show filtered count when media type changes", async () => {
+    mocks.getCanonical.mockResolvedValue({
+      data: {
+        items: [
+          { id: "v1", filename: "v1.jpg", file_type: "image", media_url: "/v1", poster_url: null, matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
+          { id: "v2", filename: "v2.mp4", file_type: "video", media_url: "/v2", poster_url: "/v2", matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
+        ],
+        total_count: 2,
+        page: 1,
+        limit: 20,
+        total_pages: 1,
+      },
+    });
+
+    renderPage();
+
+    await screen.findByText("2 items · Page 1 of 1");
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: "All" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("2 items · Page 1 of 1")).toBeInTheDocument();
+    });
+  });
 });
