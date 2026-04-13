@@ -119,6 +119,13 @@ const binStateLabels = {
   wontPlay: "Won't play",
 } as const;
 
+const tabHeadingLabels: Record<DuplicatesTab, string> = {
+  review: "Review duplicates",
+  "ready-for-bin": "Ready for Bin",
+  "recycle-bin": "Recycle Bin",
+  "playback-issues": "Playback issues",
+};
+
 const recommendationStateLabels: Record<DuplicateRecommendation["state"], string> = {
   SAFE_TO_MOVE_EXTRAS: "Safe to move extra copies",
   REVIEW_REQUIRED: "Review required",
@@ -1483,8 +1490,8 @@ export default function DuplicatesPage() {
       className={cn(
         "mx-auto flex flex-col",
         activeTab === "review"
-          ? "max-w-[120rem] gap-3 px-2 py-3 sm:px-2.5 lg:px-3"
-          : "max-w-[120rem] gap-4 px-3 py-4 sm:px-4 lg:px-5",
+          ? "max-w-[120rem] gap-2.5 px-2 py-2.5 sm:px-2.5 lg:px-3"
+          : "max-w-[120rem] gap-3 px-3 py-3 sm:px-4 lg:px-5",
       )}
     >
       <div data-page-header data-testid="duplicates-page-header">
@@ -1493,9 +1500,9 @@ export default function DuplicatesPage() {
           title="Work duplicate decisions in focused steps."
           description="Compare duplicates, move extra copies to the Recycle Bin, restore them if needed, and keep playback review separate."
           icon={Copy}
-          density={activeTab === "review" ? "compact" : "default"}
-          className={activeTab === "review" ? "rounded-[24px]" : undefined}
-          contentClassName={activeTab === "review" ? "px-4 py-3 sm:px-4 lg:px-5 lg:py-4" : undefined}
+          density="compact"
+          className="rounded-[24px]"
+          contentClassName="px-4 py-3 sm:px-4 lg:px-5 lg:py-4"
         />
       </div>
 
@@ -1531,7 +1538,7 @@ export default function DuplicatesPage() {
           description="When duplicate files are found, they will appear here for side-by-side review."
         />
       ) : (
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as DuplicatesTab)} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as DuplicatesTab)} className="space-y-3">
           <section
             data-page-controls
             data-testid="duplicates-page-controls"
@@ -1545,35 +1552,9 @@ export default function DuplicatesPage() {
             </TabsList>
           </section>
 
-          <Card className={cn("rounded-[24px] border-border/70 bg-card/95 shadow-sm", activeTab === "review" && "shadow-none")}>
-            <CardContent className={cn("space-y-4 p-4", activeTab === "review" && "space-y-3 p-2.5 sm:p-3")}>
-              <TabsContent value="review" className="mt-0">
-                <div className="space-y-2">
-                  <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold tracking-tight text-foreground">Review duplicates</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Compare one group at a time, follow the system recommendation, and keep your own review decision separate.
-                      </p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{reviewProgressLabel} in sequence</p>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="ready-for-bin" className="mt-0">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Ready for Bin</h2>
-              </TabsContent>
-
-              <TabsContent value="recycle-bin" className="mt-0">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Recycle Bin</h2>
-              </TabsContent>
-
-              <TabsContent value="playback-issues" className="mt-0">
-                <h2 className="text-xl font-semibold tracking-tight text-foreground">Playback issues</h2>
-              </TabsContent>
-            </CardContent>
-          </Card>
+          <div data-testid="duplicates-shared-tab-heading" className="px-1">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground">{tabHeadingLabels[activeTab]}</h2>
+          </div>
 
           <TabsContent value="review" className="mt-0">
             <div className="space-y-3">

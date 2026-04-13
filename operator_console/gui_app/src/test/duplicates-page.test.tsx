@@ -302,6 +302,9 @@ describe("DuplicatesPage", () => {
     expect(within(pageControls).getByRole("tab", { name: "Ready for Bin" })).toBeInTheDocument();
     expect(within(pageControls).getByRole("tab", { name: "Recycle Bin" })).toBeInTheDocument();
     expect(within(pageControls).getByRole("tab", { name: "Playback issues" })).toBeInTheDocument();
+    const sharedHeading = screen.getByTestId("duplicates-shared-tab-heading");
+    expect(pageControls.nextElementSibling).toBe(sharedHeading);
+    expect(sharedHeading).toHaveTextContent("Review duplicates");
 
     expect(await screen.findByRole("heading", { name: "Review duplicates" })).toBeInTheDocument();
     expect(screen.getByTestId("review-group-navigation-hidden")).toBeInTheDocument();
@@ -512,6 +515,10 @@ describe("DuplicatesPage", () => {
 
     renderPage("/duplicates?tab=removal");
 
+    const pageControls = await screen.findByTestId("duplicates-page-controls");
+    const sharedHeading = screen.getByTestId("duplicates-shared-tab-heading");
+    expect(pageControls.nextElementSibling).toBe(sharedHeading);
+    expect(sharedHeading).toHaveTextContent("Ready for Bin");
     expect(await screen.findByRole("heading", { name: "Ready for Bin" })).toBeInTheDocument();
     expect(screen.getAllByText("Ready for Bin").length).toBeGreaterThan(0);
     expect(await screen.findByTestId("ready-for-bin-top-controls")).toBeInTheDocument();
