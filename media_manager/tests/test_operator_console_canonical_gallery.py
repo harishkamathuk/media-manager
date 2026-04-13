@@ -432,6 +432,43 @@ def test_get_canonical_gallery_supports_source_filter(session_factory) -> None:
     assert page.items[0].id == str(b_id)
 
 
+def test_get_canonical_gallery_paginates_filtered_media_type_dataset(session_factory) -> None:
+    service = OperatorConsoleReadService(session_factory)
+    base = datetime(2026, 3, 2, 13, 42, tzinfo=UTC)
+
+    with session_factory.begin() as session:
+        for idx, suffix in enumerate(("a.jpg", "b.mp4", "c.jpg", "d.mp4")):
+            content_id = UUID(f"65100000-0000-0000-0000-00000000000{idx}")
+            instance_id = UUID(f"66100000-0000-0000-0000-00000000000{idx}")
+            _add_content(session, content_id, f"hash-filter-{idx}", base + timedelta(seconds=idx))
+            session.flush()
+            _add_instance(
+                session,
+                file_instance_id=instance_id,
+                content_id=content_id,
+                absolute_path=f"/gallery/{suffix}",
+                first_seen_at=base + timedelta(seconds=idx),
+            )
+            _add_assignment(
+                session,
+                assignment_id=UUID(f"67100000-0000-0000-0000-00000000000{idx}"),
+                content_id=content_id,
+                canonical_instance_id=instance_id,
+                assigned_at=base + timedelta(seconds=idx),
+            )
+
+    page1 = service.get_canonical_gallery(page=1, limit=1, file_type="image")
+    page2 = service.get_canonical_gallery(page=2, limit=1, file_type="image")
+    videos = service.get_canonical_gallery(page=1, limit=5, file_type="video")
+
+    assert page1.total_count == 2
+    assert page1.total_pages == 2
+    assert [item.filename for item in page1.items] == ["c.jpg"]
+    assert [item.filename for item in page2.items] == ["a.jpg"]
+    assert videos.total_count == 2
+    assert {item.filename for item in videos.items} == {"b.mp4", "d.mp4"}
+
+
 def test_get_canonical_gallery_created_at_tie_breaks_by_content_id(session_factory) -> None:
     service = OperatorConsoleReadService(session_factory)
     base = datetime(2026, 3, 2, 13, 45, tzinfo=UTC)

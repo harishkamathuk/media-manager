@@ -119,8 +119,9 @@ export default function GalleryPage() {
       tags: tagsParam || undefined,
       sort_by: sortBy,
       sort_order: sortOrder,
+      media_type: mediaTypeFilter === "all" ? undefined : mediaTypeFilter,
     }),
-    [densityPreset.limit, page, sortBy, sortOrder, tagsParam],
+    [densityPreset.limit, mediaTypeFilter, page, sortBy, sortOrder, tagsParam],
   );
 
   const tagsQuery = useQuery({
@@ -138,13 +139,8 @@ export default function GalleryPage() {
 
   const data = (galleryQuery.data as PaginatedResponse<CanonicalFile> | undefined) ?? null;
   const items = data?.items ?? [];
-  const visibleItems = useMemo(
-    () => items.filter((item) => mediaTypeFilter === "all" || item.file_type === mediaTypeFilter),
-    [items, mediaTypeFilter],
-  );
-  const visibleCount = visibleItems.length;
   const allTags = useMemo(() => (tagsQuery.data as Tag[] | undefined) ?? [], [tagsQuery.data]);
-  const totalCount = data?.total_count ?? 0;
+  const totalCount = data?.total ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
   const visiblePages = useMemo(() => getVisiblePages(page, totalPages), [page, totalPages]);
   const hasActiveFilters = selectedTags.length > 0 || mediaTypeFilter !== "all";
@@ -185,7 +181,7 @@ export default function GalleryPage() {
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             {galleryQuery.isLoading && !data
               ? "Loading gallery..."
-              : `${mediaTypeFilter !== "all" ? visibleCount : totalCount} item${(mediaTypeFilter !== "all" ? visibleCount : totalCount) === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
+              : `${totalCount} item${totalCount === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
           </div>
         </div>
 
@@ -342,7 +338,7 @@ export default function GalleryPage() {
 
       <div data-page-primary-surface className="-mt-1 space-y-5">
         <MediaGrid
-          files={visibleItems}
+          files={items}
           loading={galleryQuery.isLoading && !data}
           gridClassName={densityPreset.gridClassName}
           skeletonCount={densityPreset.limit}

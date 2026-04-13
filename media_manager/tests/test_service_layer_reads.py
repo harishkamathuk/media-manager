@@ -41,6 +41,40 @@ def test_duplicate_bin_items_reuses_reclaim_archive_page(monkeypatch: pytest.Mon
     assert payload["items"][0]["item_status"] == "ARCHIVED"
 
 
+def test_canonical_reuses_gallery_page_with_file_type(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _FakeOperatorConsoleReadService:
+        def __init__(self, _session_factory) -> None:
+            pass
+
+        def get_canonical_gallery(self, **kwargs):  # type: ignore[no-untyped-def]
+            assert kwargs["page"] == 1
+            assert kwargs["limit"] == 10
+            assert kwargs["tags"] == ("travel",)
+            assert kwargs["sort_by"] == "created_at"
+            assert kwargs["sort_order"] == "desc"
+            assert kwargs["file_type"] == "image"
+            assert kwargs["source"] is None
+            assert kwargs["min_confidence"] is None
+            return type("Page", (), {"to_dict": lambda self: {"page": 1, "limit": 10, "total_count": 1, "total_pages": 1, "items": []}})()
+
+    monkeypatch.setattr(reads_module, "OperatorConsoleReadService", _FakeOperatorConsoleReadService)
+
+    services = ReadServices(session_factory=object(), cache=_FakeCache(invalidations=[]))  # type: ignore[arg-type]
+
+    payload = services.canonical(
+        page=1,
+        limit=10,
+        tags=("travel",),
+        sort_by="created_at",
+        sort_order="desc",
+        file_type="image",
+        source=None,
+        min_confidence=None,
+    )
+
+    assert payload["total_count"] == 1
+
+
 def test_admin_app_settings_returns_persisted_non_sensitive_metadata(session_factory) -> None:
     AppSettingsService(session_factory).set_value(
         "video_thumbnails_enabled",

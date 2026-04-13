@@ -321,6 +321,7 @@ class _DiscoveryQueryArgs:
     tags: tuple[str, ...]
     sort_by: str
     sort_order: str
+    file_type: str | None
     source: TagSource | None
     min_confidence: float | None
 
@@ -566,6 +567,7 @@ def _parse_discovery_query_args(
     tags: str | None,
     sort_by: str,
     sort_order: str | None,
+    media_type: str | None,
     source: str | None,
     min_confidence: float | None,
 ) -> _DiscoveryQueryArgs:
@@ -579,6 +581,13 @@ def _parse_discovery_query_args(
         normalized_sort_order = sort_order.strip().lower()
         if normalized_sort_order not in {"asc", "desc"}:
             raise HTTPException(status_code=400, detail="sort_order must be asc or desc.")
+
+    file_type: str | None = None
+    if media_type is not None:
+        normalized_media_type = media_type.strip().lower()
+        if normalized_media_type not in {"image", "video"}:
+            raise HTTPException(status_code=400, detail="media_type must be image or video.")
+        file_type = normalized_media_type
 
     source_value: TagSource | None = None
     if source is not None:
@@ -600,6 +609,7 @@ def _parse_discovery_query_args(
         tags=tag_items,
         sort_by=normalized_sort_by,
         sort_order=normalized_sort_order,
+        file_type=file_type,
         source=source_value,
         min_confidence=min_confidence,
     )
@@ -849,6 +859,7 @@ def create_app() -> FastAPI:
         tags: str | None = Query(default=None),
         sort_by: str = Query(default="created_at"),
         sort_order: str | None = Query(default=None),
+        media_type: str | None = Query(default=None),
         source: str | None = Query(default=None),
         min_confidence: float | None = Query(default=None),
         services: ReadServices = Depends(get_read_services),
@@ -859,6 +870,7 @@ def create_app() -> FastAPI:
             tags=tags,
             sort_by=sort_by,
             sort_order=sort_order,
+            media_type=media_type,
             source=source,
             min_confidence=min_confidence,
         )
@@ -870,6 +882,7 @@ def create_app() -> FastAPI:
                 tags=parsed.tags,
                 sort_by=parsed.sort_by,
                 sort_order=parsed.sort_order,
+                file_type=parsed.file_type,
                 source=parsed.source.value if parsed.source is not None else None,
                 min_confidence=parsed.min_confidence,
             ),

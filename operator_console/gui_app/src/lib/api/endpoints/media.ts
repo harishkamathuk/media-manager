@@ -22,6 +22,7 @@ export const getCanonical = async (params?: {
   tags?: string;
   sort_by?: string;
   sort_order?: string;
+  media_type?: "image" | "video";
 }) => {
   const envelope = await apiGet<Record<string, unknown>>(
     "/canonical",

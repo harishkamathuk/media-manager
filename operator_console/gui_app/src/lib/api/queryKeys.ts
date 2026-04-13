@@ -4,6 +4,7 @@ export interface CanonicalQueryParams {
   tags?: string;
   sort_by?: string;
   sort_order?: string;
+  media_type?: "image" | "video";
 }
 
 export const queryKeys = {

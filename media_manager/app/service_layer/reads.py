@@ -271,6 +271,7 @@ class ReadServices:
         tags: tuple[str, ...],
         sort_by: str,
         sort_order: str | None,
+        file_type: str | None,
         source: str | None,
         min_confidence: float | None,
     ) -> dict[str, object]:
@@ -281,6 +282,7 @@ class ReadServices:
             tags=tags,
             sort_by=sort_by,
             sort_order=sort_order,
+            file_type=file_type,
             source=source_value,
             min_confidence=min_confidence,
         ).to_dict()
