@@ -15,6 +15,7 @@ import {
   mapTagItems,
 } from "@/lib/api/mappers/media";
 import { mapPagination } from "@/lib/api/pagination";
+import type { MediaType } from "@/lib/api/queryKeys";
 
 export const getCanonical = async (params?: {
   page?: number;
@@ -22,7 +23,7 @@ export const getCanonical = async (params?: {
   tags?: string;
   sort_by?: string;
   sort_order?: string;
-  media_type?: "image" | "video";
+  media_type?: MediaType;
 }) => {
   const envelope = await apiGet<Record<string, unknown>>(
     "/canonical",

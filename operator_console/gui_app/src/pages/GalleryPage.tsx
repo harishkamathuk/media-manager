@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getCanonical, getCanonicalTags } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
+import type { MediaType } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
 import type { CanonicalFile, PaginatedResponse, Tag } from "@/types";
 import { ArrowUpDown, Grid2X2, LayoutGrid, Loader2, Search, X } from "lucide-react";
@@ -50,7 +51,7 @@ const DENSITY_PRESETS = [
 ] as const;
 
 type DensityKey = (typeof DENSITY_PRESETS)[number]["key"];
-type MediaTypeFilter = "all" | "image" | "video";
+type MediaTypeFilter = "all" | MediaType;
 
 function getDensityPreset(densityParam: string | null) {
   return DENSITY_PRESETS.find((preset) => preset.key === densityParam) ?? DENSITY_PRESETS[1];
@@ -123,6 +124,18 @@ export default function GalleryPage() {
     }),
     [densityPreset.limit, mediaTypeFilter, page, sortBy, sortOrder, tagsParam],
   );
+  const previousCanonicalParamsRef = useRef(canonicalParams);
+  const keepPreviousCanonicalPageData =
+    previousCanonicalParamsRef.current.page !== canonicalParams.page &&
+    previousCanonicalParamsRef.current.limit === canonicalParams.limit &&
+    previousCanonicalParamsRef.current.tags === canonicalParams.tags &&
+    previousCanonicalParamsRef.current.sort_by === canonicalParams.sort_by &&
+    previousCanonicalParamsRef.current.sort_order === canonicalParams.sort_order &&
+    previousCanonicalParamsRef.current.media_type === canonicalParams.media_type;
+
+  useEffect(() => {
+    previousCanonicalParamsRef.current = canonicalParams;
+  }, [canonicalParams]);
 
   const tagsQuery = useQuery({
     queryKey: queryKeys.canonicalTags(""),
@@ -134,7 +147,7 @@ export default function GalleryPage() {
     queryKey: queryKeys.canonical(canonicalParams),
     queryFn: async () => (await getCanonical(canonicalParams)).data,
     staleTime: queryOptions.canonical.staleTime,
-    placeholderData: keepPreviousData,
+    placeholderData: keepPreviousCanonicalPageData ? keepPreviousData : undefined,
   });
 
   const data = (galleryQuery.data as PaginatedResponse<CanonicalFile> | undefined) ?? null;

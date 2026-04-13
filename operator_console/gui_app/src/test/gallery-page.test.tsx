@@ -242,6 +242,53 @@ describe("Gallery page", () => {
     });
   });
 
+  it("clears previous page data when media type filter changes", async () => {
+    renderPage();
+
+    await screen.findByText("first.jpg");
+    let resolveFiltered: ((value: unknown) => void) | null = null;
+    mocks.getCanonical.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFiltered = resolve;
+        }),
+    );
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Loading gallery...")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+    });
+
+    resolveFiltered?.({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    });
+  });
+
   it("composes media type and tag filters", async () => {
     renderPage();
 
