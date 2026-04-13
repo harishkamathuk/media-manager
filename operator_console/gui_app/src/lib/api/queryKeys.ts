@@ -1,9 +1,12 @@
+export type MediaType = "image" | "video";
+
 export interface CanonicalQueryParams {
   page?: number;
   limit?: number;
   tags?: string;
   sort_by?: string;
   sort_order?: string;
+  media_type?: MediaType;
 }
 
 export const queryKeys = {

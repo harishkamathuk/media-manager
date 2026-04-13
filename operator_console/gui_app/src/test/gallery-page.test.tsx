@@ -69,9 +69,9 @@ describe("Gallery page", () => {
             sort_tag_name: "family",
           },
         ],
-        total_count: 2,
+        total: 2,
         page: 1,
-        limit: 20,
+        page_size: 20,
         total_pages: 1,
       },
     });
@@ -121,26 +121,111 @@ describe("Gallery page", () => {
     );
   });
 
-  it("filters visible library items by media type", async () => {
+  it("requests filtered library items by media type", async () => {
     renderPage();
 
     await screen.findByText("first.jpg");
     expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
 
     fireEvent.click(screen.getByRole("radio", { name: "Images" }));
 
     await waitFor(() => {
       expect(screen.getByText("first.jpg")).toBeInTheDocument();
       expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          media_type: "image",
+        }),
+      );
     });
 
     expect(screen.queryByRole("button", { name: "Remove tag filter travel" })).not.toBeInTheDocument();
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "video-1",
+            filename: "clip.mp4",
+            file_type: "video",
+            media_url: "/media/video-1",
+            poster_url: "/poster/video-1",
+            matched_tags: ["family"],
+            top_confidence_score: 0.88,
+            sort_tag_name: "family",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
 
     fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
 
     await waitFor(() => {
       expect(screen.queryByText("first.jpg")).not.toBeInTheDocument();
       expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          media_type: "video",
+        }),
+      );
+    });
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+          {
+            id: "video-1",
+            filename: "clip.mp4",
+            file_type: "video",
+            media_url: "/media/video-1",
+            poster_url: "/poster/video-1",
+            matched_tags: ["family"],
+            top_confidence_score: 0.88,
+            sort_tag_name: "family",
+          },
+        ],
+        total: 2,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
     });
 
     fireEvent.click(screen.getByRole("radio", { name: "All" }));
@@ -148,6 +233,59 @@ describe("Gallery page", () => {
     await waitFor(() => {
       expect(screen.getByText("first.jpg")).toBeInTheDocument();
       expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+      expect(screen.getByText("2 items · Page 1 of 1")).toBeInTheDocument();
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.not.objectContaining({
+          media_type: expect.anything(),
+        }),
+      );
+    });
+  });
+
+  it("clears previous page data when media type filter changes", async () => {
+    renderPage();
+
+    await screen.findByText("first.jpg");
+    let resolveFiltered: ((value: unknown) => void) | null = null;
+    mocks.getCanonical.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFiltered = resolve;
+        }),
+    );
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Loading gallery...")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+    });
+
+    resolveFiltered?.({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
     });
   });
 
@@ -155,6 +293,27 @@ describe("Gallery page", () => {
     renderPage();
 
     await screen.findByText("first.jpg");
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
 
     fireEvent.click(screen.getByRole("radio", { name: "Images" }));
 
@@ -165,6 +324,26 @@ describe("Gallery page", () => {
     });
 
     const input = screen.getByPlaceholderText("Filter gallery by tag");
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "image-1",
+            filename: "first.jpg",
+            file_type: "image",
+            media_url: "/media/image-1",
+            poster_url: null,
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+          },
+        ],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
     fireEvent.change(input, { target: { value: "travel" } });
     fireEvent.keyDown(input, { key: "Enter" });
 
@@ -173,6 +352,12 @@ describe("Gallery page", () => {
       expect(screen.getByText("1 tag filter · Images only applied")).toBeInTheDocument();
       expect(screen.getByText("first.jpg")).toBeInTheDocument();
       expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          media_type: "image",
+          tags: "travel",
+        }),
+      );
     });
   });
 
@@ -202,9 +387,9 @@ describe("Gallery page", () => {
           top_confidence_score: 0.9,
           sort_tag_name: null,
         })),
-        total_count: 20,
+        total: 20,
         page: 2,
-        limit: 10,
+        page_size: 10,
         total_pages: 2,
       },
     });
@@ -229,16 +414,16 @@ describe("Gallery page", () => {
     });
   });
 
-  it("updates status count to show filtered count when media type changes", async () => {
+  it("keeps status count aligned with server-filtered pagination", async () => {
     mocks.getCanonical.mockResolvedValue({
       data: {
         items: [
           { id: "v1", filename: "v1.jpg", file_type: "image", media_url: "/v1", poster_url: null, matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
           { id: "v2", filename: "v2.mp4", file_type: "video", media_url: "/v2", poster_url: "/v2", matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
         ],
-        total_count: 2,
+        total: 2,
         page: 1,
-        limit: 20,
+        page_size: 20,
         total_pages: 1,
       },
     });
@@ -247,16 +432,49 @@ describe("Gallery page", () => {
 
     await screen.findByText("2 items · Page 1 of 1");
 
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [{ id: "v1", filename: "v1.jpg", file_type: "image", media_url: "/v1", poster_url: null, matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null }],
+        total: 3,
+        page: 1,
+        page_size: 20,
+        total_pages: 2,
+      },
+    });
+
     fireEvent.click(screen.getByRole("radio", { name: "Images" }));
 
     await waitFor(() => {
-      expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+      expect(screen.getByText("3 items · Page 1 of 2")).toBeInTheDocument();
+    });
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [{ id: "v2", filename: "v2.mp4", file_type: "video", media_url: "/v2", poster_url: "/v2", matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null }],
+        total: 1,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
     });
 
     fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
 
     await waitFor(() => {
       expect(screen.getByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    });
+
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          { id: "v1", filename: "v1.jpg", file_type: "image", media_url: "/v1", poster_url: null, matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
+          { id: "v2", filename: "v2.mp4", file_type: "video", media_url: "/v2", poster_url: "/v2", matched_tags: [], top_confidence_score: 0.9, sort_tag_name: null },
+        ],
+        total: 2,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
     });
 
     fireEvent.click(screen.getByRole("radio", { name: "All" }));

@@ -2469,6 +2469,20 @@ def test_api_canonical_accepts_discovery_query_params() -> None:
     assert payload["items"][0]["matched_tags"] == ["city", "travel"]
 
 
+def test_api_canonical_accepts_media_type_filter() -> None:
+    fake = _FakeReadServices()
+    app.dependency_overrides[get_read_services] = lambda: fake
+    client = TestClient(app)
+    try:
+        response = client.get("/api/canonical?media_type=image")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert fake.last_gallery_call is not None
+    assert fake.last_gallery_call["file_type"] == "image"
+
+
 def test_api_canonical_applies_default_sort_order_for_tag_name() -> None:
     fake = _FakeReadServices()
     app.dependency_overrides[get_read_services] = lambda: fake
@@ -2508,6 +2522,18 @@ def test_api_canonical_rejects_invalid_source_and_confidence() -> None:
     assert "source" in bad_source.json()["errors"][0]["message"]
     assert bad_conf.status_code == 400
     assert "min_confidence" in bad_conf.json()["errors"][0]["message"]
+
+
+def test_api_canonical_rejects_invalid_media_type() -> None:
+    app.dependency_overrides[get_read_services] = _FakeReadServices
+    client = TestClient(app)
+    try:
+        response = client.get("/api/canonical?media_type=audio")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 400
+    assert "media_type" in response.json()["errors"][0]["message"]
 
 
 def test_api_canonical_tags_returns_suggestions() -> None:
