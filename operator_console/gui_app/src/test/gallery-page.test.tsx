@@ -58,8 +58,18 @@ describe("Gallery page", () => {
             top_confidence_score: 0.94,
             sort_tag_name: "travel",
           },
+          {
+            id: "video-1",
+            filename: "clip.mp4",
+            file_type: "video",
+            media_url: "/media/video-1",
+            poster_url: "/poster/video-1",
+            matched_tags: ["family"],
+            top_confidence_score: 0.88,
+            sort_tag_name: "family",
+          },
         ],
-        total_count: 1,
+        total_count: 2,
         page: 1,
         limit: 20,
         total_pages: 1,
@@ -81,9 +91,15 @@ describe("Gallery page", () => {
     expect(document.querySelector('[data-page-shell="browse-list"]')).toBeTruthy();
     expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
     expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "All" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Images" })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "Videos" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Filter gallery by tag")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Descending" })).toBeInTheDocument();
-    expect(await screen.findByText("1 item · Page 1 of 1")).toBeInTheDocument();
+    expect(await screen.findByText("2 items · Page 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("first.jpg")).toBeInTheDocument();
+    expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute("aria-checked", "true");
   });
 
   it("keeps filter controls interactive inside the shell controls row", async () => {
@@ -103,5 +119,33 @@ describe("Gallery page", () => {
         sort_order: "desc",
       }),
     );
+  });
+
+  it("filters visible library items by media type", async () => {
+    renderPage();
+
+    await screen.findByText("first.jpg");
+    expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("first.jpg")).not.toBeInTheDocument();
+      expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("radio", { name: "All" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+    });
   });
 });
