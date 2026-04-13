@@ -21,7 +21,7 @@ vi.mock("@/components/ui/slider", () => ({
   ),
 }));
 
-function renderPage() {
+function renderPage(initialEntries?: string[]) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -32,7 +32,7 @@ function renderPage() {
   });
 
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={initialEntries}>
       <QueryClientProvider client={queryClient}>
         <GalleryPage />
       </QueryClientProvider>
@@ -146,6 +146,46 @@ describe("Gallery page", () => {
     await waitFor(() => {
       expect(screen.getByText("first.jpg")).toBeInTheDocument();
       expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+    });
+  });
+
+  it("resets to page 1 when media type filter changes", async () => {
+    mocks.getCanonical.mockResolvedValue({
+      data: {
+        items: Array.from({ length: 20 }, (_, i) => ({
+          id: `img-${i}`,
+          filename: `img-${i}.jpg`,
+          file_type: i % 2 === 0 ? "image" : "video",
+          media_url: `/img-${i}`,
+          poster_url: i % 2 === 1 ? `/poster-${i}` : null,
+          matched_tags: [],
+          top_confidence_score: 0.9,
+          sort_tag_name: null,
+        })),
+        total_count: 20,
+        page: 2,
+        limit: 10,
+        total_pages: 2,
+      },
+    });
+
+    renderPage(["/gallery?page=2&media_type=image"]);
+
+    await screen.findByText("img-10.jpg");
+    expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        page: 2,
+      }),
+    );
+
+    fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
+
+    await waitFor(() => {
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+        }),
+      );
     });
   });
 
