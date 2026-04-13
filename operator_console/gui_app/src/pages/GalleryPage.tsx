@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Slider } from "@/components/ui/slider";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { getCanonical, getCanonicalTags } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
@@ -49,9 +50,14 @@ const DENSITY_PRESETS = [
 ] as const;
 
 type DensityKey = (typeof DENSITY_PRESETS)[number]["key"];
+type MediaTypeFilter = "all" | "image" | "video";
 
 function getDensityPreset(densityParam: string | null) {
   return DENSITY_PRESETS.find((preset) => preset.key === densityParam) ?? DENSITY_PRESETS[1];
+}
+
+function getMediaTypeFilter(mediaTypeParam: string | null): MediaTypeFilter {
+  return mediaTypeParam === "image" || mediaTypeParam === "video" ? mediaTypeParam : "all";
 }
 
 function getVisiblePages(currentPage: number, totalPages: number): Array<number | "ellipsis"> {
@@ -82,6 +88,7 @@ export default function GalleryPage() {
   const sortOrder = searchParams.get("sort_order") || "desc";
   const page = Math.max(1, Number(searchParams.get("page") || 1));
   const densityPreset = getDensityPreset(searchParams.get("density"));
+  const mediaTypeFilter = getMediaTypeFilter(searchParams.get("media_type"));
   const densityIndex = DENSITY_PRESETS.findIndex((preset) => preset.key === densityPreset.key);
 
   const updateParams = (updates: Record<string, string | undefined>) => {
@@ -131,6 +138,11 @@ export default function GalleryPage() {
 
   const data = (galleryQuery.data as PaginatedResponse<CanonicalFile> | undefined) ?? null;
   const items = data?.items ?? [];
+  const visibleItems = useMemo(
+    () => items.filter((item) => mediaTypeFilter === "all" || item.file_type === mediaTypeFilter),
+    [items, mediaTypeFilter],
+  );
+  const visibleCount = visibleItems.length;
   const allTags = useMemo(() => (tagsQuery.data as Tag[] | undefined) ?? [], [tagsQuery.data]);
   const totalCount = data?.total_count ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
@@ -168,12 +180,40 @@ export default function GalleryPage() {
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             {galleryQuery.isLoading && !data
               ? "Loading gallery..."
-              : `${totalCount} item${totalCount === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
+              : `${mediaTypeFilter !== "all" ? visibleCount : totalCount} item${(mediaTypeFilter !== "all" ? visibleCount : totalCount) === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
           </div>
         </div>
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex flex-1 flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-foreground">Media type</span>
+              <ToggleGroup
+                type="single"
+                value={mediaTypeFilter}
+                onValueChange={(value) => {
+                  if (value !== "all" && value !== "image" && value !== "video") return;
+                  updateParams({
+                    media_type: value === "all" ? undefined : value,
+                    page: "1",
+                  });
+                }}
+                variant="outline"
+                size="sm"
+                aria-label="Filter library by media type"
+              >
+                <ToggleGroupItem value="all" aria-label="All" data-testid="gallery-media-type-all">
+                  All
+                </ToggleGroupItem>
+                <ToggleGroupItem value="image" aria-label="Images" data-testid="gallery-media-type-images">
+                  Images
+                </ToggleGroupItem>
+                <ToggleGroupItem value="video" aria-label="Videos" data-testid="gallery-media-type-videos">
+                  Videos
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
             <div className="relative max-w-md">
               <Input
                 value={tagInput}
@@ -297,15 +337,15 @@ export default function GalleryPage() {
 
       <div data-page-primary-surface className="-mt-1 space-y-5">
         <MediaGrid
-          files={items}
+          files={visibleItems}
           loading={galleryQuery.isLoading && !data}
           gridClassName={densityPreset.gridClassName}
           skeletonCount={densityPreset.limit}
           density={densityPreset.key}
           emptyTitle="No media files"
           emptyDescription={
-            selectedTags.length
-              ? "Try adjusting your tag filters or sort order."
+            selectedTags.length || mediaTypeFilter !== "all"
+              ? "Try adjusting your tag filters, media type, or sort order."
               : "Run an ingest to populate the gallery."
           }
           onPreview={setSelectedFile}
