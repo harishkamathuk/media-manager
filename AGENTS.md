@@ -78,6 +78,53 @@ Canonical sources:
 
 If any issue metadata step is skipped or cannot be completed, the agent must say so clearly in its summary.
 
+## GitHub Project Management
+
+When creating or updating issues that require project field values (e.g., Status), use these commands:
+
+### Adding Issue to Project
+
+```bash
+# Add issue to project
+gh project item-add 8 --url "https://github.com/harishkamathuk/media-manager/issues/NUMBER" --owner "harishkamathuk"
+```
+
+### CRITICAL: Getting Correct Project Item ID
+
+When editing project fields, ALWAYS query the exact project item ID for the specific issue rather than guessing:
+
+```bash
+# Query all project items and find the exact ID for the issue number
+gh api graphql -f query='query{repo:repository(owner:"harishkamathuk",name:"media-manager"){proj:projectV2(number:8){items(first:100){nodes{id content{...on Issue{number}}}}}}}' | jq -r '.data.repo.proj.items.nodes[] | select(.content.number == ISSUE_NUMBER) | .id'
+```
+
+Why this matters: Using guessed/estimated IDs from earlier queries fails because new issues get new project item IDs. Always query fresh.
+
+### Updating Project Status
+
+```bash
+# Use the exact project item ID from the query above
+gh project item-edit \
+  --id "PROJECT_ITEM_ID" \
+  --project-id "PVT_kwHOAK3mu84BTo-6" \
+  --field-id "PVTSSF_lAHOAK3mu84BTo-6zhA2m74" \
+  --single-select-option-id "3f6a1705"  # Backlog
+```
+
+### Known Project IDs (Media Manager Delivery - Project #8)
+
+| Field | Field ID | Option ID | Option Name |
+|-------|---------|----------|-------------|
+| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 3f6a1705 | Backlog |
+| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 27d9491f | In Progress |
+| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 25b0b2ed | Ready |
+
+### Adding Milestone to Issue
+
+```bash
+gh issue edit ISSUE_NUMBER --milestone "GUI / UX Rework"
+```
+
 ## Post-PR Monitoring
 
 After opening a PR, agents must monitor the PR for near-term GitHub status changes and review feedback.

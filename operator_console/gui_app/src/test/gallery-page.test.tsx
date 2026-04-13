@@ -134,6 +134,8 @@ describe("Gallery page", () => {
       expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
     });
 
+    expect(screen.queryByRole("button", { name: "Remove tag filter travel" })).not.toBeInTheDocument();
+
     fireEvent.click(screen.getByRole("radio", { name: "Videos" }));
 
     await waitFor(() => {
@@ -146,6 +148,44 @@ describe("Gallery page", () => {
     await waitFor(() => {
       expect(screen.getByText("first.jpg")).toBeInTheDocument();
       expect(screen.getByText("clip.mp4")).toBeInTheDocument();
+    });
+  });
+
+  it("composes media type and tag filters", async () => {
+    renderPage();
+
+    await screen.findByText("first.jpg");
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+      expect(screen.getByText("Images only applied")).toBeInTheDocument();
+    });
+
+    const input = screen.getByPlaceholderText("Filter gallery by tag");
+    fireEvent.change(input, { target: { value: "travel" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    expect(await screen.findByRole("button", { name: "Remove tag filter travel" })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("1 tag filter · Images only applied")).toBeInTheDocument();
+      expect(screen.getByText("first.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("clip.mp4")).not.toBeInTheDocument();
+    });
+  });
+
+  it("treats media type selection as an active filter in the summary", async () => {
+    renderPage();
+
+    await screen.findByText("No filters applied yet");
+
+    fireEvent.click(screen.getByRole("radio", { name: "Images" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Images only applied")).toBeInTheDocument();
+      expect(screen.queryByText("No filters applied yet")).not.toBeInTheDocument();
     });
   });
 

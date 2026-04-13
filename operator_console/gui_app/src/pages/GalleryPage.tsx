@@ -147,6 +147,13 @@ export default function GalleryPage() {
   const totalCount = data?.total_count ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
   const visiblePages = useMemo(() => getVisiblePages(page, totalPages), [page, totalPages]);
+  const hasActiveFilters = selectedTags.length > 0 || mediaTypeFilter !== "all";
+  const activeFilterSummary = [
+    selectedTags.length ? `${selectedTags.length} tag filter${selectedTags.length === 1 ? "" : "s"}` : null,
+    mediaTypeFilter === "image" ? "Images only" : mediaTypeFilter === "video" ? "Videos only" : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   useEffect(() => {
     if (!tagInput) {
@@ -170,9 +177,7 @@ export default function GalleryPage() {
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap gap-3">
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
-            {selectedTags.length
-              ? `${selectedTags.length} tag filter${selectedTags.length === 1 ? "" : "s"} applied`
-              : "No filters applied yet"}
+            {hasActiveFilters ? `${activeFilterSummary} applied` : "No filters applied yet"}
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
             Sorted by {sortBy.replace("_", " ")} in {sortOrder === "asc" ? "ascending" : "descending"} order
