@@ -30,7 +30,11 @@ export function useLiveLogs(limit = 100) {
   useEffect(() => {
     const onVisibilityChange = () => {
       if (documentIsVisible()) {
-        void queryClient.invalidateQueries({ queryKey: queryKeys.liveLogs(limit) });
+        void queryClient.refetchQueries({
+          queryKey: queryKeys.liveLogs(limit),
+          exact: true,
+          type: "active",
+        });
       }
     };
 
