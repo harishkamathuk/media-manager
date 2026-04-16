@@ -29,7 +29,8 @@ export function MediaCard({ file, onPreview, detailHref, integrityHref, density 
   const compactActions = density === "small" || density === "compact";
   const hideSupplementaryMeta = density === "compact";
   const hideTagChip = density === "compact";
-  const showIntegrityAction = Boolean(integrityHref && (file.integrity_status === "BROKEN" || file.integrity_status === "SUSPECT"));
+  const showIntegrityAction = file.integrity_status === "BROKEN" || file.integrity_status === "SUSPECT";
+  const integrityTarget = integrityHref || "/integrity";
 
   useEffect(() => {
     setImageSrc(preferredPoster);
@@ -131,7 +132,7 @@ export function MediaCard({ file, onPreview, detailHref, integrityHref, density 
             ) : null}
             {showIntegrityAction ? (
               <Button asChild type="button" variant="outline" size="icon" className="h-8 w-8 shrink-0">
-                <Link to={integrityHref ?? "/integrity"} aria-label={`Review ${file.filename} in Integrity`} title="Review in Integrity">
+                <Link to={integrityTarget} aria-label={`Review ${file.filename} in Integrity`} title="Review in Integrity">
                   <ArrowUpRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -149,7 +150,7 @@ export function MediaCard({ file, onPreview, detailHref, integrityHref, density 
             ) : null}
             {showIntegrityAction ? (
               <Button asChild type="button" variant="outline" size="sm" className="w-full min-w-0">
-                <Link to={integrityHref ?? "/integrity"}>Review in Integrity</Link>
+                <Link to={integrityTarget}>Review in Integrity</Link>
               </Button>
             ) : null}
           </div>

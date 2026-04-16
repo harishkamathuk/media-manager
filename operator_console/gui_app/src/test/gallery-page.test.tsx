@@ -138,8 +138,19 @@ describe("Gallery page", () => {
             sort_tag_name: "family",
             integrity_status: "OK",
           },
+          {
+            id: "suspect-1",
+            filename: "suspect.mov",
+            file_type: "video",
+            media_url: "/media/suspect-1",
+            poster_url: "/poster/suspect-1",
+            matched_tags: ["pets"],
+            top_confidence_score: 0.72,
+            sort_tag_name: "pets",
+            integrity_status: "SUSPECT",
+          },
         ],
-        total: 2,
+        total: 3,
         page: 1,
         page_size: 20,
         total_pages: 1,
@@ -149,10 +160,12 @@ describe("Gallery page", () => {
     renderPage();
 
     const integrityLinks = await screen.findAllByRole("link", { name: "Review in Integrity" });
-    expect(integrityLinks).toHaveLength(1);
+    expect(integrityLinks).toHaveLength(2);
     expect(integrityLinks[0]).toHaveAttribute("href", "/integrity");
+    expect(integrityLinks[1]).toHaveAttribute("href", "/integrity");
     expect(screen.getByText("broken.mp4")).toBeInTheDocument();
     expect(screen.getByText("healthy.jpg")).toBeInTheDocument();
+    expect(screen.getByText("suspect.mov")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Review healthy.jpg in Integrity" })).not.toBeInTheDocument();
   });
 

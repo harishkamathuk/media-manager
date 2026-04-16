@@ -1599,13 +1599,13 @@ class OperatorConsoleReadService:
             with self._session_factory() as session:
                 integrity_rows = session.execute(
                     select(IntegrityCheck.file_instance_id, IntegrityCheck.status).where(
-                        IntegrityCheck.file_instance_id.in_(canonical_ids)
+                        IntegrityCheck.file_instance_id.in_(canonical_ids),
+                        IntegrityCheck.status.in_(("BROKEN", "SUSPECT")),
                     )
                 ).all()
             integrity_status_by_instance = {
                 file_instance_id: status
                 for file_instance_id, status in integrity_rows
-                if status in {"BROKEN", "SUSPECT"}
             }
         items = tuple(
             CanonicalGalleryItem(
