@@ -103,34 +103,43 @@ describe("LiveProgressPanel", () => {
   });
 
   it("pauses polling while the tab is hidden and resumes when visible again", async () => {
+    const originalVisibilityStateDescriptor = Object.getOwnPropertyDescriptor(document, "visibilityState");
     let visibilityState: DocumentVisibilityState = "visible";
     Object.defineProperty(document, "visibilityState", {
       configurable: true,
       get: () => visibilityState,
     });
 
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
-      ok: true,
-      json: async () => [
-        "2026-03-21 INFO media_manager.app.persistence.ingest phase=ingest action=PROGRESS processed_count=20 total_count=50 progress_percent=40.0 throughput_fps=10.0 Progress: 20/50 files (40.0%) | 10.0 files/sec | elapsed 2.0s",
-      ],
-    } as Response);
+    try {
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => [
+          "2026-03-21 INFO media_manager.app.persistence.ingest phase=ingest action=PROGRESS processed_count=20 total_count=50 progress_percent=40.0 throughput_fps=10.0 Progress: 20/50 files (40.0%) | 10.0 files/sec | elapsed 2.0s",
+        ],
+      } as Response);
 
-    renderWithQuery(<LiveProgressPanel />);
+      renderWithQuery(<LiveProgressPanel />);
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
-    visibilityState = "hidden";
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 1_200));
-    });
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+      visibilityState = "hidden";
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1_200));
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    visibilityState = "visible";
-    await act(async () => {
-      document.dispatchEvent(new Event("visibilitychange"));
-    });
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      visibilityState = "visible";
+      await act(async () => {
+        document.dispatchEvent(new Event("visibilitychange"));
+      });
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    } finally {
+      if (originalVisibilityStateDescriptor) {
+        Object.defineProperty(document, "visibilityState", originalVisibilityStateDescriptor);
+      } else {
+        Reflect.deleteProperty(document, "visibilityState");
+      }
+    }
   }, 10_000);
 
   it("uses request-backed finalizing state when the latest KPI reaches 100%", async () => {

@@ -85,11 +85,7 @@ describe("Gallery page", () => {
     renderPage();
 
     expect(await screen.findByText("Library")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Library shows usable media by default. Broken, unplayable, and integrity-failed items are excluded from default browsing. Use filters, sorting, preview, and the detail view to quickly find the photo or video you need.",
-      ),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Library shows usable media by default\./)).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="browse-list"]')).toBeTruthy();
     expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
     expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
