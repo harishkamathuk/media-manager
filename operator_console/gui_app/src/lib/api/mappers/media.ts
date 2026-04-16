@@ -21,6 +21,7 @@ import type {
 export function mapCanonicalItems(items: unknown[]): CanonicalFile[] {
   return items.map((item) => {
     const row = item as Record<string, unknown>;
+    const integrityStatus = row.integrity_status ? String(row.integrity_status) : null;
     return {
       id: String(row.id ?? ""),
       filename: String(row.filename ?? ""),
@@ -31,6 +32,7 @@ export function mapCanonicalItems(items: unknown[]): CanonicalFile[] {
       top_confidence_score:
         typeof row.top_confidence_score === "number" ? row.top_confidence_score : null,
       sort_tag_name: row.sort_tag_name ? String(row.sort_tag_name) : null,
+      integrity_status: integrityStatus === "BROKEN" || integrityStatus === "SUSPECT" ? integrityStatus : null,
     };
   });
 }

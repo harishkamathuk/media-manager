@@ -629,6 +629,7 @@ class CanonicalGalleryItem:
     matched_tags: tuple[str, ...] = ()
     top_confidence_score: float | None = None
     sort_tag_name: str | None = None
+    integrity_status: str | None = None
 
     def to_dict(self) -> dict[str, str | list[str] | float | None]:
         """Return a JSON-serializable mapping."""
@@ -641,6 +642,7 @@ class CanonicalGalleryItem:
             "matched_tags": list(self.matched_tags),
             "top_confidence_score": self.top_confidence_score,
             "sort_tag_name": self.sort_tag_name,
+            "integrity_status": self.integrity_status,
         }
 
 
@@ -1591,6 +1593,20 @@ class OperatorConsoleReadService:
             min_confidence=min_confidence,
         )
         page_rows = self._discovery_query.query(query)
+        canonical_ids = [UUID(item.id) for item in page_rows.items]
+        integrity_status_by_instance: dict[UUID, str] = {}
+        if canonical_ids:
+            with self._session_factory() as session:
+                integrity_rows = session.execute(
+                    select(IntegrityCheck.file_instance_id, IntegrityCheck.status).where(
+                        IntegrityCheck.file_instance_id.in_(canonical_ids),
+                        IntegrityCheck.status.in_(("BROKEN", "SUSPECT")),
+                    )
+                ).all()
+            integrity_status_by_instance = {
+                file_instance_id: status
+                for file_instance_id, status in integrity_rows
+            }
         items = tuple(
             CanonicalGalleryItem(
                 id=item.id,
@@ -1601,6 +1617,7 @@ class OperatorConsoleReadService:
                 matched_tags=item.matched_tags,
                 top_confidence_score=item.top_confidence_score,
                 sort_tag_name=item.sort_tag_name,
+                integrity_status=integrity_status_by_instance.get(UUID(item.id)),
             )
             for item in page_rows.items
         )

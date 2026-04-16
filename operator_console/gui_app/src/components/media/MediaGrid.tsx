@@ -11,6 +11,7 @@ interface MediaGridProps {
   emptyDescription?: string;
   onPreview?: (file: CanonicalFile) => void;
   getDetailHref?: (file: CanonicalFile) => string;
+  getIntegrityHref?: (file: CanonicalFile) => string | undefined;
   gridClassName?: string;
   skeletonCount?: number;
   density?: "large" | "medium" | "small" | "compact";
@@ -23,6 +24,7 @@ export function MediaGrid({
   emptyDescription = "Run an ingest to populate the gallery",
   onPreview,
   getDetailHref,
+  getIntegrityHref,
   gridClassName = "grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5",
   skeletonCount = 10,
   density = "medium",
@@ -62,6 +64,7 @@ export function MediaGrid({
           file={file}
           onPreview={() => onPreview?.(file)}
           detailHref={getDetailHref?.(file)}
+          integrityHref={getIntegrityHref?.(file)}
           density={density}
         />
       ))}

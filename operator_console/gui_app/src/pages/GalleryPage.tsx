@@ -364,6 +364,9 @@ export default function GalleryPage() {
           }
           onPreview={setSelectedFile}
           getDetailHref={(file) => `/gallery/${file.id}`}
+          getIntegrityHref={(file) =>
+            file.integrity_status === "BROKEN" || file.integrity_status === "SUSPECT" ? "/integrity" : undefined
+          }
         />
 
         {data && totalPages > 1 && (
