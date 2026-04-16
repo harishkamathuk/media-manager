@@ -112,6 +112,49 @@ describe("Gallery page", () => {
     expect(screen.queryByRole("tab", { name: /integrity/i })).not.toBeInTheDocument();
   });
 
+  it("shows a per-row Review in Integrity action only for items already marked with an integrity problem", async () => {
+    mocks.getCanonical.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            id: "broken-1",
+            filename: "broken.mp4",
+            file_type: "video",
+            media_url: "/media/broken-1",
+            poster_url: "/poster/broken-1",
+            matched_tags: ["travel"],
+            top_confidence_score: 0.94,
+            sort_tag_name: "travel",
+            integrity_status: "BROKEN",
+          },
+          {
+            id: "healthy-1",
+            filename: "healthy.jpg",
+            file_type: "image",
+            media_url: "/media/healthy-1",
+            poster_url: null,
+            matched_tags: ["family"],
+            top_confidence_score: 0.88,
+            sort_tag_name: "family",
+            integrity_status: "OK",
+          },
+        ],
+        total: 2,
+        page: 1,
+        page_size: 20,
+        total_pages: 1,
+      },
+    });
+
+    renderPage();
+
+    const integrityLinks = await screen.findAllByRole("link", { name: "Review in Integrity" });
+    expect(integrityLinks).toHaveLength(1);
+    expect(integrityLinks[0]).toHaveAttribute("href", "/integrity");
+    expect(screen.getByText("broken.mp4")).toBeInTheDocument();
+    expect(screen.getByText("healthy.jpg")).toBeInTheDocument();
+  });
+
   it("keeps filter controls interactive inside the shell controls row", async () => {
     renderPage();
 

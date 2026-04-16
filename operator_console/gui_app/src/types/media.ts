@@ -7,6 +7,7 @@ export interface CanonicalFile {
   matched_tags: string[];
   top_confidence_score: number | null;
   sort_tag_name?: string | null;
+  integrity_status?: "SUSPECT" | "BROKEN" | null;
 }
 
 export interface CanonicalFileDetail {

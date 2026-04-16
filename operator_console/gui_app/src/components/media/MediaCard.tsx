@@ -10,6 +10,7 @@ interface MediaCardProps {
   file: CanonicalFile;
   onPreview?: () => void;
   detailHref?: string;
+  integrityHref?: string;
   density?: "large" | "medium" | "small" | "compact";
 }
 
@@ -20,7 +21,7 @@ function primaryTagLabel(file: CanonicalFile): string | null {
   return score ? `${tag} ${score}` : tag;
 }
 
-export function MediaCard({ file, onPreview, detailHref, density = "medium" }: MediaCardProps) {
+export function MediaCard({ file, onPreview, detailHref, integrityHref, density = "medium" }: MediaCardProps) {
   const isVideo = file.file_type === "video";
   const tagLabel = primaryTagLabel(file);
   const preferredPoster = isVideo ? file.poster_url ?? null : file.media_url;
@@ -28,6 +29,7 @@ export function MediaCard({ file, onPreview, detailHref, density = "medium" }: M
   const compactActions = density === "small" || density === "compact";
   const hideSupplementaryMeta = density === "compact";
   const hideTagChip = density === "compact";
+  const showIntegrityAction = Boolean(integrityHref && (file.integrity_status === "BROKEN" || file.integrity_status === "SUSPECT"));
 
   useEffect(() => {
     setImageSrc(preferredPoster);
@@ -127,15 +129,27 @@ export function MediaCard({ file, onPreview, detailHref, density = "medium" }: M
                 </Link>
               </Button>
             ) : null}
+            {showIntegrityAction ? (
+              <Button asChild type="button" variant="outline" size="icon" className="h-8 w-8 shrink-0">
+                <Link to={integrityHref ?? "/integrity"} aria-label={`Review ${file.filename} in Integrity`} title="Review in Integrity">
+                  <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : null}
           </div>
         ) : (
-          <div className="grid gap-2 pt-1 sm:grid-cols-2">
+          <div className={cn("grid gap-2 pt-1", showIntegrityAction ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
             <Button type="button" variant="outline" size="sm" className="w-full min-w-0" onClick={onPreview}>
               Quick preview
             </Button>
             {detailHref ? (
               <Button asChild type="button" size="sm" className="w-full min-w-0">
                 <Link to={detailHref}>View details</Link>
+              </Button>
+            ) : null}
+            {showIntegrityAction ? (
+              <Button asChild type="button" variant="outline" size="sm" className="w-full min-w-0">
+                <Link to={integrityHref ?? "/integrity"}>Review in Integrity</Link>
               </Button>
             ) : null}
           </div>

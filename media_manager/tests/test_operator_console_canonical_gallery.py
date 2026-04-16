@@ -13,6 +13,8 @@ from media_manager.app.persistence.models import (
     FileContent,
     FileInstance,
     FileInstanceStatus,
+    IntegrityCheck,
+    IntegrityCheckRun,
     Tag,
     TagSource,
 )
@@ -503,6 +505,86 @@ def test_get_canonical_gallery_created_at_tie_breaks_by_content_id(session_facto
 
     assert [item.id for item in first.items[:2]] == [str(a_id), str(b_id)]
     assert [item.id for item in second.items[:2]] == [str(a_id), str(b_id)]
+
+
+def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(session_factory) -> None:
+    service = OperatorConsoleReadService(session_factory)
+    base = datetime(2026, 3, 2, 13, 50, tzinfo=UTC)
+    content_a = UUID("65000000-0000-0000-0000-00000000000c")
+    content_b = UUID("65000000-0000-0000-0000-00000000000d")
+    broken_id = UUID("66000000-0000-0000-0000-00000000000c")
+    healthy_id = UUID("66000000-0000-0000-0000-00000000000d")
+    broken_run_id = UUID("67000000-0000-0000-0000-00000000000c")
+    healthy_run_id = UUID("67000000-0000-0000-0000-00000000000d")
+
+    with session_factory.begin() as session:
+        _add_content(session, content_a, "hash-problem", base)
+        _add_content(session, content_b, "hash-ok", base + timedelta(seconds=1))
+        session.flush()
+        _add_instance(session, file_instance_id=broken_id, content_id=content_a, absolute_path="/gallery/problem.mp4", first_seen_at=base)
+        _add_instance(session, file_instance_id=healthy_id, content_id=content_b, absolute_path="/gallery/ok.jpg", first_seen_at=base)
+        _add_assignment(
+            session,
+            assignment_id=UUID("68000000-0000-0000-0000-00000000000c"),
+            content_id=content_a,
+            canonical_instance_id=broken_id,
+            assigned_at=base,
+        )
+        _add_assignment(
+            session,
+            assignment_id=UUID("68000000-0000-0000-0000-00000000000d"),
+            content_id=content_b,
+            canonical_instance_id=healthy_id,
+            assigned_at=base + timedelta(seconds=1),
+        )
+        session.add_all(
+            [
+                IntegrityCheckRun(
+                    id=broken_run_id,
+                    scan_mode="FAST",
+                    status="COMPLETED",
+                    paths=["/gallery/problem.mp4"],
+                    scanned_count=1,
+                    issues_found=1,
+                    started_at=base,
+                    completed_at=base + timedelta(seconds=1),
+                ),
+                IntegrityCheckRun(
+                    id=healthy_run_id,
+                    scan_mode="FAST",
+                    status="COMPLETED",
+                    paths=["/gallery/ok.jpg"],
+                    scanned_count=1,
+                    issues_found=0,
+                    started_at=base + timedelta(seconds=2),
+                    completed_at=base + timedelta(seconds=3),
+                ),
+                IntegrityCheck(
+                    file_instance_id=broken_id,
+                    latest_run_id=broken_run_id,
+                    status="BROKEN",
+                    confidence=0.97,
+                    readability_ok=False,
+                    last_checked_at=base + timedelta(seconds=1),
+                    last_scanned_absolute_path="/gallery/problem.mp4",
+                ),
+                IntegrityCheck(
+                    file_instance_id=healthy_id,
+                    latest_run_id=healthy_run_id,
+                    status="OK",
+                    confidence=0.02,
+                    readability_ok=True,
+                    last_checked_at=base + timedelta(seconds=3),
+                    last_scanned_absolute_path="/gallery/ok.jpg",
+                ),
+            ]
+        )
+
+    page = service.get_canonical_gallery()
+
+    by_id = {item.id: item for item in page.items}
+    assert by_id[str(broken_id)].integrity_status == "BROKEN"
+    assert by_id[str(healthy_id)].integrity_status is None
 
 
 def test_resolve_media_source_returns_media_for_active_image_and_video(session_factory, tmp_path: Path) -> None:
