@@ -340,7 +340,7 @@ export default function GalleryPage() {
     <PageShell
       variant="browse-list"
       title="Library"
-      description="Use filters, sorting, preview, and the detail view to quickly find the photo or video you need."
+      description="Library shows usable media by default. Broken, unplayable, and integrity-failed items are excluded from default browsing. Use filters, sorting, preview, and the detail view to quickly find the photo or video you need."
       controls={controls}
     >
       {galleryQuery.error ? (
