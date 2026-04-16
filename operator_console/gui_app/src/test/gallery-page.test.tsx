@@ -153,6 +153,7 @@ describe("Gallery page", () => {
     expect(integrityLinks[0]).toHaveAttribute("href", "/integrity");
     expect(screen.getByText("broken.mp4")).toBeInTheDocument();
     expect(screen.getByText("healthy.jpg")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Review healthy.jpg in Integrity" })).not.toBeInTheDocument();
   });
 
   it("keeps filter controls interactive inside the shell controls row", async () => {

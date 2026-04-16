@@ -512,17 +512,22 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
     base = datetime(2026, 3, 2, 13, 50, tzinfo=UTC)
     content_a = UUID("65000000-0000-0000-0000-00000000000c")
     content_b = UUID("65000000-0000-0000-0000-00000000000d")
+    content_c = UUID("65000000-0000-0000-0000-00000000000e")
     broken_id = UUID("66000000-0000-0000-0000-00000000000c")
     healthy_id = UUID("66000000-0000-0000-0000-00000000000d")
+    suspect_id = UUID("66000000-0000-0000-0000-00000000000e")
     broken_run_id = UUID("67000000-0000-0000-0000-00000000000c")
     healthy_run_id = UUID("67000000-0000-0000-0000-00000000000d")
+    suspect_run_id = UUID("67000000-0000-0000-0000-00000000000e")
 
     with session_factory.begin() as session:
         _add_content(session, content_a, "hash-problem", base)
         _add_content(session, content_b, "hash-ok", base + timedelta(seconds=1))
+        _add_content(session, content_c, "hash-suspect", base + timedelta(seconds=2))
         session.flush()
         _add_instance(session, file_instance_id=broken_id, content_id=content_a, absolute_path="/gallery/problem.mp4", first_seen_at=base)
         _add_instance(session, file_instance_id=healthy_id, content_id=content_b, absolute_path="/gallery/ok.jpg", first_seen_at=base)
+        _add_instance(session, file_instance_id=suspect_id, content_id=content_c, absolute_path="/gallery/suspect.mov", first_seen_at=base)
         _add_assignment(
             session,
             assignment_id=UUID("68000000-0000-0000-0000-00000000000c"),
@@ -536,6 +541,13 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
             content_id=content_b,
             canonical_instance_id=healthy_id,
             assigned_at=base + timedelta(seconds=1),
+        )
+        _add_assignment(
+            session,
+            assignment_id=UUID("68000000-0000-0000-0000-00000000000e"),
+            content_id=content_c,
+            canonical_instance_id=suspect_id,
+            assigned_at=base + timedelta(seconds=2),
         )
         session.add_all(
             [
@@ -559,6 +571,16 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
                     started_at=base + timedelta(seconds=2),
                     completed_at=base + timedelta(seconds=3),
                 ),
+                IntegrityCheckRun(
+                    id=suspect_run_id,
+                    scan_mode="FAST",
+                    status="COMPLETED",
+                    paths=["/gallery/suspect.mov"],
+                    scanned_count=1,
+                    issues_found=1,
+                    started_at=base + timedelta(seconds=4),
+                    completed_at=base + timedelta(seconds=5),
+                ),
                 IntegrityCheck(
                     file_instance_id=broken_id,
                     latest_run_id=broken_run_id,
@@ -577,6 +599,15 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
                     last_checked_at=base + timedelta(seconds=3),
                     last_scanned_absolute_path="/gallery/ok.jpg",
                 ),
+                IntegrityCheck(
+                    file_instance_id=suspect_id,
+                    latest_run_id=suspect_run_id,
+                    status="SUSPECT",
+                    confidence=0.61,
+                    readability_ok=False,
+                    last_checked_at=base + timedelta(seconds=5),
+                    last_scanned_absolute_path="/gallery/suspect.mov",
+                ),
             ]
         )
 
@@ -585,6 +616,7 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
     by_id = {item.id: item for item in page.items}
     assert by_id[str(broken_id)].integrity_status == "BROKEN"
     assert by_id[str(healthy_id)].integrity_status is None
+    assert by_id[str(suspect_id)].integrity_status == "SUSPECT"
 
 
 def test_resolve_media_source_returns_media_for_active_image_and_video(session_factory, tmp_path: Path) -> None:
