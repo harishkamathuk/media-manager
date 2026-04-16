@@ -85,9 +85,7 @@ describe("Gallery page", () => {
     renderPage();
 
     expect(await screen.findByText("Library")).toBeInTheDocument();
-    expect(
-      screen.getByText("Use filters, sorting, preview, and the detail view to quickly find the photo or video you need."),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Library shows usable media by default\./)).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="browse-list"]')).toBeTruthy();
     expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
     expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
@@ -100,6 +98,18 @@ describe("Gallery page", () => {
     expect(screen.getByText("first.jpg")).toBeInTheDocument();
     expect(screen.getByText("clip.mp4")).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("states the default library visibility rule without introducing integrity actions", async () => {
+    renderPage();
+
+    expect(await screen.findByText(/Library shows usable media by default\./)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Broken, unplayable, and integrity-failed items are excluded from default browsing\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /integrity/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /integrity/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: /integrity/i })).not.toBeInTheDocument();
   });
 
   it("keeps filter controls interactive inside the shell controls row", async () => {

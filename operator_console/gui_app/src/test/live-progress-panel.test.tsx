@@ -24,6 +24,7 @@ function renderWithQuery(ui: React.ReactNode) {
 
 describe("LiveProgressPanel", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -102,14 +103,14 @@ describe("LiveProgressPanel", () => {
   });
 
   it("pauses polling while the tab is hidden and resumes when visible again", async () => {
-    vi.useFakeTimers();
-    try {
-      let visibilityState: DocumentVisibilityState = "visible";
-      Object.defineProperty(document, "visibilityState", {
-        configurable: true,
-        get: () => visibilityState,
-      });
+    const originalVisibilityStateDescriptor = Object.getOwnPropertyDescriptor(document, "visibilityState");
+    let visibilityState: DocumentVisibilityState = "visible";
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => visibilityState,
+    });
 
+    try {
       const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue({
         ok: true,
         json: async () => [
@@ -123,18 +124,21 @@ describe("LiveProgressPanel", () => {
 
       visibilityState = "hidden";
       await act(async () => {
-        await vi.advanceTimersByTimeAsync(1_200);
+        await new Promise((resolve) => setTimeout(resolve, 1_200));
       });
       expect(fetchMock).toHaveBeenCalledTimes(1);
 
       visibilityState = "visible";
       await act(async () => {
         document.dispatchEvent(new Event("visibilitychange"));
-        await vi.runOnlyPendingTimersAsync();
       });
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     } finally {
-      vi.useRealTimers();
+      if (originalVisibilityStateDescriptor) {
+        Object.defineProperty(document, "visibilityState", originalVisibilityStateDescriptor);
+      } else {
+        Reflect.deleteProperty(document, "visibilityState");
+      }
     }
   }, 10_000);
 
