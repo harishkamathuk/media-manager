@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { PageShell } from "@/components/layout/PageShell";
@@ -124,18 +124,6 @@ export default function GalleryPage() {
     }),
     [densityPreset.limit, mediaTypeFilter, page, sortBy, sortOrder, tagsParam],
   );
-  const previousCanonicalParamsRef = useRef(canonicalParams);
-  const keepPreviousCanonicalPageData =
-    previousCanonicalParamsRef.current.page !== canonicalParams.page &&
-    previousCanonicalParamsRef.current.limit === canonicalParams.limit &&
-    previousCanonicalParamsRef.current.tags === canonicalParams.tags &&
-    previousCanonicalParamsRef.current.sort_by === canonicalParams.sort_by &&
-    previousCanonicalParamsRef.current.sort_order === canonicalParams.sort_order &&
-    previousCanonicalParamsRef.current.media_type === canonicalParams.media_type;
-
-  useEffect(() => {
-    previousCanonicalParamsRef.current = canonicalParams;
-  }, [canonicalParams]);
 
   const tagsQuery = useQuery({
     queryKey: queryKeys.canonicalTags(""),
@@ -147,7 +135,6 @@ export default function GalleryPage() {
     queryKey: queryKeys.canonical(canonicalParams),
     queryFn: async () => (await getCanonical(canonicalParams)).data,
     staleTime: queryOptions.canonical.staleTime,
-    placeholderData: keepPreviousCanonicalPageData ? keepPreviousData : undefined,
   });
 
   const data = (galleryQuery.data as PaginatedResponse<CanonicalFile> | undefined) ?? null;
