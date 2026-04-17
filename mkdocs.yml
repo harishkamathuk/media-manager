@@ -88,6 +88,7 @@ nav:
       - Integrity Review and Reclaim Rollout: architecture/integrity-reclaim-rollout.md
       - Organize Media UX Feedback: architecture/pipeline-wizard-ux-feedback-2026-03-15.md
       - Library readiness restart handoff (2026-04-03): architecture/library-readiness-restart-handoff-2026-04-03.md
+      - Library Usable-Default Policy: architecture/library-usable-default-policy.md
       - ADR:
           - ADR Index: architecture/adr/index.md
           - ADR-0001 Runtime Invariants: architecture/adr/0001-runtime-invariants-hard-constraints.md
