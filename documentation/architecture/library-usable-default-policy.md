@@ -20,7 +20,7 @@ This document defines usable-default Library browsing only in terms of the curre
 
 | Current Gallery state | Included in default Library | Reason |
 |---|---|---|
-| Active canonical image/video item with `integrity_status = null` | Yes | This is the current healthy/default-visible state exposed by the Gallery model. `OK` is not separately surfaced to the Library; it collapses to `null`. |
+| Active canonical image/video item with `integrity_status = null` | Yes | This is the current healthy/default-visible state exposed by the Gallery model. `OK` can exist in `IntegrityCheck.status` storage, but the Gallery query only finds `BROKEN`/`SUSPECT` rows, so healthy items return `null`. |
 | Active canonical image/video item with `integrity_status = BROKEN` | No | This is an explicit integrity-problem state already exposed in Gallery and already associated with Integrity workflow routing. |
 | Active canonical image/video item with `integrity_status = SUSPECT` | No | This is an explicit warning/problem state already exposed in Gallery and already associated with Integrity workflow routing. |
 
