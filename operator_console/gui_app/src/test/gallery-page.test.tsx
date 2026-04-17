@@ -550,4 +550,92 @@ describe("Gallery page", () => {
       expect(screen.getByText("2 items · Page 1 of 1")).toBeInTheDocument();
     });
   });
+
+  it("does not show previous page items while the next page is loading", async () => {
+    mocks.getCanonical
+      .mockResolvedValueOnce({
+        data: {
+          items: [
+            {
+              id: "page-1-image",
+              filename: "page-1-image.jpg",
+              file_type: "image",
+              media_url: "/media/page-1-image",
+              poster_url: null,
+              matched_tags: [],
+              top_confidence_score: 0.91,
+              sort_tag_name: null,
+            },
+            {
+              id: "page-1-video",
+              filename: "page-1-video.mp4",
+              file_type: "video",
+              media_url: "/media/page-1-video",
+              poster_url: "/poster/page-1-video",
+              matched_tags: [],
+              top_confidence_score: 0.88,
+              sort_tag_name: null,
+            },
+          ],
+          total: 40,
+          page: 1,
+          page_size: 20,
+          total_pages: 2,
+        },
+      });
+
+    let resolvePageTwo: ((value: unknown) => void) | null = null;
+    mocks.getCanonical.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePageTwo = resolve;
+        }),
+    );
+
+    renderPage();
+
+    expect(await screen.findByText("page-1-image.jpg")).toBeInTheDocument();
+    expect(screen.getByText("page-1-video.mp4")).toBeInTheDocument();
+    expect(screen.getByText("40 items · Page 1 of 2")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("link", { name: "Go to next page" }));
+
+    await waitFor(() => {
+      expect(mocks.getCanonical).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 2,
+        }),
+      );
+      expect(screen.getByText("Loading gallery...")).toBeInTheDocument();
+      expect(screen.queryByText("page-1-image.jpg")).not.toBeInTheDocument();
+      expect(screen.queryByText("page-1-video.mp4")).not.toBeInTheDocument();
+    });
+
+    resolvePageTwo?.({
+      data: {
+        items: [
+          {
+            id: "page-2-image",
+            filename: "page-2-image.jpg",
+            file_type: "image",
+            media_url: "/media/page-2-image",
+            poster_url: null,
+            matched_tags: [],
+            top_confidence_score: 0.82,
+            sort_tag_name: null,
+          },
+        ],
+        total: 40,
+        page: 2,
+        page_size: 20,
+        total_pages: 2,
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("40 items · Page 2 of 2")).toBeInTheDocument();
+      expect(screen.getByText("page-2-image.jpg")).toBeInTheDocument();
+      expect(screen.queryByText("page-1-image.jpg")).not.toBeInTheDocument();
+    });
+  });
 });
