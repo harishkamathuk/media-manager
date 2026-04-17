@@ -507,7 +507,7 @@ def test_get_canonical_gallery_created_at_tie_breaks_by_content_id(session_facto
     assert [item.id for item in second.items[:2]] == [str(a_id), str(b_id)]
 
 
-def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(session_factory) -> None:
+def test_get_canonical_gallery_excludes_integrity_problem_statuses_from_default_results(session_factory) -> None:
     service = OperatorConsoleReadService(session_factory)
     base = datetime(2026, 3, 2, 13, 50, tzinfo=UTC)
     content_a = UUID("65000000-0000-0000-0000-00000000000c")
@@ -613,10 +613,76 @@ def test_get_canonical_gallery_surfaces_existing_integrity_problem_statuses(sess
 
     page = service.get_canonical_gallery()
 
-    by_id = {item.id: item for item in page.items}
-    assert by_id[str(broken_id)].integrity_status == "BROKEN"
-    assert by_id[str(healthy_id)].integrity_status is None
-    assert by_id[str(suspect_id)].integrity_status == "SUSPECT"
+    assert page.total_count == 1
+    assert page.total_pages == 1
+    assert [item.id for item in page.items] == [str(healthy_id)]
+    assert page.items[0].integrity_status is None
+
+
+def test_get_canonical_gallery_paginates_after_excluding_integrity_problem_items(session_factory) -> None:
+    service = OperatorConsoleReadService(session_factory)
+    base = datetime(2026, 3, 2, 13, 55, tzinfo=UTC)
+
+    with session_factory.begin() as session:
+        for idx, status in enumerate((None, "BROKEN", None, "SUSPECT", None)):
+            content_id = UUID(f"65110000-0000-0000-0000-00000000000{idx}")
+            instance_id = UUID(f"66110000-0000-0000-0000-00000000000{idx}")
+            assignment_id = UUID(f"67110000-0000-0000-0000-00000000000{idx}")
+            run_id = UUID(f"68110000-0000-0000-0000-00000000000{idx}")
+            seen_at = base + timedelta(seconds=idx)
+            _add_content(session, content_id, f"hash-exclusion-{idx}", seen_at)
+            session.flush()
+            _add_instance(
+                session,
+                file_instance_id=instance_id,
+                content_id=content_id,
+                absolute_path=f"/gallery/exclusion-{idx}.jpg",
+                first_seen_at=seen_at,
+            )
+            _add_assignment(
+                session,
+                assignment_id=assignment_id,
+                content_id=content_id,
+                canonical_instance_id=instance_id,
+                assigned_at=seen_at,
+            )
+            if status is not None:
+                session.add(
+                    IntegrityCheckRun(
+                        id=run_id,
+                        scan_mode="FAST",
+                        status="COMPLETED",
+                        paths=[f"/gallery/exclusion-{idx}.jpg"],
+                        scanned_count=1,
+                        issues_found=1,
+                        started_at=seen_at,
+                        completed_at=seen_at + timedelta(seconds=1),
+                    )
+                )
+                session.add(
+                    IntegrityCheck(
+                        file_instance_id=instance_id,
+                        latest_run_id=run_id,
+                        status=status,
+                        confidence=0.9,
+                        readability_ok=False,
+                        last_checked_at=seen_at + timedelta(seconds=1),
+                        last_scanned_absolute_path=f"/gallery/exclusion-{idx}.jpg",
+                    )
+                )
+
+    page1 = service.get_canonical_gallery(page=1, limit=2, sort_by="created_at", sort_order="desc")
+    page2 = service.get_canonical_gallery(page=2, limit=2, sort_by="created_at", sort_order="desc")
+
+    assert page1.total_count == 3
+    assert page1.total_pages == 2
+    assert [item.filename for item in page1.items] == ["exclusion-4.jpg", "exclusion-2.jpg"]
+    assert [item.integrity_status for item in page1.items] == [None, None]
+
+    assert page2.total_count == 3
+    assert page2.total_pages == 2
+    assert [item.filename for item in page2.items] == ["exclusion-0.jpg"]
+    assert [item.integrity_status for item in page2.items] == [None]
 
 
 def test_resolve_media_source_returns_media_for_active_image_and_video(session_factory, tmp_path: Path) -> None:
