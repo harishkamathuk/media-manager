@@ -104,9 +104,7 @@ describe("Gallery page", () => {
     renderPage();
 
     expect(await screen.findByText(/Library shows usable media by default\./)).toBeInTheDocument();
-    expect(
-      screen.getByText(/Broken, unplayable, and integrity-failed items are excluded from default browsing\./),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Items marked BROKEN or SUSPECT are excluded from default browsing\./)).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /integrity/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /integrity/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /integrity/i })).not.toBeInTheDocument();
