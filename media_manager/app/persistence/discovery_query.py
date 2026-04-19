@@ -13,6 +13,7 @@ from media_manager.app.persistence.models import (
     FileContent,
     FileInstance,
     FileInstanceStatus,
+    IntegrityCheck,
     Tag,
     TagSource,
 )
@@ -231,6 +232,12 @@ class DiscoveryQueryService:
                 latest_assignments.c.rn == 1,
                 FileInstance.status == FileInstanceStatus.ACTIVE.value,
                 media_type_expr.is_not(None),
+                ~select(IntegrityCheck.file_instance_id)
+                .where(
+                    IntegrityCheck.file_instance_id == latest_assignments.c.canonical_instance_id,
+                    IntegrityCheck.status.in_(("BROKEN", "SUSPECT")),
+                )
+                .exists(),
             )
             .group_by(
                 latest_assignments.c.content_id,
