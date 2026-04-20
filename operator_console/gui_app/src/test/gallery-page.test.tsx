@@ -100,12 +100,13 @@ describe("Gallery page", () => {
     expect(screen.getByRole("radio", { name: "All" })).toHaveAttribute("aria-checked", "true");
   });
 
-  it("states the default library visibility rule without introducing integrity actions", async () => {
+  it("states the default library visibility rule and provides a Gallery-level handoff to Integrity Checks", async () => {
     renderPage();
 
     expect(await screen.findByText(/Library shows usable media by default\./)).toBeInTheDocument();
     expect(screen.getByText(/Items marked BROKEN or SUSPECT are excluded from default browsing\./)).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /integrity/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Problem items belong in/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Integrity Checks" })).toHaveAttribute("href", "/integrity");
     expect(screen.queryByRole("button", { name: /integrity/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("tab", { name: /integrity/i })).not.toBeInTheDocument();
   });

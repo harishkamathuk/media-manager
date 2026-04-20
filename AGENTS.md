@@ -80,44 +80,47 @@ If any issue metadata step is skipped or cannot be completed, the agent must say
 
 ## GitHub Project Management
 
-When creating or updating issues that require project field values (e.g., Status), use these commands:
+When creating or updating issues that require project field values (e.g., Status), use this deterministic workflow:
 
-### Adding Issue to Project
-
-```bash
-# Add issue to project
-gh project item-add 8 --url "https://github.com/harishkamathuk/media-manager/issues/NUMBER" --owner "harishkamathuk"
-```
-
-### CRITICAL: Getting Correct Project Item ID
-
-When editing project fields, ALWAYS query the exact project item ID for the specific issue rather than guessing:
+### DETERMINISTIC: Add Issue + Set Status in 2 Commands
 
 ```bash
-# Query all project items and find the exact ID for the issue number
-gh api graphql -f query='query{repo:repository(owner:"harishkamathuk",name:"media-manager"){proj:projectV2(number:8){items(first:100){nodes{id content{...on Issue{number}}}}}}}' | jq -r '.data.repo.proj.items.nodes[] | select(.content.number == ISSUE_NUMBER) | .id'
+# Step 1: Add to project and capture item ID from JSON output
+gh project item-add 8 --url "https://github.com/harishkamathuk/media-manager/issues/${ISSUE_NUMBER}" --owner "harishkamathuk" --format json | jq -r '.id'
+
+# Step 2: Set status using the item ID from step 1 + hardcoded status option ID
+gh project item-edit --id "${ITEM_ID}" --project-id "PVT_kwHOAK3mu84BTo-6" --field-id "PVTSSF_lAHOAK3mu84BTo-6zhA2m74" --single-select-option-id "${OPTION_ID}"
 ```
 
-Why this matters: Using guessed/estimated IDs from earlier queries fails because new issues get new project item IDs. Always query fresh.
+Where:
+- `${ISSUE_NUMBER}` = the GitHub issue number (e.g., 114)
+- `${ITEM_ID}` = project item ID returned from Step 1 (e.g., `PVTI_lAHOAK3mu84BTo-6zgqQwo8`)
+- `${OPTION_ID}` = status option from table below
 
-### Updating Project Status
+### Hardcoded Project IDs (Media Manager Delivery - Project #8)
 
-```bash
-# Use the exact project item ID from the query above
-gh project item-edit \
-  --id "PROJECT_ITEM_ID" \
-  --project-id "PVT_kwHOAK3mu84BTo-6" \
-  --field-id "PVTSSF_lAHOAK3mu84BTo-6zhA2m74" \
-  --single-select-option-id "3f6a1705"  # Backlog
-```
+| Project Element | ID |
+|-----------------|-----|
+| Project | PVT_kwHOAK3mu84BTo-6 |
+| Status Field | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 |
 
-### Known Project IDs (Media Manager Delivery - Project #8)
+Status Options:
 
-| Field | Field ID | Option ID | Option Name |
-|-------|---------|----------|-------------|
-| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 3f6a1705 | Backlog |
-| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 27d9491f | In Progress |
-| Status | PVTSSF_lAHOAK3mu84BTo-6zhA2m74 | 25b0b2ed | Ready |
+| Status | Option ID |
+|--------|-----------|
+| Backlog | 3f6a1705 |
+| Ready | 25b0b2ed |
+| In Progress | 27d9491f |
+| In Review | 17f0a9e6 |
+| Done | 98236657 |
+| Blocked | db24be51 |
+
+### Why This Works
+
+- `--format json` on `item-add` + `jq -r '.id'` returns the new item ID directly (no pagination)
+- Hardcoded status option IDs skip the lookup round-trip
+- `item-edit` returns exit code 0 on success (no output = success)
+- Do NOT query for item IDs via pagination - it's flaky and slow
 
 ### Adding Milestone to Issue
 
