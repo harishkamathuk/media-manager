@@ -4,7 +4,7 @@ import { AlertTriangle, Loader2, ShieldCheck, ShieldOff } from "lucide-react";
 
 import { LiveProgressPanel } from "@/components/progress/LiveProgressPanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
+import { PageShell } from "@/components/layout/PageShell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -303,14 +303,10 @@ export default function IntegrityPage() {
           ]
         : [];
 
-  return (
-    <div className="space-y-6 p-6">
-      <TopSurfaceHeader
-        badge="Integrity"
-        title="Integrity Checks"
-        description="Read-only scan results for playback and file-health issues."
-      >
-        <div className="flex flex-col items-end gap-2">
+  const controls = (
+    <div className="rounded-[28px] border border-border/70 bg-card/70 p-4 shadow-sm backdrop-blur">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="space-y-2">
           {policy ? (
             <p className="text-xs text-muted-foreground">
               Saved default scan mode: {policy.integrity.default_scan_mode === "DEEP" ? "Deep" : "Quick"}
@@ -322,7 +318,9 @@ export default function IntegrityPage() {
             <p>By default, unchanged files are skipped.</p>
             <p>Full rescan checks everything again.</p>
           </div>
-          <div className="flex gap-2">
+        </div>
+        <div className="flex flex-col items-start gap-3 lg:items-end">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
               onClick={() => scanMutation.mutate({ mode: "FAST", fullRescan })}
@@ -348,7 +346,18 @@ export default function IntegrityPage() {
             </Label>
           </div>
         </div>
-      </TopSurfaceHeader>
+      </div>
+    </div>
+  );
+
+  return (
+    <PageShell
+      variant="standard-admin"
+      title="Integrity Checks"
+      description="Read-only scan results for playback and file-health issues."
+      controls={controls}
+    >
+      <div data-page-primary-surface className="-mt-1 space-y-6">
 
       <Card>
         <CardHeader className="space-y-3">
@@ -662,6 +671,7 @@ export default function IntegrityPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      </div>
+    </PageShell>
   );
 }

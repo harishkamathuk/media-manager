@@ -156,6 +156,9 @@ describe("IntegrityPage", () => {
     renderPage();
 
     expect(await screen.findByText("Integrity Checks")).toBeInTheDocument();
+    expect(document.querySelector('[data-page-shell="standard-admin"]')).toBeTruthy();
+    expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
+    expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
     expect(screen.getByText("Integrity Scan Status")).toBeInTheDocument();
     expect(
       screen.getByText("Start a Quick Scan or Deep Scan above. Live activity and the latest scan summary will appear here."),
