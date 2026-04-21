@@ -644,6 +644,9 @@ export default function DuplicatesPage() {
     [explicitReviewTargetId, reviewFilter, restoredReviewGroupIds, sortedGroups],
   );
 
+  // This cleanup must run before the selectedId sync below so an explicit
+  // Playback Issues -> Review target is cleared based on the user-selected id,
+  // not after the sync effect rewrites selection to the first visible group.
   useEffect(() => {
     if (activeTab !== "review" && explicitReviewTargetId) {
       setExplicitReviewTargetId(null);
@@ -790,6 +793,11 @@ export default function DuplicatesPage() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", nextTab);
     setSearchParams(nextParams);
+  }
+
+  function applyReviewFilter(nextFilter: ReviewFilter) {
+    setExplicitReviewTargetId(null);
+    setReviewFilter(nextFilter);
   }
 
   function moveSelection(direction: -1 | 1) {
@@ -1778,7 +1786,7 @@ export default function DuplicatesPage() {
                                 variant={reviewFilter === option.value ? "default" : "outline"}
                                 size="sm"
                                 className="rounded-full"
-                                onClick={() => setReviewFilter(option.value)}
+                                onClick={() => applyReviewFilter(option.value)}
                               >
                                 {option.label}
                               </Button>
@@ -2012,12 +2020,12 @@ export default function DuplicatesPage() {
                   <p>
                     {restoredReviewGroupIds.size} restored group{restoredReviewGroupIds.size === 1 ? "" : "s"} {restoredReviewGroupIds.size === 1 ? "needs" : "need"} review before {restoredReviewGroupIds.size === 1 ? "it can" : "they can"} re-enter Ready for Bin.
                   </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setReviewFilter("restored");
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                      applyReviewFilter("restored");
                       setActiveTab("review");
                     }}
                   >

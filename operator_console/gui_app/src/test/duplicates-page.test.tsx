@@ -465,7 +465,7 @@ describe("DuplicatesPage", () => {
         ...buildGroup("group-alpha", "alpha-main.jpg", ["alpha-copy.jpg", "alpha-copy-2.jpg"]),
         review_status: "needs_review",
       },
-      buildGroup("group-beta", "beta-main.jpg", ["beta-copy.jpg"]),
+      markGroupSafeToMove(buildGroup("group-beta", "beta-main.jpg", ["beta-copy.jpg"])),
       buildGroup("group-gamma", "gamma-main.jpg", ["gamma-copy.jpg"]),
     ];
     mocks.getDuplicates.mockImplementation(async () => ({ data: groupsData }));
@@ -505,6 +505,13 @@ describe("DuplicatesPage", () => {
       expect(screen.getByRole("heading", { name: "Review duplicates" })).toBeInTheDocument();
       expect(screen.getByText("1 of 3")).toBeInTheDocument();
       expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Looks right" }));
+
+    await waitFor(() => {
+      expect(screen.queryAllByText("alpha-main.jpg")).toHaveLength(0);
+      expect(screen.getAllByText("beta-main.jpg").length).toBeGreaterThan(0);
     });
   });
 
