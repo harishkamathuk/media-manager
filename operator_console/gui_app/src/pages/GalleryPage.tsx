@@ -84,7 +84,6 @@ export default function GalleryPage() {
   const [tagInput, setTagInput] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [lastKnownPagination, setLastKnownPagination] = useState<{
-    totalCount: number;
     totalPages: number;
     key: string;
   } | null>(null);
@@ -130,14 +129,11 @@ export default function GalleryPage() {
     [densityPreset.limit, mediaTypeFilter, page, sortBy, sortOrder, tagsParam],
   );
   const paginationMetadataKey = useMemo(
-    () => JSON.stringify({
-      limit: densityPreset.limit,
-      tags: tagsParam || undefined,
-      sort_by: sortBy,
-      sort_order: sortOrder,
-      media_type: mediaTypeFilter === "all" ? undefined : mediaTypeFilter,
-    }),
-    [densityPreset.limit, mediaTypeFilter, sortBy, sortOrder, tagsParam],
+    () => {
+      const { page: _page, ...paginationParams } = canonicalParams;
+      return JSON.stringify(paginationParams);
+    },
+    [canonicalParams],
   );
 
   const tagsQuery = useQuery({
@@ -161,7 +157,6 @@ export default function GalleryPage() {
     galleryQuery.isLoading && !data && lastKnownPagination?.key === paginationMetadataKey
       ? lastKnownPagination
       : null;
-  const paginationTotalCount = persistedPagination?.totalCount ?? totalCount;
   const paginationTotalPages = Math.max(persistedPagination?.totalPages ?? totalPages, 1);
   const visiblePages = useMemo(() => getVisiblePages(page, paginationTotalPages), [page, paginationTotalPages]);
   const hasActiveFilters = selectedTags.length > 0 || mediaTypeFilter !== "all";
@@ -175,7 +170,6 @@ export default function GalleryPage() {
   useEffect(() => {
     if (!data) return;
     setLastKnownPagination({
-      totalCount: data.total,
       totalPages: Math.max(data.total_pages ?? 1, 1),
       key: paginationMetadataKey,
     });
