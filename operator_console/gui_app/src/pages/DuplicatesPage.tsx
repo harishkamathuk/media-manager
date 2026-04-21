@@ -438,6 +438,7 @@ export default function DuplicatesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDuplicateId, setSelectedDuplicateId] = useState<string | null>(null);
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("unreviewed");
+  const [explicitReviewTargetId, setExplicitReviewTargetId] = useState<string | null>(null);
   const [isReviewQueueOpen, setIsReviewQueueOpen] = useState(false);
   const [readyForBinViewMode, setReadyForBinViewMode] = useState<DuplicateWorkspaceViewMode>("focus");
   const [recycleBinViewMode, setRecycleBinViewMode] = useState<DuplicateWorkspaceViewMode>("gallery");
@@ -633,14 +634,28 @@ export default function DuplicatesPage() {
   const filteredGroups = useMemo(
     () =>
       sortedGroups.filter((group) => {
+        if (group.group_id === explicitReviewTargetId) return true;
         if (reviewFilter === "all") return true;
         if (reviewFilter === "restored") return restoredReviewGroupIds.has(group.group_id);
         const mark = currentReviewMark(group);
         if (reviewFilter === "unreviewed") return !mark;
         return mark === reviewFilter;
       }),
-    [reviewFilter, restoredReviewGroupIds, sortedGroups],
+    [explicitReviewTargetId, reviewFilter, restoredReviewGroupIds, sortedGroups],
   );
+
+  // This cleanup must run before the selectedId sync below so an explicit
+  // Playback Issues -> Review target is cleared based on the user-selected id,
+  // not after the sync effect rewrites selection to the first visible group.
+  useEffect(() => {
+    if (activeTab !== "review" && explicitReviewTargetId) {
+      setExplicitReviewTargetId(null);
+      return;
+    }
+    if (explicitReviewTargetId && selectedId !== explicitReviewTargetId) {
+      setExplicitReviewTargetId(null);
+    }
+  }, [activeTab, explicitReviewTargetId, selectedId]);
 
   useEffect(() => {
     if (!filteredGroups.length) {
@@ -778,6 +793,11 @@ export default function DuplicatesPage() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set("tab", nextTab);
     setSearchParams(nextParams);
+  }
+
+  function applyReviewFilter(nextFilter: ReviewFilter) {
+    setExplicitReviewTargetId(null);
+    setReviewFilter(nextFilter);
   }
 
   function moveSelection(direction: -1 | 1) {
@@ -1766,7 +1786,7 @@ export default function DuplicatesPage() {
                                 variant={reviewFilter === option.value ? "default" : "outline"}
                                 size="sm"
                                 className="rounded-full"
-                                onClick={() => setReviewFilter(option.value)}
+                                onClick={() => applyReviewFilter(option.value)}
                               >
                                 {option.label}
                               </Button>
@@ -2005,7 +2025,7 @@ export default function DuplicatesPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setReviewFilter("restored");
+                      applyReviewFilter("restored");
                       setActiveTab("review");
                     }}
                   >
@@ -2418,6 +2438,7 @@ export default function DuplicatesPage() {
                                   type="button"
                                   variant="outline"
                                   onClick={() => {
+                                    setExplicitReviewTargetId(group.group_id);
                                     setSelectedId(group.group_id);
                                     setActiveTab("review");
                                   }}
