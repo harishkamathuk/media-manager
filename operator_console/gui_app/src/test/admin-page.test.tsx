@@ -292,6 +292,11 @@ describe("Admin page", () => {
   it("renders the live progress panel in the activity detail rail", async () => {
     renderPage();
 
+    const pageHeader = screen.getByTestId("admin-page-header");
+    const sectionNav = screen.getByTestId("admin-page-section-nav");
+    expect(pageHeader.querySelector("button")).toBeNull();
+    expect(pageHeader.querySelector("a")).toBeNull();
+    expect(sectionNav).toBeInTheDocument();
     expect(await screen.findByRole("tab", { name: "Activity" })).toBeInTheDocument();
     expect(screen.getByText("What happened in this job")).toBeInTheDocument();
     expect(await screen.findByText("[ WAITING FOR LOGS ]")).toBeInTheDocument();

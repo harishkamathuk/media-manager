@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { PageShell } from "@/components/layout/PageShell";
 import { MediaGrid } from "@/components/media/MediaGrid";
@@ -206,13 +206,6 @@ export default function GalleryPage() {
             {galleryQuery.isLoading && !data
               ? "Loading gallery..."
               : `${totalCount} item${totalCount === 1 ? "" : "s"} · Page ${page} of ${totalPages}`}
-          </div>
-          <div className="rounded-2xl border border-border/70 bg-background/85 px-4 py-3 text-sm text-muted-foreground shadow-sm">
-            Problem items belong in{" "}
-            <Link to="/integrity" className="font-medium text-foreground underline underline-offset-4">
-              Integrity Checks
-            </Link>
-            .
           </div>
         </div>
 

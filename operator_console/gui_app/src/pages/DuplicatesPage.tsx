@@ -1540,8 +1540,8 @@ export default function DuplicatesPage() {
       ) : (
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as DuplicatesTab)} className="space-y-3">
           <section
-            data-page-controls
-            data-testid="duplicates-page-controls"
+            data-page-section-nav
+            data-testid="duplicates-page-section-nav"
             className="rounded-[24px] border border-border/70 bg-card/95 p-1 shadow-sm"
           >
             <TabsList className="flex h-auto w-full flex-wrap justify-start gap-2 rounded-[18px] bg-muted/60 p-1">

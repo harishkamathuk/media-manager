@@ -2624,73 +2624,29 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
-      <TopSurfaceHeader
-        badge="Admin Workspace"
-        title="Review what happened, investigate files, and use advanced tools only when you need them."
-        description="This is one integrated workspace now. Start with the simpler review tools, then move into health checks, benchmarks, or reset only when the situation calls for it."
-        icon={Sparkles}
-        className="rounded-[30px]"
-      >
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <button
-            type="button"
-            onClick={() => updateTab("activity")}
-            className="rounded-2xl border border-border/70 bg-background/85 p-4 text-left shadow-sm transition-colors hover:bg-primary/5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Start here</p>
-            <p className="mt-2 text-base font-semibold">Activity</p>
-            <p className="mt-1 text-sm text-muted-foreground">Review recent jobs and failures first.</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateTab("file-history")}
-            className="rounded-2xl border border-border/70 bg-background/85 p-4 text-left shadow-sm transition-colors hover:bg-primary/5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Find answers</p>
-            <p className="mt-2 text-base font-semibold">File History</p>
-            <p className="mt-1 text-sm text-muted-foreground">Investigate a file by path, fingerprint, or state.</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateTab("library-rules")}
-            className="rounded-2xl border border-border/70 bg-background/85 p-4 text-left shadow-sm transition-colors hover:bg-primary/5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Set behavior</p>
-            <p className="mt-2 text-base font-semibold">Library Rules</p>
-            <p className="mt-1 text-sm text-muted-foreground">Choose which copy should stay primary.</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateTab("system-health")}
-            className="rounded-2xl border border-border/70 bg-background/85 p-4 text-left shadow-sm transition-colors hover:bg-primary/5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Advanced</p>
-            <p className="mt-2 text-base font-semibold">System Health</p>
-            <p className="mt-1 text-sm text-muted-foreground">Check broader health and monitoring signals.</p>
-          </button>
-          <button
-            type="button"
-            onClick={() => updateTab("reset")}
-            className="rounded-2xl border border-destructive/25 bg-background/85 p-4 text-left shadow-sm transition-colors hover:bg-destructive/5"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-destructive">Danger zone</p>
-            <p className="mt-2 text-base font-semibold">Reset</p>
-            <p className="mt-1 text-sm text-muted-foreground">Preview or clear data only in controlled environments.</p>
-          </button>
-        </div>
-      </TopSurfaceHeader>
+      <div data-testid="admin-page-header">
+        <TopSurfaceHeader
+          badge="Admin Workspace"
+          title="Review what happened, investigate files, and use advanced tools only when you need them."
+          description="This is one integrated workspace now. Start with the simpler review tools, then move into health checks, benchmarks, or reset only when the situation calls for it."
+          icon={Sparkles}
+          className="rounded-[30px]"
+        />
+      </div>
 
       <Tabs value={tab} onValueChange={(value) => updateTab(value as AdminTab)} className="space-y-4">
-        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-2xl p-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="library-rules">Library Rules</TabsTrigger>
-          <TabsTrigger value="file-history">File History</TabsTrigger>
-          <TabsTrigger value="integrity-check">Integrity Check</TabsTrigger>
-          <TabsTrigger value="system-health">System Health</TabsTrigger>
-          <TabsTrigger value="benchmarks">Performance Lab</TabsTrigger>
-          <TabsTrigger value="reset">Reset</TabsTrigger>
-        </TabsList>
+        <section data-page-section-nav data-testid="admin-page-section-nav">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-2xl p-1">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="library-rules">Library Rules</TabsTrigger>
+            <TabsTrigger value="file-history">File History</TabsTrigger>
+            <TabsTrigger value="integrity-check">Integrity Check</TabsTrigger>
+            <TabsTrigger value="system-health">System Health</TabsTrigger>
+            <TabsTrigger value="benchmarks">Performance Lab</TabsTrigger>
+            <TabsTrigger value="reset">Reset</TabsTrigger>
+          </TabsList>
+        </section>
 
         <TabsContent value="overview"><OverviewTab setTab={updateTab} /></TabsContent>
         <TabsContent value="activity"><ActivityTab /></TabsContent>

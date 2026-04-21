@@ -293,17 +293,17 @@ describe("DuplicatesPage", () => {
   it("defaults to the review tab with comparison content dominant and no Recycle Bin actions", async () => {
     renderPage();
 
-    const pageControls = await screen.findByTestId("duplicates-page-controls");
+    const sectionNav = await screen.findByTestId("duplicates-page-section-nav");
     const pageHeader = screen.getByTestId("duplicates-page-header");
     expect(within(pageHeader).queryByRole("button")).toBeNull();
     expect(within(pageHeader).queryByRole("link")).toBeNull();
 
-    expect(within(pageControls).getByRole("tab", { name: "Review duplicates" })).toBeInTheDocument();
-    expect(within(pageControls).getByRole("tab", { name: "Ready for Bin" })).toBeInTheDocument();
-    expect(within(pageControls).getByRole("tab", { name: "Recycle Bin" })).toBeInTheDocument();
-    expect(within(pageControls).getByRole("tab", { name: "Playback issues" })).toBeInTheDocument();
+    expect(within(sectionNav).getByRole("tab", { name: "Review duplicates" })).toBeInTheDocument();
+    expect(within(sectionNav).getByRole("tab", { name: "Ready for Bin" })).toBeInTheDocument();
+    expect(within(sectionNav).getByRole("tab", { name: "Recycle Bin" })).toBeInTheDocument();
+    expect(within(sectionNav).getByRole("tab", { name: "Playback issues" })).toBeInTheDocument();
     const sharedHeading = screen.getByTestId("duplicates-shared-tab-heading");
-    expect(pageControls.nextElementSibling).toBe(sharedHeading);
+    expect(sectionNav.nextElementSibling).toBe(sharedHeading);
     expect(sharedHeading).toHaveTextContent("Review duplicates");
 
     expect(await screen.findByRole("heading", { name: "Review duplicates" })).toBeInTheDocument();
@@ -515,9 +515,9 @@ describe("DuplicatesPage", () => {
 
     renderPage("/duplicates?tab=removal");
 
-    const pageControls = await screen.findByTestId("duplicates-page-controls");
+    const sectionNav = await screen.findByTestId("duplicates-page-section-nav");
     const sharedHeading = screen.getByTestId("duplicates-shared-tab-heading");
-    expect(pageControls.nextElementSibling).toBe(sharedHeading);
+    expect(sectionNav.nextElementSibling).toBe(sharedHeading);
     expect(sharedHeading).toHaveTextContent("Ready for Bin");
     expect(await screen.findByRole("heading", { name: "Ready for Bin" })).toBeInTheDocument();
     expect(screen.getAllByText("Ready for Bin").length).toBeGreaterThan(0);
