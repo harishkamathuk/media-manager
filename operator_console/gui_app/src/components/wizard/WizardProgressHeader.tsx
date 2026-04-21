@@ -1,7 +1,6 @@
 import { Check, Lock, OctagonAlert, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { ReactNode } from "react";
 
 export type WizardProgressStatus = "completed" | "current" | "pending" | "failed" | "blocked";
 
@@ -21,7 +20,6 @@ interface WizardProgressHeaderProps {
   previousTitle?: string | null;
   nextTitle?: string | null;
   items: WizardProgressItem[];
-  secondaryAction?: ReactNode;
 }
 
 function StepMarker({
@@ -92,24 +90,20 @@ export function WizardProgressHeader({
   previousTitle,
   nextTitle,
   items,
-  secondaryAction,
 }: WizardProgressHeaderProps) {
   return (
     <Card className="rounded-2xl border-border/80 bg-card/80 shadow-sm">
       <CardContent className="space-y-2.5 p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Progress</p>
-            <div className="flex items-center gap-2">
-              {items.map((item, index) => (
-                <div key={item.id} className="flex min-w-0 flex-1 items-center gap-2">
-                  <StepMarker status={item.status} stepNumber={index + 1} title={item.title} />
-                  {index < items.length - 1 && <StepConnector active={item.status === "completed" || item.status === "current"} />}
-                </div>
-              ))}
-            </div>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Progress</p>
+          <div className="flex items-center gap-2">
+            {items.map((item, index) => (
+              <div key={item.id} className="flex min-w-0 flex-1 items-center gap-2">
+                <StepMarker status={item.status} stepNumber={index + 1} title={item.title} />
+                {index < items.length - 1 && <StepConnector active={item.status === "completed" || item.status === "current"} />}
+              </div>
+            ))}
           </div>
-          {secondaryAction}
         </div>
 
         <div className="space-y-0.5">

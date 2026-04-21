@@ -104,7 +104,11 @@ describe("Pipeline Wizard page", () => {
       ),
     ).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="workflow"]')).toBeTruthy();
-    expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
+    expect(screen.getByTestId("pipeline-wizard-section-nav")).toBeInTheDocument();
+    expect(screen.queryByTestId("pipeline-wizard-section-nav")?.querySelector("button")).toBeNull();
+    expect(screen.getByTestId("pipeline-wizard-actions")).toBeInTheDocument();
+    expect(screen.getByTestId("pipeline-wizard-actions").querySelector("button")).not.toBeNull();
+    expect(document.querySelector("[data-page-shell-controls]")).toBeFalsy();
     expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
     expect(screen.getAllByText("Progress").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Abort Wizard" })).toBeInTheDocument();

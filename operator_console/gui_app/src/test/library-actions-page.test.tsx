@@ -221,13 +221,10 @@ describe("Import page", () => {
     expect(screen.getByText("Add Searchable Details")).toBeInTheDocument();
     expect(screen.queryByText("Legacy Composite Run")).not.toBeInTheDocument();
     expect(screen.queryByText("Mutating")).not.toBeInTheDocument();
-    const pageControls = screen.getByTestId("operations-page-controls");
     const pageHeader = screen.getByTestId("operations-page-header");
     expect(within(pageHeader).queryByRole("link")).toBeNull();
     expect(within(pageHeader).queryByRole("button")).toBeNull();
-
-    expect(within(pageControls).getByRole("link", { name: "Open Organize" })).toBeInTheDocument();
-    expect(within(pageControls).getByRole("link", { name: "Review Activity" })).toBeInTheDocument();
+    expect(screen.queryByTestId("operations-page-controls")).not.toBeInTheDocument();
     expect(await screen.findByText("[ WAITING FOR LOGS ]")).toBeInTheDocument();
   });
 
