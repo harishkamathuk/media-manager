@@ -608,6 +608,8 @@ describe("Gallery page", () => {
       expect(screen.getByText("Loading gallery...")).toBeInTheDocument();
       expect(screen.queryByText("page-1-image.jpg")).not.toBeInTheDocument();
       expect(screen.queryByText("page-1-video.mp4")).not.toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Go to previous page" })).toBeInTheDocument();
+      expect(screen.getByRole("link", { name: "Go to next page" })).toBeInTheDocument();
     });
 
     resolvePageTwo?.({

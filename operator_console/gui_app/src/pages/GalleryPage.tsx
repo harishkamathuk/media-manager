@@ -83,6 +83,11 @@ export default function GalleryPage() {
   const [selectedFile, setSelectedFile] = useState<CanonicalFile | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [lastKnownPagination, setLastKnownPagination] = useState<{
+    totalCount: number;
+    totalPages: number;
+    key: string;
+  } | null>(null);
   const tagsParam = searchParams.get("tags") || "";
   const selectedTags = useMemo(() => tagsParam.split(",").filter(Boolean), [tagsParam]);
   const sortBy = searchParams.get("sort_by") || "created_at";
@@ -124,6 +129,16 @@ export default function GalleryPage() {
     }),
     [densityPreset.limit, mediaTypeFilter, page, sortBy, sortOrder, tagsParam],
   );
+  const paginationMetadataKey = useMemo(
+    () => JSON.stringify({
+      limit: densityPreset.limit,
+      tags: tagsParam || undefined,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+      media_type: mediaTypeFilter === "all" ? undefined : mediaTypeFilter,
+    }),
+    [densityPreset.limit, mediaTypeFilter, sortBy, sortOrder, tagsParam],
+  );
 
   const tagsQuery = useQuery({
     queryKey: queryKeys.canonicalTags(""),
@@ -142,7 +157,13 @@ export default function GalleryPage() {
   const allTags = useMemo(() => (tagsQuery.data as Tag[] | undefined) ?? [], [tagsQuery.data]);
   const totalCount = data?.total ?? 0;
   const totalPages = Math.max(data?.total_pages ?? 1, 1);
-  const visiblePages = useMemo(() => getVisiblePages(page, totalPages), [page, totalPages]);
+  const persistedPagination =
+    galleryQuery.isLoading && !data && lastKnownPagination?.key === paginationMetadataKey
+      ? lastKnownPagination
+      : null;
+  const paginationTotalCount = persistedPagination?.totalCount ?? totalCount;
+  const paginationTotalPages = Math.max(persistedPagination?.totalPages ?? totalPages, 1);
+  const visiblePages = useMemo(() => getVisiblePages(page, paginationTotalPages), [page, paginationTotalPages]);
   const hasActiveFilters = selectedTags.length > 0 || mediaTypeFilter !== "all";
   const activeFilterSummary = [
     selectedTags.length ? `${selectedTags.length} tag filter${selectedTags.length === 1 ? "" : "s"}` : null,
@@ -150,6 +171,15 @@ export default function GalleryPage() {
   ]
     .filter(Boolean)
     .join(" · ");
+
+  useEffect(() => {
+    if (!data) return;
+    setLastKnownPagination({
+      totalCount: data.total,
+      totalPages: Math.max(data.total_pages ?? 1, 1),
+      key: paginationMetadataKey,
+    });
+  }, [data, paginationMetadataKey]);
 
   useEffect(() => {
     if (!tagInput) {
@@ -363,7 +393,7 @@ export default function GalleryPage() {
           }
         />
 
-        {data && totalPages > 1 && (
+        {paginationTotalPages > 1 && (
           <Pagination className="justify-center">
             <PaginationContent>
               <PaginationItem>
@@ -403,10 +433,10 @@ export default function GalleryPage() {
                   href="#"
                   onClick={(event) => {
                     event.preventDefault();
-                    if (page >= totalPages) return;
+                    if (page >= paginationTotalPages) return;
                     updateParams({ page: String(page + 1) });
                   }}
-                  className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className={page >= paginationTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
             </PaginationContent>
