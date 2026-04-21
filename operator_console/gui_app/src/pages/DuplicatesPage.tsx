@@ -652,7 +652,7 @@ export default function DuplicatesPage() {
       setExplicitReviewTargetId(null);
       return;
     }
-    if (explicitReviewTargetId && selectedId && selectedId !== explicitReviewTargetId) {
+    if (explicitReviewTargetId && selectedId !== explicitReviewTargetId) {
       setExplicitReviewTargetId(null);
     }
   }, [activeTab, explicitReviewTargetId, selectedId]);
