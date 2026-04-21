@@ -2624,7 +2624,7 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
-      <div data-testid="admin-page-header">
+      <div data-page-header data-testid="admin-page-header">
         <TopSurfaceHeader
           badge="Admin Workspace"
           title="Review what happened, investigate files, and use advanced tools only when you need them."
