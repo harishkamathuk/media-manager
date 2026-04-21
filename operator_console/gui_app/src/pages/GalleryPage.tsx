@@ -84,7 +84,6 @@ export default function GalleryPage() {
   const [tagInput, setTagInput] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [lastKnownPagination, setLastKnownPagination] = useState<{
-    totalCount: number;
     totalPages: number;
     key: string;
   } | null>(null);
@@ -171,7 +170,6 @@ export default function GalleryPage() {
   useEffect(() => {
     if (!data) return;
     setLastKnownPagination({
-      totalCount: data.total,
       totalPages: Math.max(data.total_pages ?? 1, 1),
       key: paginationMetadataKey,
     });
