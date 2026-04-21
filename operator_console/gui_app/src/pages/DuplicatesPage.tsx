@@ -438,6 +438,7 @@ export default function DuplicatesPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedDuplicateId, setSelectedDuplicateId] = useState<string | null>(null);
   const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("unreviewed");
+  const [explicitReviewTargetId, setExplicitReviewTargetId] = useState<string | null>(null);
   const [isReviewQueueOpen, setIsReviewQueueOpen] = useState(false);
   const [readyForBinViewMode, setReadyForBinViewMode] = useState<DuplicateWorkspaceViewMode>("focus");
   const [recycleBinViewMode, setRecycleBinViewMode] = useState<DuplicateWorkspaceViewMode>("gallery");
@@ -633,14 +634,25 @@ export default function DuplicatesPage() {
   const filteredGroups = useMemo(
     () =>
       sortedGroups.filter((group) => {
+        if (group.group_id === explicitReviewTargetId) return true;
         if (reviewFilter === "all") return true;
         if (reviewFilter === "restored") return restoredReviewGroupIds.has(group.group_id);
         const mark = currentReviewMark(group);
         if (reviewFilter === "unreviewed") return !mark;
         return mark === reviewFilter;
       }),
-    [reviewFilter, restoredReviewGroupIds, sortedGroups],
+    [explicitReviewTargetId, reviewFilter, restoredReviewGroupIds, sortedGroups],
   );
+
+  useEffect(() => {
+    if (activeTab !== "review" && explicitReviewTargetId) {
+      setExplicitReviewTargetId(null);
+      return;
+    }
+    if (explicitReviewTargetId && selectedId && selectedId !== explicitReviewTargetId) {
+      setExplicitReviewTargetId(null);
+    }
+  }, [activeTab, explicitReviewTargetId, selectedId]);
 
   useEffect(() => {
     if (!filteredGroups.length) {
@@ -2418,6 +2430,7 @@ export default function DuplicatesPage() {
                                   type="button"
                                   variant="outline"
                                   onClick={() => {
+                                    setExplicitReviewTargetId(group.group_id);
                                     setSelectedId(group.group_id);
                                     setActiveTab("review");
                                   }}

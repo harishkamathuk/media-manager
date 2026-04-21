@@ -459,6 +459,49 @@ describe("DuplicatesPage", () => {
     });
   });
 
+  it("keeps the intended group visible when opening in review from Playback Issues under an excluding review filter", async () => {
+    groupsData = [
+      {
+        ...buildGroup("group-alpha", "alpha-main.jpg", ["alpha-copy.jpg", "alpha-copy-2.jpg"]),
+        review_status: "needs_review",
+      },
+      buildGroup("group-beta", "beta-main.jpg", ["beta-copy.jpg"]),
+      buildGroup("group-gamma", "gamma-main.jpg", ["gamma-copy.jpg"]),
+    ];
+    mocks.getDuplicates.mockImplementation(async () => ({ data: groupsData }));
+    mocks.getIntegrityIssues.mockResolvedValue({
+      data: {
+        items: [
+          {
+            check_id: "check-1",
+            file_instance_id: "group-alpha-canonical",
+            status: "BROKEN",
+            issue_code: "decode_error",
+            observed_at: "2026-03-22T12:00:00Z",
+          },
+          {
+            check_id: "check-2",
+            file_instance_id: "group-beta-duplicate-0",
+            status: "SUSPECT",
+            issue_code: "stalled_frame_probe",
+            observed_at: "2026-03-22T12:05:00Z",
+          },
+        ],
+      },
+    });
+
+    renderPage("/duplicates?tab=playback-issues");
+
+    const alphaCard = await screen.findByTestId("playback-group-card-group-alpha");
+    fireEvent.click(within(alphaCard).getByRole("button", { name: "Open in review" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("heading", { name: "Review duplicates" })).toBeInTheDocument();
+      expect(screen.getByText("1 of 3")).toBeInTheDocument();
+      expect(screen.getAllByText("alpha-main.jpg").length).toBeGreaterThan(0);
+    });
+  });
+
   it("ignores marking shortcuts when focus is inside an input", async () => {
     renderPage();
 
