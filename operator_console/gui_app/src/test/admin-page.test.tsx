@@ -297,6 +297,7 @@ describe("Admin page", () => {
     expect(pageHeader.querySelector("button")).toBeNull();
     expect(pageHeader.querySelector("a")).toBeNull();
     expect(sectionNav).toBeInTheDocument();
+    expect(sectionNav.querySelector('[role="tablist"]')).not.toBeNull();
     expect(await screen.findByRole("tab", { name: "Activity" })).toBeInTheDocument();
     expect(screen.getByText("What happened in this job")).toBeInTheDocument();
     expect(await screen.findByText("[ WAITING FOR LOGS ]")).toBeInTheDocument();
