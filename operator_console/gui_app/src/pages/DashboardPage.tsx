@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ErrorAlert } from "@/components/ErrorAlert";
@@ -12,7 +12,7 @@ import { getHome } from "@/lib/api/endpoints";
 import { queryKeys } from "@/lib/api/queryKeys";
 import { queryOptions } from "@/lib/api/queryOptions";
 import type { CanonicalFile, HomePageData } from "@/types";
-import { ArrowRight, Copy, ImageIcon, Images, Video } from "lucide-react";
+import { ArrowRight, ImageIcon, Video } from "lucide-react";
 
 function getErrorMessage(err: unknown): string | null {
   if (!err) return null;
@@ -105,33 +105,6 @@ function SectionHeader({
   );
 }
 
-function QuickLinkCard({
-  title,
-  description,
-  href,
-  icon,
-}: {
-  title: string;
-  description: string;
-  href: string;
-  icon: ReactNode;
-}) {
-  return (
-    <Link
-      to={href}
-      className="rounded-2xl border border-border/70 bg-background/80 p-4 shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/5"
-    >
-      <div className="flex items-start gap-3">
-        <div className="rounded-xl border border-border/70 bg-card p-2">{icon}</div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
 function SummarySkeleton() {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -212,51 +185,26 @@ export default function DashboardPage() {
   const home = homeQuery.data;
   const error = getErrorMessage(homeQuery.error);
   const recentImages =
-    home?.recent_images ?? home?.recent_media.filter((file) => file.file_type === "image") ?? [];
+    home?.recent_images ?? (home?.recent_media ?? []).filter((file) => file.file_type === "image");
   const recentVideos =
-    home?.recent_videos ?? home?.recent_media.filter((file) => file.file_type === "video") ?? [];
-  const controls =
-    homeQuery.isLoading && !home ? (
-      <SummarySkeleton />
-    ) : home ? (
-      <LibrarySummaryCards
-        totalAssets={home.library_summary.total_assets}
-        images={home.library_summary.images}
-        videos={home.library_summary.videos}
-        duplicateGroups={home.library_summary.duplicate_groups}
-      />
-    ) : null;
+    home?.recent_videos ?? (home?.recent_media ?? []).filter((file) => file.file_type === "video");
   const secondary = home ? (
     <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
       <Card className="rounded-[28px] border-border/70 bg-background/90 shadow-sm">
         <CardHeader className="pb-3">
-          <CardDescription>Go where you need to work</CardDescription>
-          <CardTitle className="text-xl">Quick Links</CardTitle>
+          <CardDescription>Overview of the current library state</CardDescription>
+          <CardTitle className="text-xl">Library Snapshot</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button asChild className="w-full justify-between">
-            <Link to={home.guided_entry?.route ?? "/pipeline-wizard"}>
-              {home.guided_entry?.label ?? "Open Organize"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
           <p className="text-sm leading-6 text-muted-foreground">
-            {home.guided_entry?.helper ?? "Guided ingest, planning, apply, and review"}
+            Canonical media currently available for browsing, review, and follow-up work.
           </p>
-          <div className="grid gap-3 pt-2">
-            <QuickLinkCard
-              title="Duplicate Review"
-              description="Inspect duplicate groups and confirm which items need review."
-              href="/duplicates"
-              icon={<Copy className="h-4 w-4" />}
-            />
-            <QuickLinkCard
-              title="Open Library"
-              description="Browse canonical media with previews, filters, and detail pages."
-              href="/gallery"
-              icon={<Images className="h-4 w-4" />}
-            />
-          </div>
+          <LibrarySummaryCards
+            totalAssets={home.library_summary.total_assets}
+            images={home.library_summary.images}
+            videos={home.library_summary.videos}
+            duplicateGroups={home.library_summary.duplicate_groups}
+          />
         </CardContent>
       </Card>
 
@@ -266,26 +214,20 @@ export default function DashboardPage() {
           <CardTitle className="text-xl">Needs Attention</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Link
-            to="/duplicates"
-            className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
-          >
+          <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4">
             <div>
               <p className="text-sm font-semibold">Duplicate groups</p>
               <p className="mt-1 text-sm text-muted-foreground">Review likely duplicate clusters.</p>
             </div>
             <span className="text-2xl font-semibold">{home.attention_summary.duplicate_groups}</span>
-          </Link>
-          <Link
-            to="/admin?tab=activity"
-            className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-primary/35 hover:bg-primary/5"
-          >
+          </div>
+          <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4">
             <div>
               <p className="text-sm font-semibold">Failed runs</p>
-              <p className="mt-1 text-sm text-muted-foreground">Open Admin Diagnostics to review jobs that need follow-up.</p>
+              <p className="mt-1 text-sm text-muted-foreground">Jobs that need follow-up.</p>
             </div>
             <span className="text-2xl font-semibold">{home.attention_summary.failed_runs}</span>
-          </Link>
+          </div>
           <div className="flex items-center justify-between rounded-2xl border border-border/70 bg-background/80 p-4">
             <div>
               <p className="text-sm font-semibold">Untagged assets</p>
@@ -315,10 +257,11 @@ export default function DashboardPage() {
       variant="standard-admin"
       title="Media Manager"
       description="Browse recent media, review what needs attention, and jump into the guided workflow when you're ready."
-      controls={controls}
       secondary={secondary}
     >
       {error ? <ErrorAlert message={error} /> : null}
+
+      {homeQuery.isLoading && !home ? <SummarySkeleton /> : null}
 
       {home ? (
         <div className="space-y-6">

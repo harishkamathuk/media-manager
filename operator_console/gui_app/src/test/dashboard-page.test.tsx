@@ -62,6 +62,7 @@ describe("Dashboard page", () => {
           last_run_type: "PLAN",
           regression_status: "UNKNOWN",
         },
+        // Retained to mirror the backend payload even though Dashboard no longer renders it.
         guided_entry: {
           label: "Open Organize",
           route: "/pipeline-wizard",
@@ -75,7 +76,7 @@ describe("Dashboard page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders the standard admin shell with quick links in the supporting rail", async () => {
+  it("renders the standard admin shell without duplicating cross-area navigation cards", async () => {
     renderPage();
 
     expect(await screen.findByText("Media Manager")).toBeInTheDocument();
@@ -83,7 +84,9 @@ describe("Dashboard page", () => {
       screen.getByText("Browse recent media, review what needs attention, and jump into the guided workflow when you're ready."),
     ).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="standard-admin"]')).toBeTruthy();
-    expect(await screen.findByRole("link", { name: "Open Organize" })).toBeInTheDocument();
-    expect(screen.getByText("Quick Links")).toBeInTheDocument();
+    expect(screen.queryByText("Quick Links")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Open Organize" })).not.toBeInTheDocument();
+    expect(await screen.findByText("Library Snapshot")).toBeInTheDocument();
+    expect(screen.getByText("Needs Attention")).toBeInTheDocument();
   });
 });
