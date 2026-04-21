@@ -62,6 +62,7 @@ describe("Dashboard page", () => {
           last_run_type: "PLAN",
           regression_status: "UNKNOWN",
         },
+        // Retained to mirror the backend payload even though Dashboard no longer renders it.
         guided_entry: {
           label: "Open Organize",
           route: "/pipeline-wizard",

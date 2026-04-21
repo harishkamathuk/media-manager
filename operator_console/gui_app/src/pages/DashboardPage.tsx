@@ -185,9 +185,9 @@ export default function DashboardPage() {
   const home = homeQuery.data;
   const error = getErrorMessage(homeQuery.error);
   const recentImages =
-    home?.recent_images ?? home?.recent_media.filter((file) => file.file_type === "image") ?? [];
+    home?.recent_images ?? (home?.recent_media ?? []).filter((file) => file.file_type === "image");
   const recentVideos =
-    home?.recent_videos ?? home?.recent_media.filter((file) => file.file_type === "video") ?? [];
+    home?.recent_videos ?? (home?.recent_media ?? []).filter((file) => file.file_type === "video");
   const secondary = home ? (
     <div className="space-y-6 xl:sticky xl:top-6 xl:self-start">
       <Card className="rounded-[28px] border-border/70 bg-background/90 shadow-sm">
@@ -197,7 +197,7 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm leading-6 text-muted-foreground">
-            {home.guided_entry?.helper ?? "Guided ingest, planning, apply, and review"}
+            Canonical media currently available for browsing, review, and follow-up work.
           </p>
           <LibrarySummaryCards
             totalAssets={home.library_summary.total_assets}
