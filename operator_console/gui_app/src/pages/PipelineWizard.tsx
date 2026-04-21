@@ -2320,7 +2320,8 @@ export default function PipelineWizard() {
         variant="workflow"
         title="Organize"
         description="Guided ingest, planning, apply, chosen-version review, and enrichment with short checkpoints between stages."
-        controls={
+      >
+        <section data-page-section-nav data-testid="pipeline-wizard-section-nav">
           <WizardProgressHeader
             currentIndex={currentStepIndex}
             totalSteps={STEP_ORDER.length}
@@ -2329,18 +2330,19 @@ export default function PipelineWizard() {
             previousTitle={previousStepTitle}
             nextTitle={nextStepTitle}
             items={progressItems}
-            secondaryAction={
-              currentStepId === "summary" ? null : (
-                <Button type="button" variant="ghost" onClick={() => setConfirmAbortOpen(true)}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Abort Wizard
-                </Button>
-              )
-            }
           />
-        }
-      >
-        <div data-page-primary-surface className="-mt-1">
+        </section>
+
+        {currentStepId === "summary" ? null : (
+          <div className="flex justify-end" data-testid="pipeline-wizard-actions">
+            <Button type="button" variant="ghost" onClick={() => setConfirmAbortOpen(true)}>
+              <XCircle className="mr-2 h-4 w-4" />
+              Abort Wizard
+            </Button>
+          </div>
+        )}
+
+        <div data-page-primary-surface className="space-y-4">
           {renderCurrentStep()}
         </div>
       </PageShell>

@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -104,7 +104,13 @@ describe("Pipeline Wizard page", () => {
       ),
     ).toBeInTheDocument();
     expect(document.querySelector('[data-page-shell="workflow"]')).toBeTruthy();
-    expect(document.querySelector("[data-page-shell-controls]")).toBeTruthy();
+    const sectionNav = screen.getByTestId("pipeline-wizard-section-nav");
+    const actions = screen.getByTestId("pipeline-wizard-actions");
+    expect(sectionNav).toBeInTheDocument();
+    expect(within(sectionNav).queryByRole("button", { name: "Abort Wizard" })).toBeNull();
+    expect(actions).toBeInTheDocument();
+    expect(within(actions).getByRole("button", { name: "Abort Wizard" })).toBeInTheDocument();
+    expect(document.querySelector("[data-page-shell-controls]")).toBeFalsy();
     expect(document.querySelector("[data-page-primary-surface]")).toBeTruthy();
     expect(screen.getAllByText("Progress").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "Abort Wizard" })).toBeInTheDocument();

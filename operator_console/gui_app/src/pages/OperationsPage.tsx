@@ -706,18 +706,6 @@ export default function OperationsPage() {
         />
       </div>
 
-      <section data-page-controls data-testid="operations-page-controls" className="flex flex-wrap gap-3">
-        <Button asChild size="sm">
-          <Link to="/pipeline-wizard">
-            Open Organize
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/admin?tab=activity">Review Activity</Link>
-        </Button>
-      </section>
-
       {/* Keep one shared live panel above the action sections so progress stays visible while users move between explicit operation controls. */}
       <LiveProgressPanel
         operationKind={activeProgressState?.kind}
