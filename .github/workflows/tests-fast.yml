@@ -80,6 +80,7 @@ jobs:
           src/test/log-progress-parser.test.ts
           src/test/duplicate-group-mapping.test.ts
           src/test/dashboard-page.test.tsx
+          src/test/gallery-page.test.tsx
           src/test/media-gallery.test.tsx
           src/test/sidebar-progress-widget.test.tsx
 
