@@ -223,13 +223,10 @@ describe("IntegrityPage", () => {
 
     await screen.findByText("Last checked for this file");
 
-    const pathNodes = Array.from(document.querySelectorAll("p.break-all")).filter(
-      (node) => node.textContent === longPath,
-    );
+    const pathNodes = screen.getAllByText(longPath);
     expect(pathNodes).toHaveLength(2);
-    for (const node of pathNodes) {
-      expect(node).toHaveClass("break-all");
-    }
+    expect(pathNodes[0]).toHaveClass("break-all");
+    expect(pathNodes[1]).toHaveClass("break-all");
   });
 
   it("quick scan shows in-flight state and then success summary", async () => {
