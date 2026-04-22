@@ -525,7 +525,7 @@ export default function IntegrityPage() {
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <p className="font-medium">{basename(issue.absolute_path)}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{issue.absolute_path}</p>
+                          <p className="mt-1 break-all text-xs text-muted-foreground">{issue.absolute_path}</p>
                         </div>
                         <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(issue.status)}`}>
                           {issue.status}
@@ -572,7 +572,7 @@ export default function IntegrityPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-lg font-semibold">{basename(detail.absolute_path)}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{detail.absolute_path}</p>
+                    <p className="mt-1 break-all text-xs text-muted-foreground">{detail.absolute_path}</p>
                   </div>
                   <div className={`rounded-full border px-3 py-1 text-xs font-medium ${statusTone(detail.status)}`}>
                     {detail.status}

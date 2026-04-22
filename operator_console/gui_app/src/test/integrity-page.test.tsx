@@ -175,6 +175,60 @@ describe("IntegrityPage", () => {
     expect(screen.getAllByText("ffprobe_failed").length).toBeGreaterThan(0);
   });
 
+  it("wraps long raw paths in the queue and file detail while keeping the full value visible", async () => {
+    const longPath = "/media/very/long/path/with/unbroken-segments/that/should/not/overflow/the/integrity/detail/panel/problem-file-with-a-very-long-name-and-no-natural-breakpoints-1234567890abcdef.mp4";
+
+    mocks.getIntegrityIssues.mockResolvedValueOnce({
+      data: {
+        items: [
+          {
+            check_id: "check-1",
+            file_instance_id: "file-1",
+            absolute_path: longPath,
+            status: "BROKEN",
+            confidence: 0.93,
+            probe_status: "FAILED",
+            decode_status: "SKIPPED",
+            reviewed_decision: null,
+            reviewed_at: null,
+            signal_types: ["ffprobe_failed"],
+          },
+        ],
+      },
+    });
+    mocks.getIntegrityFile.mockResolvedValueOnce({
+      data: {
+        check_id: "check-1",
+        file_instance_id: "file-1",
+        absolute_path: longPath,
+        status: "BROKEN",
+        confidence: 0.93,
+        last_checked_at: "2026-03-25T09:00:00+00:00",
+        probe_status: "FAILED",
+        decode_status: "SKIPPED",
+        reviewed_decision: "MARK_OK",
+        reviewed_at: "2026-03-25T11:00:00+00:00",
+        signals: [
+          {
+            signal_type: "ffprobe_failed",
+            severity: "error",
+            details: { stderr: "bad file" },
+            created_at: "2026-03-25T10:00:00+00:00",
+          },
+        ],
+      },
+    });
+
+    renderPage();
+
+    await screen.findByText("Last checked for this file");
+
+    const pathNodes = screen.getAllByText(longPath);
+    expect(pathNodes).toHaveLength(2);
+    expect(pathNodes[0]).toHaveClass("break-all");
+    expect(pathNodes[1]).toHaveClass("break-all");
+  });
+
   it("quick scan shows in-flight state and then success summary", async () => {
     const deferred = createDeferred<{ data: { run_id: string; scan_mode: "FAST"; eligible_file_count: number; scanned_count: number; skipped_count: number; issues_found: number; full_rescan: boolean } }>();
     mocks.startIntegrityScan.mockReturnValueOnce(deferred.promise);
