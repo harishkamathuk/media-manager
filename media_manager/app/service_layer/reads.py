@@ -272,10 +272,9 @@ class ReadServices:
         sort_by: str,
         sort_order: str | None,
         file_type: str | None,
-        source: str | None,
+        source: TagSource | None,
         min_confidence: float | None,
     ) -> dict[str, object]:
-        source_value = TagSource(source.strip().lower()) if source else None
         return self._read_service.get_canonical_gallery(
             page=page,
             limit=limit,
@@ -283,7 +282,7 @@ class ReadServices:
             sort_by=sort_by,
             sort_order=sort_order,
             file_type=file_type,
-            source=source_value,
+            source=source,
             min_confidence=min_confidence,
         ).to_dict()
 

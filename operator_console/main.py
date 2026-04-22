@@ -883,7 +883,7 @@ def create_app() -> FastAPI:
                 sort_by=parsed.sort_by,
                 sort_order=parsed.sort_order,
                 file_type=parsed.file_type,
-                source=parsed.source.value if parsed.source is not None else None,
+                source=parsed.source,
                 min_confidence=parsed.min_confidence,
             ),
         )
