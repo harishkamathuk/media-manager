@@ -9,6 +9,7 @@ import { apiGet, apiPost } from "@/lib/api/client";
 import {
   adminDbReset,
   getAdminAppSettings,
+  getCanonical,
   getDuplicateBinPolicy,
   getDuplicateBinItems,
   getDirectoryPickerCapability,
@@ -344,6 +345,59 @@ describe("api endpoints", () => {
       page: 2,
       limit: 50,
     });
+  });
+
+  it("maps canonical pagination fields from raw API payloads", async () => {
+    vi.mocked(apiGet).mockResolvedValue({
+      ok: true,
+      workflow_version: "v2-service-layer",
+      schema_version: "schema-1",
+      generated_at: "2026-04-01T00:00:00+00:00",
+      data: {
+        total_count: 75,
+        page: 2,
+        limit: 50,
+        total_pages: 4,
+        items: [
+          {
+            id: "file-1",
+            filename: "clip.mp4",
+            file_type: "video",
+            media_url: "/media/clip.mp4",
+            poster_url: "/media/clip.jpg",
+            matched_tags: ["travel"],
+            top_confidence_score: 0.98,
+            sort_tag_name: "travel",
+          },
+        ],
+      },
+      errors: [],
+    });
+
+    const response = await getCanonical({ page: 2, limit: 50 });
+
+    expect(apiGet).toHaveBeenCalledWith("/canonical", { page: 2, limit: 50 });
+    expect(response.data).toEqual({
+      items: [
+        {
+          id: "file-1",
+          filename: "clip.mp4",
+          file_type: "video",
+          media_url: "/media/clip.mp4",
+          poster_url: "/media/clip.jpg",
+          matched_tags: ["travel"],
+          top_confidence_score: 0.98,
+          sort_tag_name: "travel",
+          integrity_status: null,
+        },
+      ],
+      total: 75,
+      page: 2,
+      page_size: 50,
+      total_pages: 4,
+    });
+    expect(response.data).not.toHaveProperty("total_count");
+    expect(response.data).not.toHaveProperty("limit");
   });
 
   it("moves duplicate groups to the bin through the existing reclaim-shaped route", async () => {
