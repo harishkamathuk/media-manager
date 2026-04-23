@@ -234,6 +234,46 @@ describe("IntegrityPage", () => {
     expect(pathNodes[1]).toHaveClass("break-all");
   });
 
+  it("wraps long diagnostic values in the file detail console while keeping the full text visible", async () => {
+    const longDiagnostic = "ffmpeg-error-" + "x".repeat(240);
+
+    mocks.getIntegrityFile.mockResolvedValueOnce({
+      data: {
+        check_id: "check-1",
+        file_instance_id: "file-1",
+        absolute_path: "/media/problem.mp4",
+        status: "BROKEN",
+        confidence: 0.93,
+        last_checked_at: "2026-03-25T09:00:00+00:00",
+        probe_status: "FAILED",
+        decode_status: "SKIPPED",
+        reviewed_decision: "MARK_OK",
+        reviewed_at: "2026-03-25T11:00:00+00:00",
+        signals: [
+          {
+            signal_type: "ffprobe_failed",
+            severity: "error",
+            details: { stderr: longDiagnostic },
+            created_at: "2026-03-25T10:00:00+00:00",
+          },
+        ],
+      },
+    });
+
+    renderPage();
+
+    const diagnosticNode = await screen.findByText(longDiagnostic, { exact: false });
+    const diagnosticConsole = diagnosticNode.closest("pre");
+
+    expect(diagnosticConsole).not.toBeNull();
+    expect(diagnosticConsole).toHaveClass("overflow-x-auto");
+    expect(diagnosticConsole).toHaveClass("whitespace-pre-wrap");
+    expect(diagnosticConsole).toHaveClass("break-words");
+    expect(diagnosticConsole).toHaveClass("border");
+    expect(diagnosticConsole).toHaveClass("font-mono");
+    expect(diagnosticConsole).toHaveClass("[overflow-wrap:anywhere]");
+  });
+
   it("quick scan shows in-flight state and then success summary", async () => {
     const deferred = createDeferred<{ data: { run_id: string; scan_mode: "FAST"; eligible_file_count: number; scanned_count: number; skipped_count: number; issues_found: number; full_rescan: boolean } }>();
     mocks.startIntegrityScan.mockReturnValueOnce(deferred.promise);

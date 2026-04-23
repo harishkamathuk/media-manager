@@ -661,7 +661,7 @@ export default function IntegrityPage() {
                         <p className="font-medium">{signal.signal_type}</p>
                       </div>
                       <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{signal.severity}</p>
-                      <pre className="mt-2 overflow-x-auto rounded-lg bg-muted p-3 text-xs">
+                      <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words [overflow-wrap:anywhere] rounded-lg border border-border/60 bg-muted/40 p-3 font-mono text-xs">
                         {JSON.stringify(signal.details, null, 2)}
                       </pre>
                     </div>
