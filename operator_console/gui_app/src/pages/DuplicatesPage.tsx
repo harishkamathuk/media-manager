@@ -533,8 +533,8 @@ export default function DuplicatesPage() {
   });
 
   const playbackIssuesQuery = useQuery({
-    queryKey: queryKeys.integrityIssues({ page: 1, limit: 200 }),
-    queryFn: async () => (await getIntegrityIssues({ page: 1, limit: 200 })).data,
+    queryKey: queryKeys.integrityIssues({ page: 1, limit: 100 }),
+    queryFn: async () => (await getIntegrityIssues({ page: 1, limit: 100 })).data,
     enabled: activeTab === "playback-issues",
   });
 

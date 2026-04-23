@@ -1630,6 +1630,7 @@ describe("DuplicatesPage", () => {
     expect(screen.queryByText("EXTRA_COPIES_UNHEALTHY_ONLY")).not.toBeInTheDocument();
     expect(screen.queryByText("unrelated.jpg")).not.toBeInTheDocument();
     expect(screen.queryByText("Quick")).not.toBeInTheDocument();
+    expect(mocks.getIntegrityIssues).toHaveBeenCalledWith({ page: 1, limit: 100 });
 
     const alphaCard = screen.getByTestId("playback-group-card-group-alpha");
     const betaCard = screen.getByTestId("playback-group-card-group-beta");
