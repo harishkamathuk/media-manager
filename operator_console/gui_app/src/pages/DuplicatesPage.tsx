@@ -10,7 +10,7 @@ import { DuplicateFocusCard } from "@/components/duplicates/DuplicateFocusCard";
 import { DuplicateMediaPreview } from "@/components/duplicates/DuplicateMediaPreview";
 import { DuplicateQueueItem } from "@/components/duplicates/DuplicateQueueItem";
 import { DuplicateReviewActionBar } from "@/components/duplicates/DuplicateReviewActionBar";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -1514,17 +1514,25 @@ export default function DuplicatesPage() {
           : "max-w-[120rem] gap-3 px-3 py-3 sm:px-4 lg:px-5",
       )}
     >
-      <div data-page-header data-testid="duplicates-page-header">
-        <TopSurfaceHeader
-          badge="Duplicate Review"
-          title="Work duplicate decisions in focused steps."
-          description="Compare duplicates, move extra copies to the Recycle Bin, restore them if needed, and keep playback review separate."
-          icon={Copy}
-          density="compact"
-          className="rounded-[24px]"
-          contentClassName="px-4 py-3 sm:px-4 lg:px-5 lg:py-4"
-        />
-      </div>
+      <section
+        data-page-header
+        data-testid="duplicates-page-header"
+        className="rounded-[24px] border border-border/70 bg-card/95 px-4 py-3 shadow-sm sm:px-4 lg:px-5 lg:py-4"
+      >
+        <div className="space-y-3">
+          <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+            Duplicate Review
+          </Badge>
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Work duplicate decisions in focused steps.
+            </h1>
+            <p className="max-w-4xl text-sm leading-6 text-muted-foreground">
+              Compare duplicates, move extra copies to the Recycle Bin, restore them if needed, and keep playback review separate.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {duplicatesQuery.error && (
         <ErrorAlert message={getErrorMessage(duplicatesQuery.error) || "Failed to load duplicate groups"} />
