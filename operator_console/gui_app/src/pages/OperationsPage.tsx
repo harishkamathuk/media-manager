@@ -10,7 +10,6 @@ import {
   Loader2,
   RefreshCw,
   Route,
-  Sparkles,
   Tag,
   ShieldAlert,
 } from "lucide-react";
@@ -21,8 +20,8 @@ import { WizardGuidancePanel } from "@/components/wizard/WizardGuidancePanel";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { JsonViewer } from "@/components/JsonViewer";
 import { LiveProgressPanel } from "@/components/progress/LiveProgressPanel";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -697,14 +696,25 @@ export default function OperationsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
-      <div data-page-header data-testid="operations-page-header">
-        <TopSurfaceHeader
-          badge="Import"
-          title="Continue the pipeline with more room to think and review."
-          description="Each action below opens into its own full-width workspace so you can review guidance, inputs, and results without squeezing the important parts into side-by-side cards."
-          icon={Sparkles}
-        />
-      </div>
+      <section
+        data-page-header
+        data-testid="operations-page-header"
+        className="rounded-[24px] border border-border/70 bg-card/95 px-5 py-4 shadow-sm"
+      >
+        <div className="space-y-3">
+          <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+            Import
+          </Badge>
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Continue the pipeline with more room to think and review.
+            </h1>
+            <p className="max-w-4xl text-sm leading-6 text-muted-foreground">
+              Each action below opens into its own full-width workspace so you can review guidance, inputs, and results without squeezing the important parts into side-by-side cards.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Keep one shared live panel above the action sections so progress stays visible while users move between explicit operation controls. */}
       <LiveProgressPanel
