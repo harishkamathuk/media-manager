@@ -17,17 +17,22 @@ const mocks = vi.hoisted(() => ({
   restoreIntegrityFile: vi.fn(),
 }));
 
-vi.mock("@/lib/api/endpoints", () => ({
-  getPolicy: mocks.getPolicy,
-  getIntegrityDashboard: mocks.getIntegrityDashboard,
-  getIntegrityFile: mocks.getIntegrityFile,
-  getIntegrityIssues: mocks.getIntegrityIssues,
-  getIntegrityQuarantineItems: mocks.getIntegrityQuarantineItems,
-  setIntegrityReview: mocks.setIntegrityReview,
-  startIntegrityScan: mocks.startIntegrityScan,
-  quarantineIntegrityFile: mocks.quarantineIntegrityFile,
-  restoreIntegrityFile: mocks.restoreIntegrityFile,
-}));
+vi.mock("@/lib/api/endpoints", async () => {
+  const actualMedia = await vi.importActual<typeof import("@/lib/api/endpoints/media")>("@/lib/api/endpoints/media");
+
+  return {
+    getPolicy: mocks.getPolicy,
+    getIntegrityDashboard: mocks.getIntegrityDashboard,
+    getIntegrityFile: mocks.getIntegrityFile,
+    getIntegrityIssues: mocks.getIntegrityIssues,
+    getIntegrityQuarantineItems: mocks.getIntegrityQuarantineItems,
+    setIntegrityReview: mocks.setIntegrityReview,
+    startIntegrityScan: mocks.startIntegrityScan,
+    quarantineIntegrityFile: mocks.quarantineIntegrityFile,
+    restoreIntegrityFile: mocks.restoreIntegrityFile,
+    INTEGRITY_ISSUES_PAGE_SIZE: actualMedia.INTEGRITY_ISSUES_PAGE_SIZE,
+  };
+});
 
 vi.mock("@/components/progress/LiveProgressPanel", () => ({
   LiveProgressPanel: ({

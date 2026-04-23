@@ -23,6 +23,7 @@ import {
   getDuplicateBinPolicy,
   getDuplicateBinItems,
   getDuplicates,
+  DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE,
   getIntegrityIssues,
   moveDuplicatesToBin,
   restoreDuplicatesFromBin,
@@ -533,8 +534,8 @@ export default function DuplicatesPage() {
   });
 
   const playbackIssuesQuery = useQuery({
-    queryKey: queryKeys.integrityIssues({ page: 1, limit: 200 }),
-    queryFn: async () => (await getIntegrityIssues({ page: 1, limit: 200 })).data,
+    queryKey: queryKeys.integrityIssues({ page: 1, limit: DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE }),
+    queryFn: async () => (await getIntegrityIssues({ page: 1, limit: DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE })).data,
     enabled: activeTab === "playback-issues",
   });
 
