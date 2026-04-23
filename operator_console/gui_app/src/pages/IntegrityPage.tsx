@@ -17,6 +17,7 @@ import {
   getIntegrityDashboard,
   getIntegrityFile,
   getIntegrityIssues,
+  INTEGRITY_ISSUES_PAGE_SIZE,
   getIntegrityQuarantineItems,
   getPolicy,
   quarantineIntegrityFile,
@@ -109,13 +110,17 @@ export default function IntegrityPage() {
   });
 
   const issuesQuery = useQuery({
-    queryKey: queryKeys.integrityIssues({ status: filter === "ALL" ? undefined : filter, page: 1, limit: 100 }),
+    queryKey: queryKeys.integrityIssues({
+      status: filter === "ALL" ? undefined : filter,
+      page: 1,
+      limit: INTEGRITY_ISSUES_PAGE_SIZE,
+    }),
     queryFn: async () =>
       (
         await getIntegrityIssues({
           status: filter === "ALL" ? undefined : filter,
           page: 1,
-          limit: 100,
+          limit: INTEGRITY_ISSUES_PAGE_SIZE,
         })
       ).data,
   });

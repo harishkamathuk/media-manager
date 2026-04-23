@@ -111,6 +111,8 @@ export const getIntegrityDashboard = async () => {
   return withData(envelope, mapIntegrityDashboard(envelope.data));
 };
 
+export const INTEGRITY_ISSUES_PAGE_SIZE = 100;
+
 export const getIntegrityIssues = async (params?: {
   status?: string;
   min_confidence?: number;

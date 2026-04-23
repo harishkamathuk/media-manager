@@ -61,6 +61,7 @@ function buildRecommendation(
 }
 
 const mocks = vi.hoisted(() => ({
+  INTEGRITY_ISSUES_PAGE_SIZE: 100,
   moveDuplicatesToBin: vi.fn(),
   getDuplicateBinPolicy: vi.fn(),
   getDuplicates: vi.fn(),
@@ -72,6 +73,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/api/endpoints", () => ({
+  INTEGRITY_ISSUES_PAGE_SIZE: mocks.INTEGRITY_ISSUES_PAGE_SIZE,
   moveDuplicatesToBin: mocks.moveDuplicatesToBin,
   getDuplicateBinPolicy: mocks.getDuplicateBinPolicy,
   getDuplicates: mocks.getDuplicates,
@@ -1630,7 +1632,7 @@ describe("DuplicatesPage", () => {
     expect(screen.queryByText("EXTRA_COPIES_UNHEALTHY_ONLY")).not.toBeInTheDocument();
     expect(screen.queryByText("unrelated.jpg")).not.toBeInTheDocument();
     expect(screen.queryByText("Quick")).not.toBeInTheDocument();
-    expect(mocks.getIntegrityIssues).toHaveBeenCalledWith({ page: 1, limit: 100 });
+    expect(mocks.getIntegrityIssues).toHaveBeenCalledWith({ page: 1, limit: mocks.INTEGRITY_ISSUES_PAGE_SIZE });
 
     const alphaCard = screen.getByTestId("playback-group-card-group-alpha");
     const betaCard = screen.getByTestId("playback-group-card-group-beta");

@@ -27,6 +27,7 @@ vi.mock("@/lib/api/endpoints", () => ({
   startIntegrityScan: mocks.startIntegrityScan,
   quarantineIntegrityFile: mocks.quarantineIntegrityFile,
   restoreIntegrityFile: mocks.restoreIntegrityFile,
+  INTEGRITY_ISSUES_PAGE_SIZE: 100,
 }));
 
 vi.mock("@/components/progress/LiveProgressPanel", () => ({
