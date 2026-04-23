@@ -40,7 +40,6 @@ import { JsonViewer } from "@/components/JsonViewer";
 import { MetricCard } from "@/components/MetricCard";
 import { LiveProgressPanel } from "@/components/progress/LiveProgressPanel";
 import { StatusBadge } from "@/components/StatusBadge";
-import { TopSurfaceHeader } from "@/components/layout/TopSurfaceHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -2624,15 +2623,25 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6">
-      <div data-page-header data-testid="admin-page-header">
-        <TopSurfaceHeader
-          badge="Admin Workspace"
-          title="Review what happened, investigate files, and use advanced tools only when you need them."
-          description="This is one integrated workspace now. Start with the simpler review tools, then move into health checks, benchmarks, or reset only when the situation calls for it."
-          icon={Sparkles}
-          className="rounded-[30px]"
-        />
-      </div>
+      <section
+        data-page-header
+        data-testid="admin-page-header"
+        className="rounded-[24px] border border-border/70 bg-card/95 px-5 py-4 shadow-sm"
+      >
+        <div className="space-y-3">
+          <Badge variant="outline" className="w-fit rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-muted-foreground">
+            Admin Workspace
+          </Badge>
+          <div className="space-y-1.5">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Review what happened, investigate files, and use advanced tools only when you need them.
+            </h1>
+            <p className="max-w-4xl text-sm leading-6 text-muted-foreground">
+              This is one integrated workspace now. Start with the simpler review tools, then move into health checks, benchmarks, or reset only when the situation calls for it.
+            </p>
+          </div>
+        </div>
+      </section>
 
       <Tabs value={tab} onValueChange={(value) => updateTab(value as AdminTab)} className="space-y-4">
         <section data-page-section-nav data-testid="admin-page-section-nav">
