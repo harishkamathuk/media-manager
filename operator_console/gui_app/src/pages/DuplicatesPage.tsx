@@ -749,6 +749,7 @@ export default function DuplicatesPage() {
   );
   const brokenIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.brokenCount, 0);
   const suspectIssueCount = duplicatePlaybackGroups.reduce((sum, entry) => sum + entry.suspectCount, 0);
+  const linkedPlaybackIssueCount = brokenIssueCount + suspectIssueCount;
   const reviewProgressLabel =
     selectedOverallIndex >= 0 ? `${selectedOverallIndex + 1} of ${sortedGroups.length}` : `0 of ${sortedGroups.length}`;
   const reviewMetaLine = selected
@@ -2313,9 +2314,11 @@ export default function DuplicatesPage() {
                       <div>
                         <p className="text-sm font-semibold text-foreground">Playback issues in duplicate groups</p>
                         <p className="text-sm text-muted-foreground">Review duplicate-linked playback exceptions here, then choose whether to continue duplicate review or open Integrity Review.</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          Showing the first {DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE} fetched integrity issues linked to duplicate groups.
-                        </p>
+                        {linkedPlaybackIssueCount > 0 ? (
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Showing the first {DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE} fetched integrity issues; results are filtered to those linked to duplicate groups.
+                          </p>
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <StatusBadge label={`${duplicatePlaybackGroups.length} group${duplicatePlaybackGroups.length === 1 ? "" : "s"} with playback issues`} severity="neutral" />

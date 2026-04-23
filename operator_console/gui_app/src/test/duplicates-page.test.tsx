@@ -1619,7 +1619,9 @@ describe("DuplicatesPage", () => {
     expect(topControls.nextElementSibling).toBe(issuesList);
     expect(screen.getByText("Playback issues in duplicate groups")).toBeInTheDocument();
     expect(
-      screen.getByText(`Showing the first ${DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE} fetched integrity issues linked to duplicate groups.`),
+      screen.getByText(
+        `Showing the first ${DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE} fetched integrity issues; results are filtered to those linked to duplicate groups.`,
+      ),
     ).toBeInTheDocument();
     expect(within(topControls).getByRole("button", { name: "Switch to review tab" })).toBeInTheDocument();
     expect(within(topControls).getByRole("link", { name: "Integrity review" })).toBeInTheDocument();
