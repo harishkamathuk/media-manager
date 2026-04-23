@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE } from "@/lib/api/endpoints/media";
 import DuplicatesPage from "@/pages/DuplicatesPage";
 
 function buildRecommendation(
@@ -61,7 +62,6 @@ function buildRecommendation(
 }
 
 const mocks = vi.hoisted(() => ({
-  INTEGRITY_ISSUES_PAGE_SIZE: 100,
   moveDuplicatesToBin: vi.fn(),
   getDuplicateBinPolicy: vi.fn(),
   getDuplicates: vi.fn(),
@@ -72,8 +72,11 @@ const mocks = vi.hoisted(() => ({
   setDuplicateReview: vi.fn(),
 }));
 
-vi.mock("@/lib/api/endpoints", () => ({
-  INTEGRITY_ISSUES_PAGE_SIZE: mocks.INTEGRITY_ISSUES_PAGE_SIZE,
+vi.mock("@/lib/api/endpoints", async () => {
+  const actualMedia = await vi.importActual<typeof import("@/lib/api/endpoints/media")>("@/lib/api/endpoints/media");
+
+  return {
+    DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE: actualMedia.DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE,
   moveDuplicatesToBin: mocks.moveDuplicatesToBin,
   getDuplicateBinPolicy: mocks.getDuplicateBinPolicy,
   getDuplicates: mocks.getDuplicates,
@@ -82,7 +85,8 @@ vi.mock("@/lib/api/endpoints", () => ({
   restoreDuplicatesFromBin: mocks.restoreDuplicatesFromBin,
   setDuplicateReclaim: mocks.setDuplicateReclaim,
   setDuplicateReview: mocks.setDuplicateReview,
-}));
+  };
+});
 
 function buildGroup(id: string, canonicalName: string, duplicateNames: string[]) {
   return {
@@ -1632,7 +1636,7 @@ describe("DuplicatesPage", () => {
     expect(screen.queryByText("EXTRA_COPIES_UNHEALTHY_ONLY")).not.toBeInTheDocument();
     expect(screen.queryByText("unrelated.jpg")).not.toBeInTheDocument();
     expect(screen.queryByText("Quick")).not.toBeInTheDocument();
-    expect(mocks.getIntegrityIssues).toHaveBeenCalledWith({ page: 1, limit: mocks.INTEGRITY_ISSUES_PAGE_SIZE });
+    expect(mocks.getIntegrityIssues).toHaveBeenCalledWith({ page: 1, limit: DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE });
 
     const alphaCard = screen.getByTestId("playback-group-card-group-alpha");
     const betaCard = screen.getByTestId("playback-group-card-group-beta");

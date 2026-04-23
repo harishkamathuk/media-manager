@@ -112,6 +112,7 @@ export const getIntegrityDashboard = async () => {
 };
 
 export const INTEGRITY_ISSUES_PAGE_SIZE = 100;
+export const DUPLICATES_PLAYBACK_ISSUES_PAGE_SIZE = 200;
 
 export const getIntegrityIssues = async (params?: {
   status?: string;
