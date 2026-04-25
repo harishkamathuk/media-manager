@@ -129,6 +129,7 @@ def test_admin_app_settings_omits_catalog_keys_removed_from_durable_surface(sess
     payload = services.admin_app_settings()
 
     assert not any(entry["key"] == "benchmark_max_items" for entry in payload["items"])
+    assert not any(entry["key"] == "allow_planner_mv_reads" for entry in payload["items"])
 
 
 def test_admin_app_settings_sensitive_value_is_redacted(session_factory) -> None:

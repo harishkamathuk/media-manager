@@ -146,12 +146,6 @@ _CATALOG: dict[str, AppSettingDefinition] = {
         value_type="bool",
         category="ui",
     ),
-    "allow_planner_mv_reads": AppSettingDefinition(
-        key="allow_planner_mv_reads",
-        env_var="MEDIA_MANAGER_ALLOW_PLANNER_MV_READS",
-        value_type="bool",
-        category="ui",
-    ),
     "canonical_read_cache_enabled": AppSettingDefinition(
         key="canonical_read_cache_enabled",
         env_var="CANONICAL_READ_CACHE_ENABLED",
@@ -523,7 +517,6 @@ class AppSettingsService:
             "directory_picker_enabled",
             "video_thumbnails_enabled",
             "benchmarks_enabled",
-            "allow_planner_mv_reads",
             "canonical_read_cache_enabled",
             "db_reset_include_dynamic",
         }:
