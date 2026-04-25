@@ -202,7 +202,6 @@ def test_bootstrap_from_env_parses_current_runtime_values(session_factory, monke
     monkeypatch.setenv("MEDIA_MANAGER_VIDEO_THUMBNAIL_CACHE_DIR", str((tmp_path / "thumbs").resolve()))
     monkeypatch.setenv("MEDIA_MANAGER_DB_RESET_INCLUDE_DYNAMIC", "false")
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARKS_ENABLED", "true")
-    monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_MAX_ITEMS", "10000")
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_POLL_INTERVAL_SECONDS", "2.0")
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_STALE_AFTER_SECONDS", "900")
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_WORKER_MODE", "forever")

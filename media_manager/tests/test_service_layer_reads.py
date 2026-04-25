@@ -121,6 +121,7 @@ def test_admin_app_settings_non_dual_read_key_is_conservative(session_factory) -
     assert item["db_present"] is False
     assert item["runtime_dual_read_enabled"] is False
     assert item["effective_source"] is None
+    assert not any(entry["key"] == "benchmark_max_items" for entry in payload["items"])
 
 
 def test_admin_app_settings_sensitive_value_is_redacted(session_factory) -> None:

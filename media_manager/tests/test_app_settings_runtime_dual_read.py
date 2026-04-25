@@ -257,8 +257,8 @@ def test_benchmark_runner_run_once_warns_and_falls_back_to_env_stale_after(
     assert any("using environment fallback" in line for line in calls)
 
 
-def test_benchmark_max_items_remains_not_enabled_for_runtime_dual_read(session_factory) -> None:
-    with pytest.raises(AppSettingsValidationError, match="not enabled for runtime dual-read"):
+def test_benchmark_max_items_is_not_part_of_the_app_settings_runtime_surface(session_factory) -> None:
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
         AppSettingsService(session_factory).resolve_runtime_value("benchmark_max_items")
 
 
