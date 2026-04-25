@@ -89,6 +89,11 @@ def test_planner_metadata_batch_size_dual_read(session_factory, monkeypatch) -> 
     assert planner._get_metadata_batch_size() == 500
 
 
+def test_allow_planner_mv_reads_is_not_part_of_the_app_settings_runtime_surface(session_factory) -> None:
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
+        AppSettingsService(session_factory).resolve_runtime_value("allow_planner_mv_reads")
+
+
 def test_benchmark_runner_main_uses_db_first_worker_mode(
     session_factory, test_database_url: str, monkeypatch
 ) -> None:
