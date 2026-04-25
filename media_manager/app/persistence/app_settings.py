@@ -170,12 +170,6 @@ _CATALOG: dict[str, AppSettingDefinition] = {
         value_type="int",
         category="performance",
     ),
-    "benchmark_max_items": AppSettingDefinition(
-        key="benchmark_max_items",
-        env_var="MEDIA_MANAGER_BENCHMARK_MAX_ITEMS",
-        value_type="int",
-        category="performance",
-    ),
     "benchmark_poll_interval_seconds": AppSettingDefinition(
         key="benchmark_poll_interval_seconds",
         env_var="MEDIA_MANAGER_BENCHMARK_POLL_INTERVAL_SECONDS",
@@ -415,9 +409,9 @@ class AppSettingsService:
         logger: logging.Logger | None = None,
         session: Session | None = None,
     ) -> bool | str | float | int | list[str]:
+        definition = self.definition_for(key)
         if key not in RUNTIME_DUAL_READ_KEYS:
             raise AppSettingsValidationError(f"{key} is not enabled for runtime dual-read in this slice.")
-        definition = self.definition_for(key)
         snapshot = self.get_setting(key, session=session)
         if snapshot is not None:
             return snapshot.value
@@ -485,8 +479,6 @@ class AppSettingsService:
                 raise AppSettingsValidationError(f"{key} must be an integer.") from exc
             if key == "metadata_upsert_batch_size":
                 return min(max(parsed, 1), 50_000)
-            if key in {"benchmark_max_items"} and parsed <= 0:
-                raise AppSettingsValidationError(f"{key} must be > 0.")
             return int(parsed)
         if definition.value_type == "enum":
             normalized = str(value).strip()
@@ -543,8 +535,6 @@ class AppSettingsService:
             return self._parse_float_env(key, cleaned, default=30.0, strict=strict, positive=True, fallback_on_invalid=30.0)
         if key == "metadata_upsert_batch_size":
             return self._parse_int_env(key, cleaned, default=1000, strict=strict, clamp=(1, 50_000), positive=False)
-        if key == "benchmark_max_items":
-            return self._parse_int_env(key, cleaned, default=10_000, strict=strict, clamp=None, positive=True)
         if key == "benchmark_poll_interval_seconds":
             return self._parse_float_env(key, cleaned, default=2.0, strict=strict, positive=strict, fallback_on_invalid=None)
         if key == "benchmark_stale_after_seconds":
