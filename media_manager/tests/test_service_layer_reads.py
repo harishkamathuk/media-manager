@@ -121,6 +121,13 @@ def test_admin_app_settings_non_dual_read_key_is_conservative(session_factory) -
     assert item["db_present"] is False
     assert item["runtime_dual_read_enabled"] is False
     assert item["effective_source"] is None
+
+
+def test_admin_app_settings_omits_catalog_keys_removed_from_durable_surface(session_factory) -> None:
+    services = ReadServices(session_factory=session_factory, cache=_FakeCache(invalidations=[]))
+
+    payload = services.admin_app_settings()
+
     assert not any(entry["key"] == "benchmark_max_items" for entry in payload["items"])
 
 
