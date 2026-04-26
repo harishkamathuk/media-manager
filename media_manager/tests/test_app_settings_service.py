@@ -184,8 +184,6 @@ def test_bootstrap_from_env_parses_current_runtime_values(session_factory, monke
     service = AppSettingsService(session_factory)
 
     monkeypatch.setenv("MEDIA_REQUIRED_CODES", "OWNER,CONTEXT,TAKEN_DT")
-    monkeypatch.setenv("MEDIA_CANONICAL_STORAGE_PATH", str((tmp_path / "canonical").resolve()))
-    monkeypatch.setenv("MEDIA_DUPLICATE_STORAGE_PATH", str((tmp_path / "duplicates").resolve()))
     monkeypatch.setenv("MEDIA_MANAGER_TAG_NORMALIZATION_REMOVE_PUNCTUATION", "0")
     monkeypatch.setenv("MEDIA_CANONICAL_POLICY", "FIRST_SEEN")
     monkeypatch.setenv("MEDIA_PREFERRED_ROOTS", "")
@@ -230,8 +228,6 @@ def test_bootstrap_from_env_parses_current_runtime_values(session_factory, monke
 
 def test_bootstrap_is_idempotent_and_skips_existing_rows(session_factory, monkeypatch, tmp_path: Path) -> None:
     service = AppSettingsService(session_factory)
-    monkeypatch.setenv("MEDIA_CANONICAL_STORAGE_PATH", str((tmp_path / "canonical").resolve()))
-    monkeypatch.setenv("MEDIA_DUPLICATE_STORAGE_PATH", str((tmp_path / "duplicates").resolve()))
 
     first = service.bootstrap_from_env()
     second = service.bootstrap_from_env()
@@ -243,8 +239,6 @@ def test_bootstrap_is_idempotent_and_skips_existing_rows(session_factory, monkey
 
 def test_bootstrap_rejects_invalid_enum(session_factory, monkeypatch, tmp_path: Path) -> None:
     service = AppSettingsService(session_factory)
-    monkeypatch.setenv("MEDIA_CANONICAL_STORAGE_PATH", str((tmp_path / "canonical").resolve()))
-    monkeypatch.setenv("MEDIA_DUPLICATE_STORAGE_PATH", str((tmp_path / "duplicates").resolve()))
     monkeypatch.setenv("MEDIA_MANAGER_BENCHMARK_WORKER_MODE", "invalid")
 
     with pytest.raises(AppSettingsValidationError):
