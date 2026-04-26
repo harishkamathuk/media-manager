@@ -72,6 +72,14 @@ def test_operator_console_video_thumbnail_settings_dual_read(session_factory, mo
     assert _video_thumbnail_cache_dir(session_factory) == (tmp_path / "db-thumbs").resolve()
 
 
+def test_primary_storage_roots_are_not_part_of_the_app_settings_runtime_surface(session_factory) -> None:
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
+        AppSettingsService(session_factory).resolve_runtime_value("canonical_storage_path")
+
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
+        AppSettingsService(session_factory).resolve_runtime_value("duplicate_storage_path")
+
+
 def test_planner_metadata_batch_size_dual_read(session_factory, monkeypatch) -> None:
     planner = PlanningService(session_factory)
     monkeypatch.setenv("METADATA_UPSERT_BATCH_SIZE", "2500")

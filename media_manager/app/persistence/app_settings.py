@@ -19,7 +19,6 @@ from media_manager.app.canonical.factory import resolve_default_policy_name
 from media_manager.app.core.config import (
     REQUIRED_METADATA_CODES,
     load_environment,
-    resolve_storage_roots,
 )
 from media_manager.app.core.errors import (
     AppSettingsValidationError,
@@ -103,18 +102,6 @@ _CATALOG: dict[str, AppSettingDefinition] = {
         env_var="MEDIA_MANAGER_TAG_NORMALIZATION_REMOVE_PUNCTUATION",
         value_type="bool",
         category="policy",
-    ),
-    "canonical_storage_path": AppSettingDefinition(
-        key="canonical_storage_path",
-        env_var="MEDIA_CANONICAL_STORAGE_PATH",
-        value_type="path",
-        category="storage",
-    ),
-    "duplicate_storage_path": AppSettingDefinition(
-        key="duplicate_storage_path",
-        env_var="MEDIA_DUPLICATE_STORAGE_PATH",
-        value_type="path",
-        category="storage",
     ),
     "video_thumbnail_cache_dir": AppSettingDefinition(
         key="video_thumbnail_cache_dir",
@@ -506,10 +493,6 @@ class AppSettingsService:
             return _split_csv_preserve_order(cleaned) if cleaned else []
         if key == "tag_normalization_remove_punctuation":
             return _truthy(cleaned or "0")
-        if key == "canonical_storage_path":
-            return str(resolve_storage_roots().canonical_root)
-        if key == "duplicate_storage_path":
-            return str(resolve_storage_roots().duplicate_root)
         if key == "video_thumbnail_cache_dir":
             path_value = cleaned if cleaned else str(Path(tempfile.gettempdir()) / "media-manager" / "video-thumbnails")
             return _normalize_path_string(path_value, field_name=key)
