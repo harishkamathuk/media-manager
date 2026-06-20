@@ -150,9 +150,10 @@ def test_set_value_translates_concurrent_create_conflict(session_factory, monkey
 def test_sensitive_history_payloads_are_redacted_for_set_value(session_factory, monkeypatch) -> None:
     service = AppSettingsService(session_factory)
     sensitive_key = "test_sensitive_setting"
+    env_name = "MEDIA_MANAGER_TEST_SENSITIVE_SETTING"
     definition = AppSettingDefinition(
         key=sensitive_key,
-        env_var="MEDIA_MANAGER_TEST_SENSITIVE_SETTING",
+        env_var=env_name,
         value_type="string",
         category="test",
         is_sensitive=True,
