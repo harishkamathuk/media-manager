@@ -132,23 +132,5 @@ def test_admin_app_settings_omits_catalog_keys_removed_from_durable_surface(sess
     assert not any(entry["key"] == "allow_planner_mv_reads" for entry in payload["items"])
     assert not any(entry["key"] == "canonical_storage_path" for entry in payload["items"])
     assert not any(entry["key"] == "duplicate_storage_path" for entry in payload["items"])
-
-
-def test_admin_app_settings_sensitive_value_is_redacted(session_factory) -> None:
-    AppSettingsService(session_factory).set_value(
-        "db_reset_challenge_word",
-        "media-manager",
-        updated_by="tester",
-        source="test",
-        expected_version=0,
-    )
-    services = ReadServices(session_factory=session_factory, cache=_FakeCache(invalidations=[]))
-
-    payload = services.admin_app_settings()
-    item = next(entry for entry in payload["items"] if entry["key"] == "db_reset_challenge_word")
-
-    assert item["db_present"] is True
-    assert item["runtime_dual_read_enabled"] is False
-    assert item["effective_source"] is None
-    assert item["value_redacted"] is True
-    assert "value_json" not in item
+    assert not any(entry["key"] == "db_reset_include_dynamic" for entry in payload["items"])
+    assert not any(entry["key"] == "db_reset_challenge_word" for entry in payload["items"])

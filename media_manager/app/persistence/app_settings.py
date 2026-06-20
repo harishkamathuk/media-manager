@@ -169,19 +169,6 @@ _CATALOG: dict[str, AppSettingDefinition] = {
         value_type="enum",
         category="performance",
     ),
-    "db_reset_include_dynamic": AppSettingDefinition(
-        key="db_reset_include_dynamic",
-        env_var="MEDIA_MANAGER_DB_RESET_INCLUDE_DYNAMIC",
-        value_type="bool",
-        category="admin_safety",
-    ),
-    "db_reset_challenge_word": AppSettingDefinition(
-        key="db_reset_challenge_word",
-        env_var="MEDIA_MANAGER_DB_RESET_CHALLENGE_WORD",
-        value_type="string",
-        category="admin_safety",
-        is_sensitive=True,
-    ),
 }
 
 
@@ -501,12 +488,9 @@ class AppSettingsService:
             "video_thumbnails_enabled",
             "benchmarks_enabled",
             "canonical_read_cache_enabled",
-            "db_reset_include_dynamic",
         }:
             default = "false"
             return _truthy(cleaned or default)
-        if key == "db_reset_challenge_word":
-            return cleaned or DB_RESET_CHALLENGE_WORD_DEFAULT
         if key == "canonical_read_cache_ttl_seconds":
             return self._parse_float_env(key, cleaned, default=30.0, strict=strict, positive=True, fallback_on_invalid=30.0)
         if key == "metadata_upsert_batch_size":
