@@ -31,7 +31,6 @@ ValueType = Literal["bool", "string", "string_list", "enum", "path", "float", "i
 
 CANONICAL_POLICY_VALUES = frozenset({"FIRST_SEEN", "PREFER_ROOT", "EXIF_FILENAME_FALLBACK", "SHORTEST_PATH"})
 BENCHMARK_WORKER_MODE_VALUES = frozenset({"forever", "once"})
-DB_RESET_CHALLENGE_WORD_DEFAULT = "media-manager"
 TRUTHY_VALUES = frozenset({"1", "true", "yes", "on"})
 RUNTIME_DUAL_READ_KEYS = frozenset(
     {
