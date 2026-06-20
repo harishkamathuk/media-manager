@@ -102,6 +102,14 @@ def test_allow_planner_mv_reads_is_not_part_of_the_app_settings_runtime_surface(
         AppSettingsService(session_factory).resolve_runtime_value("allow_planner_mv_reads")
 
 
+def test_admin_safety_controls_are_not_part_of_the_app_settings_runtime_surface(session_factory) -> None:
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
+        AppSettingsService(session_factory).resolve_runtime_value("db_reset_include_dynamic")
+
+    with pytest.raises(AppSettingsValidationError, match="Unknown app setting key"):
+        AppSettingsService(session_factory).resolve_runtime_value("db_reset_challenge_word")
+
+
 def test_benchmark_runner_main_uses_db_first_worker_mode(
     session_factory, test_database_url: str, monkeypatch
 ) -> None:
