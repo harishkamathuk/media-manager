@@ -10,8 +10,8 @@ from media_manager.app.core.errors import (
     AppSettingsValidationError,
     AppSettingsVersionConflictError,
 )
-from media_manager.app.persistence.app_settings import _CATALOG, AppSettingsService
-from media_manager.app.persistence.models import AppSetting
+from media_manager.app.persistence.app_settings import AppSettingDefinition, _CATALOG, AppSettingsService
+from media_manager.app.persistence.models import AppSetting, AppSettingHistory
 
 
 def test_set_value_validates_canonical_policy_enum(session_factory) -> None:
@@ -120,6 +120,8 @@ def test_set_value_uses_optimistic_concurrency(session_factory) -> None:
             source="test",
             expected_version=created.version,
         )
+
+
 def test_set_value_translates_concurrent_create_conflict(session_factory, monkeypatch) -> None:
     service = AppSettingsService(session_factory)
     original_flush = Session.flush
@@ -143,6 +145,48 @@ def test_set_value_translates_concurrent_create_conflict(session_factory, monkey
             source="test",
             expected_version=0,
         )
+
+
+def test_sensitive_history_payloads_are_redacted_for_set_value(session_factory, monkeypatch) -> None:
+    service = AppSettingsService(session_factory)
+    sensitive_key = "test_sensitive_setting"
+    definition = AppSettingDefinition(
+        key=sensitive_key,
+        env_var="MEDIA_MANAGER_TEST_SENSITIVE_SETTING",
+        value_type="string",
+        category="test",
+        is_sensitive=True,
+    )
+    monkeypatch.setitem(_CATALOG, sensitive_key, definition)
+
+    created = service.set_value(
+        sensitive_key,
+        "initial-secret",
+        updated_by="tester",
+        source="test",
+        expected_version=0,
+    )
+    service.set_value(
+        sensitive_key,
+        "rotated-secret",
+        updated_by="tester",
+        source="test",
+        expected_version=created.version,
+    )
+
+    with session_factory() as session:
+        history = (
+            session.query(AppSettingHistory)
+            .filter(AppSettingHistory.key == sensitive_key)
+            .order_by(AppSettingHistory.id.asc())
+            .all()
+        )
+
+    assert len(history) == 2
+    assert history[0].old_value_json is None
+    assert history[0].new_value_json == {"value": "<REDACTED>"}
+    assert history[1].old_value_json == {"value": "<REDACTED>"}
+    assert history[1].new_value_json == {"value": "<REDACTED>"}
 
 
 def test_bootstrap_from_env_parses_current_runtime_values(session_factory, monkeypatch, tmp_path: Path) -> None:
@@ -197,3 +241,27 @@ def test_bootstrap_rejects_invalid_enum(session_factory, monkeypatch, tmp_path: 
 
     with pytest.raises(AppSettingsValidationError):
         service.bootstrap_from_env()
+
+
+def test_bootstrap_from_env_redacts_sensitive_history_payloads(session_factory, monkeypatch) -> None:
+    service = AppSettingsService(session_factory)
+    sensitive_key = "benchmark_worker_mode"
+    env_name = "MEDIA_MANAGER_BENCHMARK_WORKER_MODE"
+    definition = AppSettingDefinition(
+        key=sensitive_key,
+        env_var=env_name,
+        value_type="enum",
+        category="performance",
+        is_sensitive=True,
+    )
+    monkeypatch.setitem(_CATALOG, sensitive_key, definition)
+    monkeypatch.setenv(env_name, "forever")
+
+    result = service.bootstrap_from_env()
+
+    assert sensitive_key in result.inserted_keys
+    with session_factory() as session:
+        history = session.query(AppSettingHistory).filter(AppSettingHistory.key == sensitive_key).one()
+
+    assert history.old_value_json is None
+    assert history.new_value_json == {"value": "<REDACTED>"}
